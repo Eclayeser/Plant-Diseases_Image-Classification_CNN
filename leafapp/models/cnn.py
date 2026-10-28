@@ -9,19 +9,33 @@ def conv_block(in_ch, out_ch):
 
 class BasicCNN(nn.Module):
     """
-    Baseline 3-block CNN. Expects [B, 3, 128, 128] input, returns [B, num_classes] logits."""
-    def __init__(self, num_classes=39):
+    Baseline CNN: a stack of conv blocks followed by a linear classifier.
+
+    Args:
+        num_classes: number of output classes.
+        channels: output channels of each conv block; one block per entry,
+            e.g. (16, 32, 64) builds 3 blocks.
+        image_size: height/width of the (square) input images.
+        
+    Input [B, 3, image_size, image_size] -> output [B, num_classes] logits.
+    """
+    def __init__(self, num_classes=39, channels=(16, 32, 64), image_size=128):
         super().__init__()
-        self.features = nn.Sequential(
-        #input channels, output channels
-            conv_block(3, 16),
-            conv_block(16, 32),
-            conv_block(32, 64)
-        )
+        # Chain the blocks: each block's input channels = the previous block's output
+        blocks = []
+        in_ch = 3
+        for out_ch in channels:
+            blocks.append(conv_block(in_ch, out_ch))
+            in_ch = out_ch
+        self.features = nn.Sequential(*blocks)
+        
+        # Each block halves height and width, so the final maps are
+        # image_size // 2**num_blocks on each side
+        final_size = image_size // 2**len(blocks)
         self.head = nn.Sequential(
             nn.Flatten(),
-            #  channels * height * width
-            nn.Linear(64 * 16 * 16, num_classes)
+            #        channels * height * width
+            nn.Linear(channels[-1] * final_size**2, num_classes)
         )
 
     def forward(self, x):
