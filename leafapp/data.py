@@ -6,10 +6,22 @@ DATASET_NAME = "DScomp380/plant_village"
 
 
 def load_subset(fraction, seed):
-    """Return a random fraction of the plant_village rows, shuffled with seed."""
+    """Return a stratified random fraction of the plant_village rows.
+
+    Every label keeps its share of the full dataset. A fraction of 1
+    returns the whole dataset, shuffled with seed.
+    """
+    if not 0 < fraction <= 1:
+        raise ValueError(f"Invalid fraction {fraction}: expected a value in (0, 1]")
     ds = load_dataset(DATASET_NAME, split="train")
-    n_rows = int(fraction * len(ds))
-    return ds.shuffle(seed=seed).select(range(n_rows))
+    if fraction < 1:
+        subset = ds.train_test_split(
+            train_size=fraction,
+            seed=seed,
+            stratify_by_column="label",
+        )
+        return subset["train"]
+    return ds.shuffle(seed=seed)
 
 
 def split(ds, seed, val_frac=0.15, test_frac=0.15):
