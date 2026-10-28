@@ -65,6 +65,7 @@ def make_batch_transform(image_transform):
     """Return a function that converts a batch of rows with image_transform."""
 
     def transform_batch(batch):
+        """Convert the photos in batch to tensors and keep their labels."""
         return {
             "pixels": [image_transform(img.convert("RGB")) for img in batch["image"]],
             "label": batch["label"],
@@ -89,9 +90,9 @@ def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=Tr
     val.set_transform(make_batch_transform(eval_tf))
     test.set_transform(make_batch_transform(eval_tf))
 
-    train_loader = DataLoader(train, batch_size, shuffle=True)
-    val_loader = DataLoader(val, batch_size)
-    test_loader = DataLoader(test, batch_size)
+    train_loader = DataLoader(train, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val, batch_size=batch_size)
+    test_loader = DataLoader(test, batch_size=batch_size)
 
     class_names = rows.features["label"].names
 
