@@ -71,3 +71,28 @@ def make_batch_transform(image_transform):
         }
 
     return transform_batch
+
+
+def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=True):
+    """Build the train, validation and test loaders for plant_village.
+
+    Return (train_loader, val_loader, test_loader, class_names). Each
+    batch is a dict: "pixels" of shape [batch_size, 3, image_size,
+    image_size] and "label" of shape [batch_size]. class_names[i] is the
+    name of label i.
+    """
+    rows = load_subset(fraction, seed)
+    train, val, test = split(rows, seed)
+    train_tf, eval_tf = make_transforms(image_size, augment)
+
+    train.set_transform(make_batch_transform(train_tf))
+    val.set_transform(make_batch_transform(eval_tf))
+    test.set_transform(make_batch_transform(eval_tf))
+
+    train_loader = DataLoader(train, batch_size, shuffle=True)
+    val_loader = DataLoader(val, batch_size)
+    test_loader = DataLoader(test, batch_size)
+
+    class_names = rows.features["label"].names
+
+    return train_loader, val_loader, test_loader, class_names
