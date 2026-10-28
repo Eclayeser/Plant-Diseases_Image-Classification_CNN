@@ -59,3 +59,15 @@ def make_transforms(image_size, augment=True):
     else:
         train_tf = eval_tf
     return train_tf, eval_tf
+
+
+def make_batch_transform(image_transform):
+    """Return a function that converts a batch of rows with image_transform."""
+
+    def transform_batch(batch):
+        return {
+            "pixels": [image_transform(img.convert("RGB")) for img in batch["image"]],
+            "label": batch["label"],
+        }
+
+    return transform_batch
