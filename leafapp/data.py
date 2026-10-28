@@ -11,14 +11,21 @@ def load_subset(fraction, seed):
 
 
 def split(ds, seed, val_frac=0.15, test_frac=0.15):
+    """Split ds by label into train, validation and test sets.
+
+    Return (train, val, test). Keep the fractions the same across all
+    runs you compare.
+    """
+    held_out = val_frac + test_frac
     cut1 = ds.train_test_split(
-        test_size=val_frac + test_frac,
+        test_size=held_out,
         seed=seed,
         stratify_by_column="label",
     )
     cut2 = cut1["test"].train_test_split(
-        test_size=0.5,
+        test_size=test_frac / held_out,
         seed=seed,
         stratify_by_column="label",
     )
-    return cut1["train"], cut2["train"], cut2["test"]
+    train, val, test = cut1["train"], cut2["train"], cut2["test"]
+    return train, val, test
