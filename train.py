@@ -1,9 +1,13 @@
 # Runs model training and validation, records results and saves checkpoints.
+from pathlib import Path
+
 import torch
 from torch import nn
 from leafapp.config import load_config
 from leafapp.data import get_loaders
 from leafapp.models.cnn import BasicCNN
+
+ROOT = Path(__file__).resolve().parent
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
     model.train()
@@ -47,7 +51,7 @@ def evaluate(model, loader, criterion, device):
     return total_loss / total, correct / total
 
 def main():
-    cfg = load_config("configs/prototype.yaml")
+    cfg = load_config(ROOT / "configs" / "prototype.yaml")
     torch.manual_seed(cfg["seed"])
     train_loader, val_loader, test_loader, class_names = get_loaders(
         fraction=cfg["data"]["fraction"],
