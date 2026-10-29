@@ -1,1 +1,2 @@
-# Lists local files, downloaded data and credentials that Git should ignore.
+__pycache__/
+.pytest_cache/
