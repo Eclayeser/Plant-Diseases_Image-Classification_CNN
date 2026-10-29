@@ -13,10 +13,10 @@ A `v0.1-prototype` Git tag will mark the version delivered as the prototype.
 
 ## Tools
 
-Despite the **Technology Stack** used directly for product development, out team uses range of different software tools to accelerate the speed of our work and improve the code quality.
+Despite the **Technology Stack** used directly for product development, our team uses a range of different software tools to accelerate the speed of our work and improve the code quality.
 
 | Tool | Use | Why this tool | How to View |
 |---|---|---|---|
-| **Linear** | Issue tracking, development cycles management | Easy to learn and intuitive to use; commonly used across businesses; some team memebrs have previous experience using this tool; Free tier available; supports integration with Github | Join workspace via a link (cannot be shared publicly since no read-only access available; request one of the team members for access) |
-| **Slack** | Real-time (via Huddles) and asynchronousteam communication (via different dedicated channels) | Free to use; supports integration with Linear; commonly used across businesses; some team memebrs have previous experience using this tool; highly customiseable which allows for clear information exchange | Join workspace via a link (cannot be shared publicly since no read-only access available; request one of the team members for access) |
-| **Coderabbit AI**| AI-driven code reviews for PRs; integrated as a required check before PR can be merged | Catches bugs early and allows developers to debug quicklier without waiting for others to review; provides useful PR summaries; free to use and easy to integrate; common practice across most companies | N/A |
+| **Linear** | Issue tracking, development cycles management | Easy to learn and intuitive to use; commonly used across businesses; some team members have previous experience using this tool; Free tier available; supports integration with GitHub | Join workspace via a link (cannot be shared publicly since no read-only access available; request one of the team members for access) |
+| **Slack** | Real-time (via Huddles) and asynchronous team communication (via different dedicated channels) | Free to use; supports integration with Linear; commonly used across businesses; some team memebrs have previous experience using this tool; highly customisable which allows for clear information exchange | Join workspace via a link (cannot be shared publicly since no read-only access available; request one of the team members for access) |
+| **Coderabbit AI**| AI-driven code reviews for PRs; integrated as a required check before PR can be merged | Catches bugs early and allows developers to debug quicker without waiting for others to review; provides useful PR summaries; free to use and easy to integrate; common practice across most companies | N/A |
