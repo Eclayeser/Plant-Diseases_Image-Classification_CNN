@@ -14,5 +14,5 @@ The meeting purpose was predominantly to agree on the communication/development/
 3. GitHub repository created and everyone added as contributors
 
 ### TODOs - Cycle 0
-*The meeeting has taken place before the first Development Cycle, therefore no particular TODOs were assigned at this stage*
+*The meeting has taken place before the first Development Cycle, therefore no particular TODOs were assigned at this stage*
 All team members were encouraged to go through project assignment description and understand requirements better.
