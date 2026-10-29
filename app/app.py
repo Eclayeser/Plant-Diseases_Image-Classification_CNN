@@ -73,7 +73,7 @@ demo = gr.Interface(
     ),
     
     title="Plant Disease Classification",
-    description="Upload a plant leaf image to identify its disease.",
+    description="UI prototype: Predictions are simulated using dummy values. The trained CNN model is not connected yet.",
     api_name="predict"
 )
 
