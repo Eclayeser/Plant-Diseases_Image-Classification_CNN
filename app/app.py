@@ -77,4 +77,5 @@ demo = gr.Interface(
     api_name="predict"
 )
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
