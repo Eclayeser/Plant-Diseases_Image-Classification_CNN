@@ -6,8 +6,8 @@
 
 ### Overview
 Start of development Cycle 1. Spent some time debating what approach we should take to begin with. Considered focusing on a single development area first. 
-However, proceeded with an approach that would engage all memebers simultaneously on different tasks. This way we cover all aspects of the project straight away without backsliding - the time constraints feel tight.
-Discussed initial responsabilities and first development steps
+However, proceeded with an approach that would engage all members simultaneously on different tasks. This way we cover all aspects of the project straight away without backsliding - the time constraints feel tight.
+Discussed initial responsibilities and first development steps
 
 ### Decisions and Items completed:
 1. Decided to develop a prototype (simplified version of the full project) as first week cycle
@@ -20,4 +20,4 @@ Discussed initial responsabilities and first development steps
 - **Create prototype UI**, Nil, SGP-4
 - **Deploy built prototype to Hugging Face**, Pranay, SGP-5
 - **Prepare ClearML skeleton for prototype monitoring**, Reon, SGP-3
-- **introduce the foundation for documentation maintanance. Prepare the ground for the delierable report**, Mark, SGP-8
+- **Introduce the foundation for documentation maintenance. Prepare the ground for the deliverable report**, Mark, SGP-8
