@@ -5,7 +5,7 @@ The repository currently contains a project skeleton, with purpose comments to g
 
 Shared Python code belongs in `leafapp/`, the interface in `app/`, and configuration files in `configs/`.
 The `train.py` and `evaluate.py` files are entry points for training and evaluating the model.
-The `notebooks/`, `tests/`, and `docs/` folders hold exploratory work, automated checks, and project documentation.
+The `notebooks/`, `tests/`, and `documents/` folders hold exploratory work, automated checks, and project documentation.
 
 The prototype and final product will share the same codebase.
 Prototype settings will be kept in `configs/prototype.yaml`, and ClearML tags will identify prototype runs.
