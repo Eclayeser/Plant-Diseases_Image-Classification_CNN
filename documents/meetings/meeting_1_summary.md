@@ -1,7 +1,8 @@
 # Meeting number 1 - Summary
 ## Date: *22/10/2026*
+### Type: *In-Person*
 
-### Attendees:
+### Attendees (6/7):
 - Illia, Mark, Mario, Pranay, Nil, Javier
 
 ### Overview

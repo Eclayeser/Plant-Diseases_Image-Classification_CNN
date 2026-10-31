@@ -1,7 +1,8 @@
 # Meeting number 2 - Summary
 ## Date: *26/10/2026*
+### Type: *In-Person*
 
-### Attendees:
+### Attendees (7/7):
 - Illia, Mark, Mario, Pranay, Nil, Javier, Reon
 
 ### Overview
@@ -11,7 +12,8 @@ Discussed initial responsibilities and first development steps
 
 ### Decisions and Items completed:
 1. Decided to develop a prototype (simplified version of the full project) as first week cycle
-2. Created and assigned initial first-cycle issues via Linear.
+2. Completed risk assessment to identify potential risks before starting the project -> recorded the risk-response pairs
+3. Created and assigned initial first-cycle issues via Linear.
 
 ### TODOs - Cycle 1
 - **Set up general project architecture**, Javier, SGP-2
