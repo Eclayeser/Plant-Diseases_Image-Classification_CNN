@@ -6,6 +6,7 @@ from torch import nn
 from leafapp.config import load_config
 from leafapp.data import get_loaders
 from leafapp.models.cnn import BasicCNN
+from leafapp.checkpoints import save_checkpoint
 
 ROOT = Path(__file__).resolve().parent
 
@@ -76,6 +77,18 @@ def main():
         train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
         val_loss, val_acc = evaluate(model, val_loader, criterion, device)
         print(f"Epoch {epoch + 1}: train loss {train_loss:.3f}, train acc {train_acc:.2f} | val loss {val_loss:.3f}, val acc {val_acc:.2f}")
+
+    checkpoint_path = ROOT / cfg["train"]["checkpoint_path"]
+    checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+
+    save_checkpoint(
+        path=checkpoint_path,
+        model=model,
+        channels=cfg["model"]["channels"],
+        image_size=cfg["data"]["image_size"],
+        class_names=class_names,
+    )
+    print(f"Saved checkpoint to {checkpoint_path}")
 
 if __name__ == "__main__":
     main()
