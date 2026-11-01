@@ -40,9 +40,15 @@
 - `load_config()`: the `yaml.safe_load` snippet was given by Claude; I wrapped it in the function and added the return.
 - Approximate share of AI-generated code: 75%
 
+## leafapp/checkpoints.py (SGP-10, Mario Cavicchioli)
+
+- Claude explained `state_dict`, `torch.save`/`torch.load` and `map_location`, and gave fill-in-the-blank skeletons for `save_checkpoint()` and `load_checkpoint()`.
+- I filled in the logic (what to save, rebuilding the model from the saved settings, loading the weights, eval mode). Claude pointed out my mistakes, which I fixed.
+- Approximate share of AI-generated code: 45%
+
 ## train.py (SGP-10, Mario Cavicchioli)
 
-- `train_one_epoch()`, `evaluate()` and `main()`: Claude gave skeletons with blanks; I wrote the setup (config, loaders, model, loss, optimiser, seed), the training step and the epoch loop, and adapted `evaluate()` from `train_one_epoch()`. Claude corrected my mistakes.
+- `train_one_epoch()`, `evaluate()` and `main()`: Claude gave skeletons with blanks; I wrote the setup (config, loaders, model, loss, optimiser, seed), the training step and the epoch loop, adapted `evaluate()` from `train_one_epoch()`, and structure of the `save_checkpoint` call. Claude corrected my mistakes.
 - Accuracy bookkeeping lines (`argmax`, `correct`), the `ROOT` path fix (suggested by CodeRabbit) and the print format: given by Claude.
 - Approximate share of AI-generated code: 35%
 
