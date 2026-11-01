@@ -1,4 +1,5 @@
 # Saves and loads model weights together with the information needed to use them.
+from pathlib import Path
 import torch
 from leafapp.models.cnn import BasicCNN
 
@@ -13,7 +14,10 @@ def save_checkpoint(path, model, channels, image_size, class_names):
         "class_names":class_names,
     }
 
-    torch.save(checkpoint, path)
+    path = Path(path)                      # works whether a str or Path was passed
+    tmp_path = path.with_suffix(".tmp")    # e.g. outputs/basic_cnn.tmp
+    torch.save(checkpoint, tmp_path)       # if this fails, the old checkpoint is untouched
+    tmp_path.replace(path)                 # swap the finished file into place
 
 def load_checkpoint(path):
     """
