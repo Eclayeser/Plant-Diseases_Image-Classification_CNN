@@ -1,6 +1,7 @@
 # Runs model training and validation, records results and saves checkpoints.
 from pathlib import Path
 from datetime import datetime
+import uuid
 
 import torch
 from torch import nn
@@ -68,7 +69,8 @@ def main():
     Train BasicCNN using configs/prototype.yaml and save a checkpoint.
 
     Prints train/val loss and accuracy each epoch, then saves the model,
-    config and class names to a timestamped file in checkpoint_dir.
+    config and class names to a uniquely named file (timestamp + short id)
+    in checkpoint_dir.
     """
     cfg = load_config(ROOT / "configs" / "prototype.yaml")
     torch.manual_seed(cfg["seed"])
@@ -97,7 +99,8 @@ def main():
         print(f"Epoch {epoch + 1}: train loss {train_loss:.3f}, train acc {train_acc:.2f} | val loss {val_loss:.3f}, val acc {val_acc:.2f}")
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    checkpoint_path = ROOT / cfg["train"]["checkpoint_dir"] / f"basic_cnn_{timestamp}.pt"
+    run_id = uuid.uuid4().hex[:6]   # e.g. "a3f9c1": 6 random hex characters
+    checkpoint_path = ROOT / cfg["train"]["checkpoint_dir"] / f"basic_cnn_{timestamp}_{run_id}.pt"
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
     save_checkpoint(
