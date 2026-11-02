@@ -41,13 +41,13 @@ python train.py
 ```
 - Settings (data fraction, image size, batch size, model channels, learning rate, epochs, seed) are read from `configs/prototype.yaml`.
 - Each epoch prints train and validation loss and accuracy.
-- At the end, the model is saved to `outputs/basic_cnn_<timestamp>.pt`. The `outputs/` folder is ignored by git.
+- At the end, the model is saved to `outputs/basic_cnn_<timestamp>_<id>.pt` (a unique name per run). The `outputs/` folder is ignored by git.
 
 ### Load a trained model
 ```python
 from leafapp.checkpoints import load_checkpoint
 
-model, class_names, config = load_checkpoint("outputs/basic_cnn_<timestamp>.pt")
+model, class_names, config = load_checkpoint("outputs/basic_cnn_<timestamp>_<id>.pt")
 ```
 The checkpoint stores the weights, the full config and the class names, so the model is rebuilt with the same settings and the same data split (`config["seed"]`, `config["data"]["fraction"]`) can be recreated for evaluation. The model is returned in eval mode, on the CPU.
 

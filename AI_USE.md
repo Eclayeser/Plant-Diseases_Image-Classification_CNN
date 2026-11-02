@@ -50,7 +50,7 @@
 ## train.py (SGP-10, Mario Cavicchioli)
 
 - `train_one_epoch()`, `evaluate()` and `main()`: Claude gave skeletons with blanks; I wrote the setup (config, loaders, model, loss, optimiser, seed), the training step, the epoch loop and the checkpoint saving call, and adapted `evaluate()` from `train_one_epoch()`. Claude corrected my mistakes.
-- Given by Claude: the accuracy bookkeeping lines (`argmax`, `correct`), the device one-liner, the `ROOT` path fix (suggested by CodeRabbit), the timestamped checkpoint filename and folder creation, the print format, and the docstrings.
+- Given by Claude: the accuracy bookkeeping lines (`argmax`, `correct`), the device one-liner, the `ROOT` path fix (suggested by CodeRabbit), the timestamped checkpoint filename with a unique run id (suggested by CodeRabbit) and folder creation, the print format, and the docstrings.
 - Approximate share of AI-generated code: 30%
 
 ## tests/test_train.py (SGP-10, Mario Cavicchioli)
