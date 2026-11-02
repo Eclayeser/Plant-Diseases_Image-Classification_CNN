@@ -30,3 +30,15 @@ def test_train_one_epoch_updates_weights():
 
     changed = any(not torch.equal(b, a) for b, a in zip(before, after))
     assert changed, "train_one_epoch did not update any weights"
+
+def test_evaluate_does_not_update_weights():
+    model = BasicCNN(num_classes=5, channels=(8,), image_size=32)
+    criterion = nn.CrossEntropyLoss()
+
+    before = [p.clone() for p in model.parameters()]
+    evaluate(model, make_fake_loader(), criterion, torch.device("cpu"))
+    after = list(model.parameters())
+
+    unchanged = all(torch.equal(b, a) for b, a in zip(before, after))
+
+    assert unchanged, "evaluate changed the model's weights"
