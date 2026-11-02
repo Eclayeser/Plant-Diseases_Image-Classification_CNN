@@ -3,14 +3,16 @@ from pathlib import Path
 import torch
 from leafapp.models.cnn import BasicCNN
 
-def save_checkpoint(path, model, channels, image_size, class_names):
+def save_checkpoint(path, model, cfg, class_names):
     """
-    Save the model weights plus the settings needed to rebuild it.
+    Save the model weights, the run's config and the class names.
+
+    The config lets the model be rebuilt and the same data split be
+    recreated (seed, fraction) when the checkpoint is evaluated later.
     """
     checkpoint = {
         "state_dict":model.state_dict(),
-        "channels":channels,
-        "image_size":image_size,
+        "config":cfg,
         "class_names":class_names,
     }
 
@@ -22,15 +24,18 @@ def save_checkpoint(path, model, channels, image_size, class_names):
 def load_checkpoint(path):
     """
     Rebuild a BasicCNN from a checkpoint saved with save_checkpoint.
+
+    Returns (model, class_names, config). The model is in eval mode.
     """
     checkpoint = torch.load(path, map_location="cpu")
+    config = checkpoint["config"]
 
     model = BasicCNN(
         num_classes=len(checkpoint["class_names"]),
-        channels=checkpoint["channels"],
-        image_size=checkpoint["image_size"],
+        channels=config["model"]["channels"],
+        image_size=config["data"]["image_size"],
     )
     model.load_state_dict(checkpoint["state_dict"])
     model.eval()
 
-    return model, checkpoint["class_names"], checkpoint["image_size"]
+    return model, checkpoint["class_names"], config
