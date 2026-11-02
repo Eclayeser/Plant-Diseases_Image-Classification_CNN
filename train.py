@@ -15,7 +15,8 @@ ROOT = Path(__file__).resolve().parent
 def train_one_epoch(model, loader, criterion, optimizer, device):
     """
     Train the model for one pass over the loader, updating its weights.
-
+    
+    Raises ValueError if the loader is empty.
     Returns (average loss, accuracy) over all batches in the epoch.
     """
     model.train()
@@ -37,6 +38,9 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
         correct += (preds == labels).sum().item()
         total += labels.size(0)
 
+    if total == 0:
+        raise ValueError("The loader produced no samples, so the metrics can't be computed")
+
     return total_loss / total, correct / total
 
 def evaluate(model, loader, criterion, device):
@@ -44,6 +48,7 @@ def evaluate(model, loader, criterion, device):
     Measure the model on the loader without updating its weights.
 
     Runs in eval mode with gradients disabled.
+    Raises ValueError if the loader is empty.
     Returns (average loss, accuracy).
     """
     model.eval()
@@ -61,7 +66,10 @@ def evaluate(model, loader, criterion, device):
             total_loss += loss.item() * labels.size(0)
             correct += (preds == labels).sum().item()
             total += labels.size(0)
-            
+
+    if total == 0:
+        raise ValueError("The loader produced no samples, so the metrics can't be computed")
+      
     return total_loss / total, correct / total
 
 def main():
