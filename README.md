@@ -26,13 +26,21 @@ Despite the **Technology Stack** used directly for product development, our team
 
 ## Setup
 
-```bash
+Create and activate a virtual environment, then install the dependencies:
+
+```powershell
+# Windows (PowerShell)
 python -m venv .venv
-# Windows: .\.venv\Scripts\Activate.ps1   |   Mac/Linux: source .venv/bin/activate
+.\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 ```
-On Windows with an NVIDIA GPU, the default `torch` from pip is CPU-only. Install the CUDA build from [pytorch.org](https://pytorch.org/get-started/locally/) using the same versions as `requirements.txt`. Linux installs CUDA automatically.
 
+```bash
+# Mac / Linux
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
 ## Training the model
 
 ### Run training
