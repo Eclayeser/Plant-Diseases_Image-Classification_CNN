@@ -84,8 +84,7 @@ def main():
     save_checkpoint(
         path=checkpoint_path,
         model=model,
-        channels=cfg["model"]["channels"],
-        image_size=cfg["data"]["image_size"],
+        cfg=cfg,
         class_names=class_names,
     )
     print(f"Saved checkpoint to {checkpoint_path}")
