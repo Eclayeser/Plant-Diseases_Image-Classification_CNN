@@ -1,5 +1,6 @@
 # Runs model training and validation, records results and saves checkpoints.
 from pathlib import Path
+from datetime import datetime
 
 import torch
 from torch import nn
@@ -11,6 +12,11 @@ from leafapp.checkpoints import save_checkpoint
 ROOT = Path(__file__).resolve().parent
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
+    """
+    Train the model for one pass over the loader, updating its weights.
+
+    Returns (average loss, accuracy) over all batches in the epoch.
+    """
     model.train()
 
     total_loss, correct, total = 0, 0, 0
@@ -33,6 +39,12 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
     return total_loss / total, correct / total
 
 def evaluate(model, loader, criterion, device):
+    """
+    Measure the model on the loader without updating its weights.
+
+    Runs in eval mode with gradients disabled.
+    Returns (average loss, accuracy).
+    """
     model.eval()
     total_loss, correct, total = 0, 0, 0
 
@@ -52,6 +64,12 @@ def evaluate(model, loader, criterion, device):
     return total_loss / total, correct / total
 
 def main():
+    """
+    Train BasicCNN using configs/prototype.yaml and save a checkpoint.
+
+    Prints train/val loss and accuracy each epoch, then saves the model,
+    config and class names to a timestamped file in checkpoint_dir.
+    """
     cfg = load_config(ROOT / "configs" / "prototype.yaml")
     torch.manual_seed(cfg["seed"])
     train_loader, val_loader, test_loader, class_names = get_loaders(
@@ -78,7 +96,8 @@ def main():
         val_loss, val_acc = evaluate(model, val_loader, criterion, device)
         print(f"Epoch {epoch + 1}: train loss {train_loss:.3f}, train acc {train_acc:.2f} | val loss {val_loss:.3f}, val acc {val_acc:.2f}")
 
-    checkpoint_path = ROOT / cfg["train"]["checkpoint_path"]
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    checkpoint_path = ROOT / cfg["train"]["checkpoint_dir"] / f"basic_cnn_{timestamp}.pt"
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
     save_checkpoint(
