@@ -42,21 +42,27 @@
 
 ## leafapp/checkpoints.py (SGP-10, Mario Cavicchioli)
 
-- Claude explained `state_dict`, `torch.save`/`torch.load` and `map_location`, and gave fill-in-the-blank skeletons for `save_checkpoint()` and `load_checkpoint()`.
-- I filled in the logic (what to save, rebuilding the model from the saved settings, loading the weights, eval mode). Claude pointed out my mistakes, which I fixed.
+- Claude explained `state_dict`, `torch.save`/`torch.load` and `map_location`, and gave fill-in-the-blank skeletons for `save_checkpoint()` and `load_checkpoint()`. I filled in the logic (what to save, rebuilding the model from the saved config, loading the weights, eval mode) and fixed my mistakes after Claude pointed them out.
+- Saving the whole config (suggested by Mark in review) and the atomic save via a temporary file (suggested by CodeRabbit): code given by Claude.
+- Docstrings: written by Claude.
 - Approximate share of AI-generated code: 45%
 
 ## train.py (SGP-10, Mario Cavicchioli)
 
-- `train_one_epoch()`, `evaluate()` and `main()`: Claude gave skeletons with blanks; I wrote the setup (config, loaders, model, loss, optimiser, seed), the training step and the epoch loop, adapted `evaluate()` from `train_one_epoch()`, and structure of the `save_checkpoint` call. Claude corrected my mistakes.
-- Accuracy bookkeeping lines (`argmax`, `correct`), the `ROOT` path fix (suggested by CodeRabbit) and the print format: given by Claude.
-- Approximate share of AI-generated code: 35%
+- `train_one_epoch()`, `evaluate()` and `main()`: Claude gave skeletons with blanks; I wrote the setup (config, loaders, model, loss, optimiser, seed), the training step, the epoch loop and the checkpoint saving call, and adapted `evaluate()` from `train_one_epoch()`. Claude corrected my mistakes.
+- Given by Claude: the accuracy bookkeeping lines (`argmax`, `correct`), the device one-liner, the `ROOT` path fix (suggested by CodeRabbit), the timestamped checkpoint filename with a unique run id (suggested by CodeRabbit) and folder creation, the print format, and the docstrings.
+- Approximate share of AI-generated code: 30%
 
 ## tests/test_train.py (SGP-10, Mario Cavicchioli)
 
 - `make_fake_loader()` and the weight-change test: mostly written by Claude, reviewed and run by me.
-- Metrics test: written by me from a skeleton.
-- Approximate share of AI-generated code: 70%
+- Metrics test and the `evaluate` no-update test: written by me.
+- Approximate share of AI-generated code: 60%
+
+## tests/test_checkpoints.py (SGP-10, Mario Cavicchioli)
+
+- Claude explained `tmp_path` and gave skeletons for both tests; I filled in the model setup, the save/load calls and the comparisons.
+- Approximate share of AI-generated code: 60%
 
 ## configs/prototype.yaml (SGP-6/SGP-10, Mario Cavicchioli)
 

@@ -22,3 +22,45 @@ Despite the **Technology Stack** used directly for product development, our team
 | **Discord** | Real-time communication, online meetings | Free to use; all team memebrs have previous experience using this tool; easy and quick to use (including comfortable screen share) | N/A |
 | **Coderabbit AI**| AI-driven code reviews for PRs; integrated as a required check before PR can be merged | Catches bugs early and allows developers to debug quicker without waiting for others to review; provides useful PR summaries; free to use and easy to integrate; common practice across most companies | N/A |
 | **LLMs: Claude, Gemini, Chat-GPT**| Code generation/review, technical brainstorming | Useful assistants across multiple tech stacks; speeds up overall development (crucial for time-constrained project); widely used across most developers | N/A |
+
+
+## Setup
+
+Create and activate a virtual environment, then install the dependencies:
+
+```powershell
+# Windows (PowerShell)
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+```bash
+# Mac / Linux
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+## Training the model
+
+### Run training
+```bash
+python train.py
+```
+- Settings (data fraction, image size, batch size, model channels, learning rate, epochs, seed) are read from `configs/prototype.yaml`.
+- Each epoch prints train and validation loss and accuracy.
+- At the end, the model is saved to `outputs/basic_cnn_<timestamp>_<id>.pt` (a unique name per run). The `outputs/` folder is ignored by git.
+
+### Load a trained model
+```python
+from leafapp.checkpoints import load_checkpoint
+
+model, class_names, config = load_checkpoint("outputs/basic_cnn_<timestamp>_<id>.pt")
+```
+The checkpoint stores the weights, the full config and the class names, so the model is rebuilt with the same settings and the same data split (`config["seed"]`, `config["data"]["fraction"]`) can be recreated for evaluation. The model is returned in eval mode, on the CPU.
+
+## Running the tests
+
+```bash
+python -m pytest tests/
+```
