@@ -10,7 +10,10 @@ from leafapp.data import get_loaders
 from leafapp.models.cnn import BasicCNN
 from leafapp.checkpoints import save_checkpoint
 
-from leafapp.eval_functions import loss_accuracy_per_epoch
+from leafapp.eval_functions import (
+    loss_accuracy_per_loader,
+    loss_accuracy_per_batch
+)
 
 ROOT = Path(__file__).resolve().parent
 
@@ -23,7 +26,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
     """
     model.train()
 
-    total_loss, correct, total = 0, 0, 0
+    total_loss, total_correct, total = 0, 0, 0
 
     for batch in loader:
         images, labels = batch["pixels"], batch["label"]
@@ -35,15 +38,16 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
         loss.backward()                   # work out how each weight should change
         optimizer.step()                  # change them
 
-        preds = logits.argmax(dim=1)
-        total_loss += loss.item() * labels.size(0)
-        correct += (preds == labels).sum().item()
-        total += labels.size(0)
+        
+        batch_loss, batch_correct, batch_size = loss_accuracy_per_batch(loss, logits, labels)
+        total_loss += batch_loss
+        total_correct += batch_correct
+        total += batch_size
 
     if total == 0:
         raise ValueError("The loader produced no samples, so the metrics can't be computed")
 
-    return total_loss / total, correct / total
+    return total_loss / total, total_correct / total
 
 
 def main():
@@ -72,12 +76,18 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
+    # evaluation metrics to record
+    train_losses = []
+    val_losses = []
+    train_accuracies = []
+    val_accuracies = []
+
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg["train"]["lr"], weight_decay=cfg["train"]["weight_decay"])
 
     for epoch in range(cfg["train"]["epochs"]):
         train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
-        val_loss, val_acc = loss_accuracy_per_epoch(model, val_loader, criterion, device)
+        val_loss, val_acc = loss_accuracy_per_loader(model, val_loader, criterion, device)
         print(f"Epoch {epoch + 1}: train loss {train_loss:.3f}, train acc {train_acc:.2f} | val loss {val_loss:.3f}, val acc {val_acc:.2f}")
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
