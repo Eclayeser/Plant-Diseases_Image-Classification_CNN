@@ -3,17 +3,20 @@ from pathlib import Path
 import torch
 from leafapp.models.cnn import BasicCNN
 
-def save_checkpoint(path, model, cfg, class_names):
+def save_checkpoint(path, model, cfg, class_names, run_metrics):
     """
-    Save the model weights, the run's config and the class names.
+    Save the model weights, the run's config, the class names and run-related metrcis.
 
     The config lets the model be rebuilt and the same data split be
     recreated (seed, fraction) when the checkpoint is evaluated later.
+
+    The change in loss/accuracy is recorded for further analysis of the training process
     """
     checkpoint = {
         "state_dict":model.state_dict(),
         "config":cfg,
         "class_names":class_names,
+        "run_metrics": run_metrics,
     }
 
     path = Path(path)                      # works whether a str or Path was passed
