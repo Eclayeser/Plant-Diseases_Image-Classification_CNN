@@ -76,11 +76,13 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    # evaluation metrics to record
-    train_losses = []
-    val_losses = []
-    train_accuracies = []
-    val_accuracies = []
+    # construct metrics object to record
+    run_metrics = {
+        "train_losses": [],
+        "val_losses": [],
+        "train_accuracies": [],
+        "val_accuracies": [],
+    }
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg["train"]["lr"], weight_decay=cfg["train"]["weight_decay"])
@@ -88,7 +90,10 @@ def main():
     for epoch in range(cfg["train"]["epochs"]):
         train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
         val_loss, val_acc = loss_accuracy_per_loader(model, val_loader, criterion, device)
-        print(f"Epoch {epoch + 1}: train loss {train_loss:.3f}, train acc {train_acc:.2f} | val loss {val_loss:.3f}, val acc {val_acc:.2f}")
+        run_metrics["train_losses"].append(train_loss)
+        run_metrics["val_losses"].append(val_loss)
+        run_metrics["train_accuracies"].append(train_acc)
+        run_metrics["val_accuracies"].append(val_acc)
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     run_id = uuid.uuid4().hex[:6]   # e.g. "a3f9c1": 6 random hex characters
@@ -100,6 +105,7 @@ def main():
         model=model,
         cfg=cfg,
         class_names=class_names,
+        run_metrics=run_metrics,
     )
     print(f"Saved checkpoint to {checkpoint_path}")
 
