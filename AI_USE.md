@@ -49,14 +49,14 @@
 
 ## train.py (SGP-10, Mario Cavicchioli)
 
-- `train_one_epoch()`, `evaluate()` and `main()`: Claude gave skeletons with blanks; I wrote the setup (config, loaders, model, loss, optimiser, seed), the training step, the epoch loop and the checkpoint saving call, and adapted `evaluate()` from `train_one_epoch()`. Claude corrected my mistakes.
+- `train_one_epoch()`, `evaluate()` (now `loss_accuracy_per_epoch()` in `leafapp/eval_functions.py`) and `main()`: Claude gave skeletons with blanks; I wrote the setup (config, loaders, model, loss, optimiser, seed), the training step, the epoch loop and the checkpoint saving call, and adapted `evaluate()` from `train_one_epoch()`. Claude corrected my mistakes.
 - Given by Claude: the accuracy bookkeeping lines (`argmax`, `correct`), the device one-liner, the `ROOT` path fix (suggested by CodeRabbit), the timestamped checkpoint filename with a unique run id (suggested by CodeRabbit) and folder creation, the print format, and the docstrings.
 - Approximate share of AI-generated code: 30%
 
 ## tests/test_train.py (SGP-10, Mario Cavicchioli)
 
 - `make_fake_loader()` and the weight-change test: mostly written by Claude, reviewed and run by me.
-- Metrics test and the `evaluate` no-update test: written by me.
+- Metrics test and the `evaluate` no-update test (now in `tests/test_eval_functions.py`): written by me.
 - Approximate share of AI-generated code: 60%
 
 ## tests/test_checkpoints.py (SGP-10, Mario Cavicchioli)
