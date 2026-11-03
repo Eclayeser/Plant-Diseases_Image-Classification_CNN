@@ -10,6 +10,8 @@ from leafapp.data import get_loaders
 from leafapp.models.cnn import BasicCNN
 from leafapp.checkpoints import save_checkpoint
 
+from leafapp.eval_functions import loss_accuracy_per_epoch
+
 ROOT = Path(__file__).resolve().parent
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
@@ -43,34 +45,6 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
     return total_loss / total, correct / total
 
-def evaluate(model, loader, criterion, device):
-    """
-    Measure the model on the loader without updating its weights.
-
-    Runs in eval mode with gradients disabled.
-    Raises ValueError if the loader is empty.
-    Returns (average loss, accuracy).
-    """
-    model.eval()
-    total_loss, correct, total = 0, 0, 0
-
-    with torch.no_grad():
-        for batch in loader:
-            images, labels = batch["pixels"], batch["label"]
-            images, labels = images.to(device), labels.to(device)
-
-            logits = model(images)
-            loss = criterion(logits, labels)
-
-            preds = logits.argmax(dim=1)
-            total_loss += loss.item() * labels.size(0)
-            correct += (preds == labels).sum().item()
-            total += labels.size(0)
-
-    if total == 0:
-        raise ValueError("The loader produced no samples, so the metrics can't be computed")
-      
-    return total_loss / total, correct / total
 
 def main():
     """
@@ -103,7 +77,7 @@ def main():
 
     for epoch in range(cfg["train"]["epochs"]):
         train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
-        val_loss, val_acc = evaluate(model, val_loader, criterion, device)
+        val_loss, val_acc = loss_accuracy_per_epoch(model, val_loader, criterion, device)
         print(f"Epoch {epoch + 1}: train loss {train_loss:.3f}, train acc {train_acc:.2f} | val loss {val_loss:.3f}, val acc {val_acc:.2f}")
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")

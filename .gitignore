@@ -1,2 +1,3 @@
 # Lists local files, downloaded data and credentials that Git should ignore.
 outputs/
+__pycache__/
