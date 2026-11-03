@@ -7,6 +7,8 @@ from leafapp.models.cnn import BasicCNN
 
 import torch
 
+# ROOT = Path(__file__).resolve().parent
+
 
 # Computes per-batch total loss and accuracy
 def loss_accuracy_per_batch(loss, logits, true_labels):
@@ -41,6 +43,12 @@ def loss_accuracy_per_loader(model, loader, criterion, device):
     loader_accuracy = total_correct / total
     return loader_loss, loader_accuracy
 
+
+# takes all calculated metrics troughout the run
+# and returns them nicely in an object to be stored at a checkpoint
+def construct_full_metrics_object():
+
+    pass
 
 # TODO: functions that calculate different metrcis using validation set
 # -> to be used for tunning purposes with validation set;
