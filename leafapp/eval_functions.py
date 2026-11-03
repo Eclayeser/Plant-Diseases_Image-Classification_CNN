@@ -8,10 +8,18 @@ from leafapp.models.cnn import BasicCNN
 import torch
 
 
-# Per-epoch: batch average loss and accuracy
-def loss_accuracy_per_epoch(model, loader, criterion, device):
+# Computes per-batch total loss and accuracy
+def loss_accuracy_per_batch(loss, logits, true_labels):
+    batch_size = true_labels.size(0)
+    batch_loss = loss.item() * batch_size
+    batch_correct = (logits.argmax(dim=1) == true_labels).sum().item()
+    return batch_loss, batch_correct, batch_size
+
+# Computes per-loader average loss and accuracy
+# Can be used for both per-epoch and at the end for test data loader
+def loss_accuracy_per_loader(model, loader, criterion, device):
     model.eval()
-    total_loss, correct, total = 0, 0, 0
+    total_loss, total_correct, total = 0, 0, 0
 
     with torch.no_grad():
         for batch in loader:
@@ -21,15 +29,17 @@ def loss_accuracy_per_epoch(model, loader, criterion, device):
             logits = model(images)
             loss = criterion(logits, labels)
 
-            preds = logits.argmax(dim=1)
-            total_loss += loss.item() * labels.size(0)
-            correct += (preds == labels).sum().item()
-            total += labels.size(0)
+            batch_loss, batch_correct, batch_size = loss_accuracy_per_batch(loss, logits, labels)
+            total_loss += batch_loss
+            total_correct += batch_correct
+            total += batch_size
 
     if total == 0:
         raise ValueError("The loader produced no samples, so the metrics can't be computed")
-      
-    return total_loss / total, correct / total
+
+    loader_loss = total_loss / total
+    loader_accuracy = total_correct / total
+    return loader_loss, loader_accuracy
 
 
 # TODO: functions that calculate different metrcis using validation set
