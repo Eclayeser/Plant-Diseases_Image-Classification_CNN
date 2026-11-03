@@ -11,8 +11,9 @@ from leafapp.models.cnn import BasicCNN
 from leafapp.checkpoints import save_checkpoint
 
 from leafapp.eval_functions import (
-    loss_accuracy_per_loader,
-    loss_accuracy_per_batch
+    calculate_metrics_per_loader,
+    calculate_f1_score,
+    calculate_accuracy,
 )
 
 ROOT = Path(__file__).resolve().parent
@@ -26,7 +27,8 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
     """
     model.train()
 
-    total_loss, total_correct, total = 0, 0, 0
+    total_loss, total = 0, 0
+    all_preds, all_labels = [], []
 
     for batch in loader:
         images, labels = batch["pixels"], batch["label"]
@@ -37,17 +39,29 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
         loss = criterion(logits, labels)  # how wrong?
         loss.backward()                   # work out how each weight should change
         optimizer.step()                  # change them
-
-        
-        batch_loss, batch_correct, batch_size = loss_accuracy_per_batch(loss, logits, labels)
-        total_loss += batch_loss
-        total_correct += batch_correct
+ 
+        batch_size = labels.size(0)
         total += batch_size
+
+        total_loss += loss.item() * batch_size
+        all_preds.append(logits.argmax(dim=1).cpu())
+        all_labels.append(labels.cpu())
 
     if total == 0:
         raise ValueError("The loader produced no samples, so the metrics can't be computed")
 
-    return total_loss / total, total_correct / total
+    true_labels, predicted_labels = torch.cat(all_labels), torch.cat(all_preds)
+    f1 = calculate_f1_score(true_labels, predicted_labels)
+    accuracy = calculate_accuracy(true_labels, predicted_labels)
+
+    epoch_metrics = {
+        "loss": total_loss / total,
+        "accuracy": accuracy,
+        "f1": f1
+    }
+
+    return epoch_metrics
+
 
 
 def main():
@@ -76,24 +90,35 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    # construct metrics object to record
-    run_metrics = {
+    # metrics which are to record per-epoch
+    history_metrics = {
         "train_losses": [],
-        "val_losses": [],
         "train_accuracies": [],
+        "train_f1s": [],
+        "val_losses": [],
         "val_accuracies": [],
+        "val_f1s": []
     }
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg["train"]["lr"], weight_decay=cfg["train"]["weight_decay"])
 
     for epoch in range(cfg["train"]["epochs"]):
-        train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
-        val_loss, val_acc = loss_accuracy_per_loader(model, val_loader, criterion, device)
-        run_metrics["train_losses"].append(train_loss)
-        run_metrics["val_losses"].append(val_loss)
-        run_metrics["train_accuracies"].append(train_acc)
-        run_metrics["val_accuracies"].append(val_acc)
+        train_epoch_metrics = train_one_epoch(model, train_loader, criterion, optimizer, device)
+        val_epoch_metrics = calculate_metrics_per_loader(model, val_loader, device, criterion=criterion, metrics_list=["accuracy", "f1"])
+        
+        history_metrics["train_losses"].append(train_epoch_metrics["loss"]) 
+        history_metrics["train_accuracies"].append(train_epoch_metrics["accuracy"])
+        history_metrics["train_f1s"].append(train_epoch_metrics["f1"])
+        history_metrics["val_losses"].append(val_epoch_metrics["loss"])
+        history_metrics["val_accuracies"].append(val_epoch_metrics["accuracy"])
+        history_metrics["val_f1s"].append(val_epoch_metrics["f1"])
+
+        print(
+                f"Epoch {epoch + 1}: "
+                f"train loss {train_epoch_metrics["loss"]:.3f}, train acc {train_epoch_metrics["accuracy"]:.3f}, train f1 {train_epoch_metrics["f1"]:.3f} | "
+                f"val loss {val_epoch_metrics["loss"]:.3f}, val acc {val_epoch_metrics["accuracy"]:.3f}, val f1 {val_epoch_metrics["f1"]:.3f}"
+            )
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     run_id = uuid.uuid4().hex[:6]   # e.g. "a3f9c1": 6 random hex characters
@@ -105,7 +130,7 @@ def main():
         model=model,
         cfg=cfg,
         class_names=class_names,
-        run_metrics=run_metrics,
+        history_metrics=history_metrics,
     )
     print(f"Saved checkpoint to {checkpoint_path}")
 
