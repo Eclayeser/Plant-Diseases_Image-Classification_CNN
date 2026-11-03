@@ -4,6 +4,8 @@
 # uses reusable functions from eval_functions.py
 # TODO: contains one main() method that:
 #   - loads the validation/test data (test only for final)
-#   - loads trained CNN
+#   - loads trained CNN from checkpoint
 #   - calculates metrics
-#   - outputs them to stdout + saves them as to history as "final"
+#   - plots history metrics (from the checkpoint) and new final metrics
+#   - saves final metrics (include associated model)
+#   - outputs final general written report
