@@ -41,4 +41,4 @@ def load_checkpoint(path):
     model.load_state_dict(checkpoint["state_dict"])
     model.eval()
 
-    return model, checkpoint["class_names"], config
+    return model, checkpoint["class_names"], checkpoint["history_metrics"], config
