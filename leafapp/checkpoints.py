@@ -7,12 +7,10 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def save_checkpoint(path, model, cfg, class_names, history_metrics):
     """
-    Save the model weights, the run's config, the class names and run-related metrcis.
+    Save the model weights, the run's config, the class names and history metrcis.
 
     The config lets the model be rebuilt and the same data split be
     recreated (seed, fraction) when the checkpoint is evaluated later.
-
-    The change in loss/accuracy is recorded for further analysis of the training process
     """
     checkpoint = {
         "state_dict":model.state_dict(),
@@ -29,10 +27,9 @@ def save_checkpoint(path, model, cfg, class_names, history_metrics):
 def load_checkpoint(path):
     """
     Rebuild a BasicCNN from a checkpoint saved with save_checkpoint.
-
-    Returns (model, class_names, config). The model is in eval mode.
-
     A relative path is resolved against the project root, not the current directory.
+
+    Returns (model, class_names, history_metrics, config). The model is in eval mode.
     """
     checkpoint = torch.load(ROOT / path, map_location="cpu")
     config = checkpoint["config"]
