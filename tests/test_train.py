@@ -1,4 +1,3 @@
-# Checks the training process and model checkpoint handling.
 import torch
 from torch import nn
 from leafapp.models.cnn import BasicCNN
@@ -10,9 +9,10 @@ def test_train_one_epoch_returns_valid_metrics():
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
 
-    loss, acc = train_one_epoch(model, make_fake_loader(), criterion, optimizer, torch.device("cpu"))
-    assert loss >= 0, "Negative loss"
-    assert 0 <= acc <= 1, "Acc out of range"
+    metrics = train_one_epoch(model, make_fake_loader(), criterion, optimizer, torch.device("cpu"))
+    assert metrics["loss"] >= 0, "Negative loss"
+    assert 0 <= metrics["accuracy"] <= 1, "Acc out of range"
+    assert 0 <= metrics["f1"] <= 1, "F1 out of range"
 
 def test_train_one_epoch_updates_weights():
     model = BasicCNN(num_classes=5, channels=(8,), image_size=32)
