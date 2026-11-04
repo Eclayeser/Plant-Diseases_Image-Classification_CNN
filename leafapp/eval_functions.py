@@ -11,6 +11,7 @@ from sklearn.metrics import (
 )
 import torch
 import matplotlib.pyplot as plt
+import seaborn
 
 # ROOT = Path(__file__).resolve().parent
 
@@ -74,9 +75,6 @@ def calculate_per_class_metrics(true_labels, predicted_labels, labels_pool: list
     )
     return per_class_report
 
-
-# TODO(most likely): plotting from passed metrics / from loaded saved metrix
-# TODO(possibily): some other morre advanced reporting
 
 # Computes various metrics per-loader on demand
 # Can be used for both per-epoch and at the end for test data loader
@@ -192,3 +190,27 @@ def plot_training_curve(
 
     plt.tight_layout()
     plt.show()
+
+
+def plot_confusion_matrix(confusion_matrix, class_names) -> None:
+    plt.figure(figsize=(9, 7))
+
+    seaborn.heatmap(
+        confusion_matrix,
+        annot=True,
+        fmt="d",
+        cmap="Blues",
+        xticklabels=class_names,
+        yticklabels=class_names
+    )
+
+    plt.xlabel("Predicted Label")
+    plt.ylabel("Actual Label")
+    plt.title("CNN Confusion Matrix")
+
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+    plt.show()
+
+# TODO(most likely): plotting from passed metrics / from loaded saved metrix
+# TODO(possibily): some other morre advanced reporting
