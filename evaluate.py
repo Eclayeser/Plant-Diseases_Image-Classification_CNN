@@ -10,8 +10,11 @@ from leafapp.checkpoints import load_checkpoint
 
 
 def main(checkpoint_path: str|Path, data_type: str):
+    # load checkpoint info
+    model, _, history_metrics, config = load_checkpoint(checkpoint_path)
+
     # load data to evaluate against
-    train_loader, val_loader, test_loader, class_names = get_loaders(
+    _, val_loader, test_loader, class_names = get_loaders(
             fraction=config["data"]["fraction"],
             image_size=config["data"]["image_size"],
             batch_size=config["data"]["batch_size"],
@@ -22,9 +25,6 @@ def main(checkpoint_path: str|Path, data_type: str):
     if data_type not in accepted_data_types.keys():
         raise ValueError(f"data_type should be one of {accepted_data_types.keys()}")
     target_data = accepted_data_types[data_type]
-
-    # load checkpoint info
-    model, _, history_metrics, config = load_checkpoint(checkpoint_path)
 
     # run model and calculate metrics
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -48,7 +48,15 @@ def main(checkpoint_path: str|Path, data_type: str):
             ]
         )
 
-    # TODO: print some overal metrics (accuracy, top-3-accuracy, top-5-accuracy, precision, f1, recall)
+    print(
+        f"Top-1 Accuracy: {overall_metrics['accuracy']}\n"
+        f"Top-3 Accuracy: {overall_metrics['top-3-accuracy']}\n"
+        f"Top-5 Accuracy: {overall_metrics['top-5-accuracy']}\n"
+        f"Macro Precision: {overall_metrics['precision']}\n"
+        f"Macro Recall: {overall_metrics['recall']}\n"
+        f"Macro F1: {overall_metrics['f1']}\n"
+    )
+
     # TODO: plot history metrics (from the checkpoint) and some overall_metrics (confusion_matrix, per-class-metrix)
     # TODO: save final metrics locally(include associated model)
 
