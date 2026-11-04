@@ -2,15 +2,18 @@ import sys
 import torch
 from torch import nn
 from pathlib import Path
+from datetime import datetime
 from leafapp.eval_functions import (
     calculate_metrics_per_loader,
-    plot_training_curve,
-    plot_confusion_matrix,
-    plot_per_class_metrics,
+    plot_and_save_training_curve,
+    plot_and_save_confusion_matrix,
+    save_evaluation_report,
 )
 from leafapp.data import get_loaders
 from leafapp.checkpoints import load_checkpoint
 
+REPORTS_DIR = Path("outputs") / "eval_reports"
+DIAGRAMS_DIR = Path("outputs") / "diagrams"
 
 def main(checkpoint_path: str|Path, data_type: str):
     # load checkpoint info
@@ -51,23 +54,35 @@ def main(checkpoint_path: str|Path, data_type: str):
             ]
         )
 
-    print(
-        f"Top-1 Accuracy: {overall_metrics['accuracy']}\n"
-        f"Top-3 Accuracy: {overall_metrics['top-3-accuracy']}\n"
-        f"Top-5 Accuracy: {overall_metrics['top-5-accuracy']}\n"
-        f"Macro Precision: {overall_metrics['precision']}\n"
-        f"Macro Recall: {overall_metrics['recall']}\n"
-        f"Macro F1: {overall_metrics['f1']}\n"
-        f"Per-Class Metrics:\n"
-        f"{overall_metrics['per-class-metrics']}"
-    )
+    # plot and save diagrams
+    run_name = f"{data_type}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    curve_path = DIAGRAMS_DIR / f"{run_name}_training_curve.png"
+    matrix_path = DIAGRAMS_DIR / f"{run_name}_confusion_matrix.png"
 
-    plot_training_curve(history_metrics)
-    plot_confusion_matrix(overall_metrics["confusion-matrix"], class_names)
-    
-    
-    
-    # TODO: save final metrics locally(include associated model)
+    plot_and_save_training_curve(history_metrics, curve_path)
+    plot_and_save_confusion_matrix(overall_metrics["confusion-matrix"], class_names, matrix_path)
+
+    # save written report
+    report_path = REPORTS_DIR / f"{run_name}_report.txt"
+    report = (
+            f"---   Checkpoint: {checkpoint_path} | Data Set Chosen: {data_type.upper()}   ---\n"
+            f"- Top-1 Accuracy: {overall_metrics['accuracy']}\n"
+            f"- Top-3 Accuracy: {overall_metrics['top-3-accuracy']}\n"
+            f"- Top-5 Accuracy: {overall_metrics['top-5-accuracy']}\n"
+            f"- Macro Precision: {overall_metrics['precision']}\n"
+            f"- Macro Recall: {overall_metrics['recall']}\n"
+            f"- Macro F1: {overall_metrics['f1']}\n"
+            f"\n"
+            f" Per-Class Metrics:\n"
+            f"{overall_metrics['per-class-metrics'][1]}"    # [1] is to_print version / [0] is a dict
+            f"\n"
+            f"==============================   Diagrams   ==============================\n"
+            f" - Training Curve (Historical Metrics): {curve_path}\n"
+            f" - Confusion Matrix: {matrix_path}"
+        )
+
+    save_evaluation_report(report, report_path)
+    print(f"Saved evaluation report to {report_path}")
 
 
 if __name__ == "__main__":

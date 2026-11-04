@@ -129,8 +129,8 @@ def main():
 
         print(
                 f"Epoch {epoch + 1}: "
-                f"train loss {train_epoch_metrics["loss"]:.3f}, train acc {train_epoch_metrics["accuracy"]:.3f}, train f1 {train_epoch_metrics["f1"]:.3f} | "
-                f"val loss {val_epoch_metrics["loss"]:.3f}, val acc {val_epoch_metrics["accuracy"]:.3f}, val f1 {val_epoch_metrics["f1"]:.3f}"
+                f"train loss {train_epoch_metrics['loss']:.3f}, train acc {train_epoch_metrics['accuracy']:.3f}, train f1 {train_epoch_metrics['f1']:.3f} | "
+                f"val loss {val_epoch_metrics['loss']:.3f}, val acc {val_epoch_metrics['accuracy']:.3f}, val f1 {val_epoch_metrics['f1']:.3f}"
             )
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
