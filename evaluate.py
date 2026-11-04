@@ -5,6 +5,7 @@ from pathlib import Path
 from leafapp.eval_functions import (
     calculate_metrics_per_loader,
     plot_training_curve,
+    plot_confusion_matrix,
 )
 from leafapp.data import get_loaders
 from leafapp.checkpoints import load_checkpoint
@@ -59,6 +60,7 @@ def main(checkpoint_path: str|Path, data_type: str):
     )
 
     plot_training_curve(history_metrics)
+    plot_confusion_matrix(overall_metrics["confusion-matrix"], class_names)
     
     # TODO: plot some overall_metrics (confusion_matrix, per-class-metrix)
     # TODO: save final metrics locally(include associated model)
