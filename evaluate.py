@@ -15,7 +15,14 @@ from leafapp.checkpoints import load_checkpoint
 REPORTS_DIR = Path("outputs") / "eval_reports"
 DIAGRAMS_DIR = Path("outputs") / "diagrams"
 
+
 def main(checkpoint_path: str|Path, data_type: str):
+    """
+    Evaluate a saved checkpoint on the validation or test set.
+
+    Computes metrics, saves the training-curve and confusion-matrix plots,
+    and writes a text report to the eval reports directory.
+    """
     # load checkpoint info
     model, _, history_metrics, config = load_checkpoint(checkpoint_path)
 

@@ -1,4 +1,4 @@
-"""Shared evaluation functions"""
+"""Shared evaluation functions: metrics calculations and plotting"""
 
 from typing import Any
 from pathlib import Path
@@ -10,47 +10,53 @@ from sklearn.metrics import (
     confusion_matrix,
     classification_report,
 )
+import numpy as np
 import torch
+from torch import nn
+from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import seaborn
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def calculate_f1_score(true_labels, predicted_labels):
+def calculate_f1_score(true_labels, predicted_labels) -> float:
     f1 = f1_score(
         true_labels, predicted_labels, average="macro", zero_division=0
     )
     return round(f1, 6)
 
 
-def calculate_precision(true_labels, predicted_labels):
+def calculate_precision(true_labels, predicted_labels) -> float:
     precision = precision_score(
         true_labels, predicted_labels, average="macro", zero_division=0
     )
     return round(precision, 6)
 
 
-def calculate_accuracy(true_labels, predicted_labels):
+def calculate_accuracy(true_labels, predicted_labels) -> float:
     accuracy = accuracy_score(true_labels, predicted_labels)
     return round(accuracy, 6)
 
 
-def calculate_recall(true_labels, predicted_labels):
+def calculate_recall(true_labels, predicted_labels) -> float:
     recall = recall_score(
         true_labels, predicted_labels, average="macro", zero_division=0
     )
     return round(recall, 6)
 
 
-def calculate_confusion_matrix(true_labels, predicted_labels, labels_pool: list[str]):
+def calculate_confusion_matrix(true_labels, predicted_labels, labels_pool: list[str]) -> np.ndarray:
     cm = confusion_matrix(
         true_labels, predicted_labels, labels=list(range(len(labels_pool)))
     )
     return cm
 
-# Computes Top-K Accuracy
-def calculate_top_k_accuracy(true_labels, logits, k: int):
+
+def calculate_top_k_accuracy(true_labels, logits, k: int) -> float:
+    """
+    Fraction of samples whose true class is among the k highest logits.
+    """
     top_k_predictions = logits.topk(k, dim=1).indices
     correct = true_labels.unsqueeze(1)
 
@@ -65,8 +71,22 @@ def calculate_top_k_accuracy(true_labels, logits, k: int):
     return round(top_k_accuracy, 6)
 
 
-# Computes a per-class precision/recall/f1/support | accuracy/macro avg and weighted avg
-def calculate_per_class_metrics(true_labels, predicted_labels, labels_pool: list[str]):
+def calculate_per_class_metrics(
+        true_labels: torch.Tensor,
+        predicted_labels: torch.Tensor,
+        labels_pool: list[str]
+    ) -> tuple[dict[str, Any], str]:
+    """Per-class precision/recall/f1/support plus accuracy, macro avg and weighted avg.
+
+    Args:
+        true_labels: Ground-truth class indices, shape (N,).
+        predicted_labels: Predicted class indices, shape (N,).
+        labels_pool: Class names, indexed by class index.
+
+    Returns:
+        A (report_dict, report_text) tuple: the sklearn report as a nested
+        dict, and the same report formatted as a printable table.
+    """
     per_class_dict = classification_report(
         true_labels, predicted_labels,
         labels=list(range(len(labels_pool))),
@@ -83,14 +103,23 @@ def calculate_per_class_metrics(true_labels, predicted_labels, labels_pool: list
     return (per_class_dict, per_class_to_print)
 
 
-# Computes various metrics per-loader on demand
-# Can be used for both per-epoch and at the end for test data loader
 def calculate_metrics_per_loader(
-        model, loader, device, class_names,
-        criterion=None,
-        metrics_list=None,
+        model: nn.Module,
+        loader: DataLoader,
+        device: torch.device | str,
+        class_names: list[str],
+        criterion: nn.Module | None = None,
+        metrics_list: list[str] | None = None,
     ) -> dict[str, Any]:
+    """Run the model over a loader and compute the requested metrics on demand.
 
+    Works both per epoch (for validation) and once at the end on the validation/test loader.
+    All logits are collected first, so metrics are computed over the whole loader
+    rather than averaged per batch.
+
+    Returns:
+        Dict mapping metric name to value.
+    """
     final_metrics = {}
     if metrics_list is None and criterion is None:
             # avoid the run as no metrics were requested
@@ -156,7 +185,6 @@ def calculate_metrics_per_loader(
 
 # --- Plotting Functions ----
 
-# for historical data
 def plot_and_save_training_curve(
         history_metrics: dict[str, dict[str, list[float]]],
         plot_path: str | Path,
@@ -164,7 +192,9 @@ def plot_and_save_training_curve(
         exclude_run_types: list[str]|None = None,
         show: bool = False
     ) -> None:
-
+    """
+    Plot per-epoch historical metrics, one subplot per metric, and save the figure.
+    """
     exclude_metrics = exclude_metrics or []
     exclude_run_types = exclude_run_types or []
     
@@ -209,8 +239,8 @@ def plot_and_save_training_curve(
     plt.close()
 
 def plot_and_save_confusion_matrix(
-        confusion_matrix,
-        class_names,
+        confusion_matrix: np.ndarray,
+        class_names: list[str],
         plot_path: str | Path,
         show: bool = False
     ) -> None:
