@@ -6,6 +6,7 @@ from leafapp.eval_functions import (
     calculate_metrics_per_loader,
     plot_training_curve,
     plot_confusion_matrix,
+    plot_per_class_metrics,
 )
 from leafapp.data import get_loaders
 from leafapp.checkpoints import load_checkpoint
@@ -57,12 +58,15 @@ def main(checkpoint_path: str|Path, data_type: str):
         f"Macro Precision: {overall_metrics['precision']}\n"
         f"Macro Recall: {overall_metrics['recall']}\n"
         f"Macro F1: {overall_metrics['f1']}\n"
+        f"Per-Class Metrics:\n"
+        f"{overall_metrics['per-class-metrics']}"
     )
 
     plot_training_curve(history_metrics)
     plot_confusion_matrix(overall_metrics["confusion-matrix"], class_names)
     
-    # TODO: plot some overall_metrics (confusion_matrix, per-class-metrix)
+    
+    
     # TODO: save final metrics locally(include associated model)
 
 

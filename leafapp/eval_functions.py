@@ -211,6 +211,3 @@ def plot_confusion_matrix(confusion_matrix, class_names) -> None:
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
     plt.show()
-
-# TODO(most likely): plotting from passed metrics / from loaded saved metrix
-# TODO(possibily): some other morre advanced reporting
