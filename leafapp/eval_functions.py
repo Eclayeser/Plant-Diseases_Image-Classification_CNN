@@ -7,6 +7,7 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     confusion_matrix,
+    classification_report,
 )
 import torch
 
@@ -107,6 +108,18 @@ def calculate_metrics_per_loader(
     return final_metrics
 
 
+# Computes a per-class precision/recall/f1/support | accuracy/macro avg and weighted avg
+def calculate_per_class_metrics(true_labels, predicted_labels, labels_pool: list[str]):
+    per_class_report = classification_report(
+        true_labels, predicted_labels,
+        labels=list(range(len(labels_pool))),
+        target_names=labels_pool,
+        output_dict=True,
+        zero_division=0
+    )
+    return per_class_report
+
+
 # Computes Top-K Accuracy
 def calculate_top_k_accuracy(true_labels, logits, k: int):
     top_k_predictions = logits.topk(k, dim=1).indices
@@ -123,6 +136,5 @@ def calculate_top_k_accuracy(true_labels, logits, k: int):
     return top_k_accuracy
 
 
-# TODO: Per-class metrics
 # TODO(most likely): plotting from passed metrics / from loaded saved metrix
 # TODO(possibily): some other morre advanced reporting
