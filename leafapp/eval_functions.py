@@ -1,6 +1,7 @@
 """Shared evaluation functions"""
 
 from typing import Any
+from pathlib import Path
 from sklearn.metrics import (
     f1_score,
     accuracy_score,
@@ -13,7 +14,7 @@ import torch
 import matplotlib.pyplot as plt
 import seaborn
 
-# ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent
 
 
 def calculate_f1_score(true_labels, predicted_labels):
@@ -66,14 +67,20 @@ def calculate_top_k_accuracy(true_labels, logits, k: int):
 
 # Computes a per-class precision/recall/f1/support | accuracy/macro avg and weighted avg
 def calculate_per_class_metrics(true_labels, predicted_labels, labels_pool: list[str]):
-    per_class_report = classification_report(
+    per_class_dict = classification_report(
         true_labels, predicted_labels,
         labels=list(range(len(labels_pool))),
         target_names=labels_pool,
         output_dict=True,
         zero_division=0
     )
-    return per_class_report
+    per_class_to_print = classification_report(
+        true_labels, predicted_labels,
+        labels=list(range(len(labels_pool))),
+        target_names=labels_pool,
+        zero_division=0
+    )
+    return (per_class_dict, per_class_to_print)
 
 
 # Computes various metrics per-loader on demand
@@ -150,10 +157,12 @@ def calculate_metrics_per_loader(
 # --- Plotting Functions ----
 
 # for historical data
-def plot_training_curve(
+def plot_and_save_training_curve(
         history_metrics: dict[str, dict[str, list[float]]],
+        plot_path: str | Path,
         exclude_metrics: list[str]|None = None,
-        exclude_run_types: list[str]|None = None
+        exclude_run_types: list[str]|None = None,
+        show: bool = False
     ) -> None:
 
     exclude_metrics = exclude_metrics or []
@@ -189,11 +198,23 @@ def plot_training_curve(
         i += 1
 
     plt.tight_layout()
-    plt.show()
 
+    # save
+    plot_path = ROOT / plot_path
+    plot_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(plot_path, dpi=150, bbox_inches="tight")
 
-def plot_confusion_matrix(confusion_matrix, class_names) -> None:
-    plt.figure(figsize=(9, 7))
+    if show:
+        plt.show()
+    plt.close()
+
+def plot_and_save_confusion_matrix(
+        confusion_matrix,
+        class_names,
+        plot_path: str | Path,
+        show: bool = False
+    ) -> None:
+    plt.figure(figsize=(20, 17))
 
     seaborn.heatmap(
         confusion_matrix,
@@ -208,6 +229,20 @@ def plot_confusion_matrix(confusion_matrix, class_names) -> None:
     plt.ylabel("Actual Label")
     plt.title("CNN Confusion Matrix")
 
-    plt.xticks(rotation=45, ha="right")
+    plt.xticks(rotation=60, ha="right")
     plt.tight_layout()
-    plt.show()
+
+    # save
+    plot_path = ROOT / plot_path
+    plot_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(plot_path, dpi=150, bbox_inches="tight")
+
+    if show:
+        plt.show()
+    plt.close()
+
+
+def save_evaluation_report(written_report: str, report_path: str|Path) -> None:
+    report_path = ROOT / report_path
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(written_report, encoding="utf-8")
