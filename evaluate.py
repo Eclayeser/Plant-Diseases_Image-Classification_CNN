@@ -14,6 +14,7 @@ from leafapp.checkpoints import load_checkpoint
 
 REPORTS_DIR = Path("outputs") / "eval_reports"
 DIAGRAMS_DIR = Path("outputs") / "diagrams"
+ACCEPTED_DATA_TYPES = ("validation", "test")
 
 
 def main(checkpoint_path: str|Path, data_type: str):
@@ -23,21 +24,21 @@ def main(checkpoint_path: str|Path, data_type: str):
     Computes metrics, saves the training-curve and confusion-matrix plots,
     and writes a text report to the eval reports directory.
     """
+    if data_type not in ACCEPTED_DATA_TYPES:
+        raise ValueError(f"data_type should be one of {ACCEPTED_DATA_TYPES}")
+
     # load checkpoint info
     model, _, history_metrics, config = load_checkpoint(checkpoint_path)
 
     # load data to evaluate against
-    accepted_data_types = {"validation": val_loader, "test": test_loader} 
-    if data_type not in accepted_data_types.keys():
-            raise ValueError(f"data_type should be one of {accepted_data_types.keys()}")
-    
     _, val_loader, test_loader, class_names = get_loaders(
             fraction=config["data"]["fraction"],
             image_size=config["data"]["image_size"],
             batch_size=config["data"]["batch_size"],
             seed=config["seed"],
         )
-    target_data = accepted_data_types[data_type]
+    loaders = {"validation": val_loader, "test": test_loader}
+    target_data = loaders[data_type]
 
     # run model and calculate metrics
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
