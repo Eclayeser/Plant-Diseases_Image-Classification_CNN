@@ -15,12 +15,15 @@
 - Approximate share of AI-generated code: 100%
 
 ## meetings/meeting_1_summary.md, meeting_2_summary.md, meeting_3_summary.md (SGP-8, Mark Tarnavskyi)
+
 - Approximate share of AI-generated documentation: 0%
 
-## report_word/* (SGP-8, Mark Tarnavskyi)
+## report_word/\* (SGP-8, Mark Tarnavskyi)
+
 - Approximate share of AI-generated documentation: 0%
 
 ## README.md
+
 - #Tools section: 0% AI-generated documentation (SGP-8, Mark Tarnavskyi)
 
 ## leafapp/models/cnn.py (SGP-6, Mario Cavicchioli)
@@ -49,14 +52,16 @@
 
 ## train.py (SGP-10, Mario Cavicchioli)
 
-- `train_one_epoch()`, `evaluate()` (now `loss_accuracy_per_epoch()` in `leafapp/eval_functions.py`) and `main()`: Claude gave skeletons with blanks; I wrote the setup (config, loaders, model, loss, optimiser, seed), the training step, the epoch loop and the checkpoint saving call, and adapted `evaluate()` from `train_one_epoch()`. Claude corrected my mistakes.
+- `train_one_epoch()`, `evaluate()` (moved and heavily (no AI) edited by **SGP-12**, renamed to `calculate_metrics_per_loader()`; now in `leafapp/eval_functions.py`) and `main()`: Claude gave skeletons with blanks; I wrote the setup (config, loaders, model, loss, optimiser, seed), the training step, the epoch loop and the checkpoint saving call, and adapted `evaluate()` from `train_one_epoch()`. Claude corrected my mistakes.
 - Given by Claude: the accuracy bookkeeping lines (`argmax`, `correct`), the device one-liner, the `ROOT` path fix (suggested by CodeRabbit), the timestamped checkpoint filename with a unique run id (suggested by CodeRabbit) and folder creation, the print format, and the docstrings.
 - Approximate share of AI-generated code: 30%
+
+- **SGP-12, Mark Tarnavskyi** hand-written edits
 
 ## tests/test_train.py (SGP-10, Mario Cavicchioli)
 
 - `make_fake_loader()` and the weight-change test: mostly written by Claude, reviewed and run by me.
-- Metrics test and the `evaluate` no-update test (now in `tests/test_eval_functions.py`): written by me.
+- Metrics test and the `evaluate` no-update test (`evaluate` ceased to exist after **SGP-12**): written by me.
 - Approximate share of AI-generated code: 60%
 
 ## tests/test_checkpoints.py (SGP-10, Mario Cavicchioli)
@@ -68,3 +73,16 @@
 
 - Structure suggested by Claude; I added the keys as the code needed them.
 - Approximate share of AI-generated code: 35%
+
+## leafapp/eval_functions.py (SGP-12, Mark Tarnavskyi)
+
+- All code is hand-written and has been aspired by LGT/SGT notebooks. Only AI generated code is relative Path resolution and minimal docstrings.
+- Used Claude for 2 review/debugging sessions, each lasting about 4-6 hours
+- Approximate share of AI-generated code: 10%
+
+## evaluate.py (SGP-12, Mark Tarnavskyi)
+
+- All code is hand-written. Only AI generated code is a docstring
+- Used Claude for 1 review/debugging sessions which lasted about 3 hours
+- Approximate share of AI-generated code: 5%
+
