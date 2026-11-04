@@ -105,7 +105,14 @@ def main():
 
     for epoch in range(cfg["train"]["epochs"]):
         train_epoch_metrics = train_one_epoch(model, train_loader, criterion, optimizer, device)
-        val_epoch_metrics = calculate_metrics_per_loader(model, val_loader, device, criterion=criterion, metrics_list=["accuracy", "f1"])
+        val_epoch_metrics = calculate_metrics_per_loader(
+            model=model,
+            loader=val_loader,
+            device=device,
+            class_names=class_names,
+            criterion=criterion,                # triggers loss calculation
+            metrics_list=["accuracy", "f1"]     # + the indicated metrics
+        )
         
         history_metrics["train_losses"].append(train_epoch_metrics["loss"]) 
         history_metrics["train_accuracies"].append(train_epoch_metrics["accuracy"])
