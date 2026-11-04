@@ -59,7 +59,7 @@ def calculate_top_k_accuracy(true_labels, logits, k: int):
         .item()
     )
 
-    return top_k_accuracy
+    return round(top_k_accuracy, 6)
 
 
 # Computes a per-class precision/recall/f1/support | accuracy/macro avg and weighted avg
@@ -130,7 +130,7 @@ def calculate_metrics_per_loader(
     # calculate other metrics
     if metrics_list is not None:
         predicted_labels = final_logits.argmax(dim=1)
-        
+
         for metric in metrics_list:
             if metric in calc_dispatcher:
                 final_metrics[metric] = calc_dispatcher[metric](true_labels, predicted_labels)
