@@ -10,6 +10,7 @@ from sklearn.metrics import (
     classification_report,
 )
 import torch
+import matplotlib.pyplot as plt
 
 # ROOT = Path(__file__).resolve().parent
 
@@ -146,3 +147,48 @@ def calculate_metrics_per_loader(
                 raise ValueError(f"{metric} metric is not recognised")
 
     return final_metrics
+
+
+# --- Plotting Functions ----
+
+# for historical data
+def plot_training_curve(
+        history_metrics: dict[str, dict[str, list[float]]],
+        exclude_metrics: list[str]|None = None,
+        exclude_run_types: list[str]|None = None
+    ) -> None:
+
+    exclude_metrics = exclude_metrics or []
+    exclude_run_types = exclude_run_types or []
+    
+
+    metrics_to_plot = {
+        name: runs for name, runs in history_metrics.items() if name not in exclude_metrics
+    }
+    if not metrics_to_plot:
+        return
+
+
+    fig, axes = plt.subplots(1, len(metrics_to_plot), figsize=(12, 4), squeeze=False)
+    i = 0
+    axes = axes[0]
+
+    for metric_name, metrics in metrics_to_plot.items():
+        for run_type in metrics.keys():
+            if run_type in exclude_run_types:
+                continue
+
+            metrics_array = metrics[run_type]
+            epochs = range(1, len(metrics_array) + 1)
+            axes[i].plot(epochs, metrics_array, label=run_type.capitalize())
+        
+        axes[i].set_title(f"CNN {metric_name.capitalize()}")
+        axes[i].set_xlabel("Epoch")
+        axes[i].set_ylabel(f"{metric_name.capitalize()}")
+        axes[i].legend()
+        axes[i].grid(alpha=0.3)
+
+        i += 1
+
+    plt.tight_layout()
+    plt.show()
