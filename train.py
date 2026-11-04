@@ -92,12 +92,18 @@ def main():
 
     # metrics which are to record per-epoch
     history_metrics = {
-        "train_losses": [],
-        "train_accuracies": [],
-        "train_f1s": [],
-        "val_losses": [],
-        "val_accuracies": [],
-        "val_f1s": []
+        "losses": {
+            "training": [],
+            "validation": []
+        },
+        "accuracies": {
+            "training": [],
+            "validation": [] 
+        },
+        "f1s": {
+            "training": [],
+            "validation": [] 
+        }
     }
 
     criterion = nn.CrossEntropyLoss()
@@ -114,12 +120,12 @@ def main():
             metrics_list=["accuracy", "f1"]     # + the indicated metrics
         )
         
-        history_metrics["train_losses"].append(train_epoch_metrics["loss"]) 
-        history_metrics["train_accuracies"].append(train_epoch_metrics["accuracy"])
-        history_metrics["train_f1s"].append(train_epoch_metrics["f1"])
-        history_metrics["val_losses"].append(val_epoch_metrics["loss"])
-        history_metrics["val_accuracies"].append(val_epoch_metrics["accuracy"])
-        history_metrics["val_f1s"].append(val_epoch_metrics["f1"])
+        history_metrics["losses"]["training"].append(train_epoch_metrics["loss"]) 
+        history_metrics["accuracies"]["training"].append(train_epoch_metrics["accuracy"])
+        history_metrics["f1s"]["training"].append(train_epoch_metrics["f1"])
+        history_metrics["losses"]["validation"].append(val_epoch_metrics["loss"])
+        history_metrics["accuracies"]["validation"].append(val_epoch_metrics["accuracy"])
+        history_metrics["f1s"]["validation"].append(val_epoch_metrics["f1"])
 
         print(
                 f"Epoch {epoch + 1}: "
