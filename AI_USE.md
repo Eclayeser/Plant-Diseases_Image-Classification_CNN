@@ -76,13 +76,13 @@
 
 ## leafapp/eval_functions.py (SGP-12, Mark Tarnavskyi)
 
-- All code is hand-written and has been aspired by LGT/SGT notebooks. Only AI generated code is relative Path resolution and minimal docstrings.
+- All code is hand-written and has been inspired by LGT/SGT notebooks. Only AI-generated code is relative-path resolution and minimal docstrings.
 - Used Claude for 2 review/debugging sessions, each lasting about 4-6 hours
 - Approximate share of AI-generated code: 10%
 
 ## evaluate.py (SGP-12, Mark Tarnavskyi)
 
-- All code is hand-written. Only AI generated code is a docstring
-- Used Claude for 1 review/debugging sessions which lasted about 3 hours
+- All code is hand-written. Only AI-generated code is a docstring
+- Used Claude for 1 review/debugging session which lasted about 3 hours
 - Approximate share of AI-generated code: 5%
 
