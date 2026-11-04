@@ -107,7 +107,22 @@ def calculate_metrics_per_loader(
     return final_metrics
 
 
-# TODO: Top-K Accuracy
+# Computes Top-K Accuracy
+def calculate_top_k_accuracy(true_labels, logits, k: int):
+    top_k_predictions = logits.topk(k, dim=1).indices
+    correct = true_labels.unsqueeze(1)
+
+    top_k_accuracy = (
+        (top_k_predictions[:, :k] == correct)
+        .any(dim=1)
+        .float()
+        .mean()
+        .item()
+    )
+
+    return top_k_accuracy
+
+
 # TODO: Per-class metrics
 # TODO(most likely): plotting from passed metrics / from loaded saved metrix
 # TODO(possibily): some other morre advanced reporting

@@ -74,7 +74,7 @@ def main():
     """
     cfg = load_config(ROOT / "configs" / "prototype.yaml")
     torch.manual_seed(cfg["seed"])
-    train_loader, val_loader, test_loader, class_names = get_loaders(
+    train_loader, val_loader, _, class_names = get_loaders(
         fraction=cfg["data"]["fraction"],
         image_size=cfg["data"]["image_size"],
         batch_size=cfg["data"]["batch_size"],
