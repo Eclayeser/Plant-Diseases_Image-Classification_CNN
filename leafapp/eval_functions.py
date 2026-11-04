@@ -40,85 +40,11 @@ def calculate_recall(true_labels, predicted_labels):
     return round(recall, 6)
 
 
-def calculate_confusion_matrix(true_labels, predicted_labels):
+def calculate_confusion_matrix(true_labels, predicted_labels, labels_pool: list[str]):
     cm = confusion_matrix(
-        true_labels, predicted_labels
+        true_labels, predicted_labels, labels=list(range(len(labels_pool)))
     )
     return cm
-
-
-# Computes various metrics per-loader on demand
-# Can be used for both per-epoch and at the end for test data loader
-def calculate_metrics_per_loader(
-        model, loader, device,
-        criterion=None,
-        metrics_list=None
-    ) -> dict[str, Any]:
-
-    final_metrics = {}
-    if metrics_list is None and criterion is None:
-            # avoid the run as no metrics were requested
-            return final_metrics
-
-    model.eval()
-    total_loss, total = 0, 0
-    all_preds, all_labels = [], []
-
-    calc_dispatcher = {
-        "accuracy": calculate_accuracy,
-        "precision": calculate_precision,
-        "f1": calculate_f1_score,
-        "recall": calculate_recall,
-        "confusion_matrix": calculate_confusion_matrix
-    }
-
-    with torch.no_grad():
-        for batch in loader:
-            images, labels = batch["pixels"], batch["label"]
-            images, labels = images.to(device), labels.to(device)
-
-            logits = model(images)
-            batch_size = labels.size(0)
-            total += batch_size
-
-            if criterion is not None:
-                loss = criterion(logits, labels)
-                total_loss += loss.item() * batch_size
-
-            if metrics_list is not None:
-                all_preds.append(logits.argmax(dim=1).cpu())
-                all_labels.append(labels.cpu())
-            
-
-    if total == 0:
-        raise ValueError("The loader produced no samples, so the metrics can't be computed")
-
-    if criterion is not None:
-        final_metrics["loss"] = total_loss / total
-
-    if metrics_list is not None:
-        true_labels, predicted_labels = torch.cat(all_labels), torch.cat(all_preds)
-        
-        for metric in metrics_list:
-            if metric in calc_dispatcher:
-                final_metrics[metric] = calc_dispatcher[metric](true_labels, predicted_labels)
-            else:
-                raise ValueError(f"{metric} metric is not recognised")
-
-    return final_metrics
-
-
-# Computes a per-class precision/recall/f1/support | accuracy/macro avg and weighted avg
-def calculate_per_class_metrics(true_labels, predicted_labels, labels_pool: list[str]):
-    per_class_report = classification_report(
-        true_labels, predicted_labels,
-        labels=list(range(len(labels_pool))),
-        target_names=labels_pool,
-        output_dict=True,
-        zero_division=0
-    )
-    return per_class_report
-
 
 # Computes Top-K Accuracy
 def calculate_top_k_accuracy(true_labels, logits, k: int):
@@ -136,5 +62,87 @@ def calculate_top_k_accuracy(true_labels, logits, k: int):
     return top_k_accuracy
 
 
+# Computes a per-class precision/recall/f1/support | accuracy/macro avg and weighted avg
+def calculate_per_class_metrics(true_labels, predicted_labels, labels_pool: list[str]):
+    per_class_report = classification_report(
+        true_labels, predicted_labels,
+        labels=list(range(len(labels_pool))),
+        target_names=labels_pool,
+        output_dict=True,
+        zero_division=0
+    )
+    return per_class_report
+
+
 # TODO(most likely): plotting from passed metrics / from loaded saved metrix
 # TODO(possibily): some other morre advanced reporting
+
+# Computes various metrics per-loader on demand
+# Can be used for both per-epoch and at the end for test data loader
+def calculate_metrics_per_loader(
+        model, loader, device, class_names,
+        criterion=None,
+        metrics_list=None,
+    ) -> dict[str, Any]:
+
+    final_metrics = {}
+    if metrics_list is None and criterion is None:
+            # avoid the run as no metrics were requested
+            return final_metrics
+
+    model.eval()
+    logits_batches, labels_batches = [], []
+
+    calc_dispatcher = {
+        "accuracy": calculate_accuracy,
+        "precision": calculate_precision,
+        "f1": calculate_f1_score,
+        "recall": calculate_recall,
+    }
+    other_accepted_metrics = [
+        "top-3-accuracy",
+        "top-5-accuracy",
+        "per-class-metrics",
+        "confusion-matrix"
+    ]
+
+    with torch.no_grad():
+        for batch in loader:
+            images, labels = batch["pixels"], batch["label"]
+            images, labels = images.to(device), labels.to(device)
+
+            logits = model(images)
+
+            logits_batches.append(logits.cpu())
+            labels_batches.append(labels.cpu())
+            
+
+    if not logits_batches:
+        raise ValueError("The loader produced no samples, so the metrics can't be computed")
+
+    final_logits = torch.cat(logits_batches)
+    true_labels = torch.cat(labels_batches)
+
+    # calculate loss with regard to provided criterion
+    if criterion is not None:
+        final_metrics["loss"] = criterion(final_logits, true_labels).item()
+
+    # calculate other metrics
+    if metrics_list is not None:
+        predicted_labels = final_logits.argmax(dim=1)
+        
+        for metric in metrics_list:
+            if metric in calc_dispatcher:
+                final_metrics[metric] = calc_dispatcher[metric](true_labels, predicted_labels)
+            elif metric in other_accepted_metrics:
+                if metric.startswith("top-") and metric.endswith("-accuracy"):
+                    final_metrics[metric] = calculate_top_k_accuracy(true_labels, final_logits, int(metric.split("-")[1]))
+                elif metric == "per-class-metrics":
+                    final_metrics[metric] = calculate_per_class_metrics(true_labels, predicted_labels, class_names)
+                elif metric == "confusion-matrix":
+                    final_metrics[metric] = calculate_confusion_matrix(true_labels, predicted_labels, class_names)
+                
+            else:
+                raise ValueError(f"{metric} metric is not recognised")
+
+    return final_metrics
