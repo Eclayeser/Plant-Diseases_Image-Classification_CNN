@@ -4,6 +4,7 @@ from torch import nn
 from pathlib import Path
 from leafapp.eval_functions import (
     calculate_metrics_per_loader,
+    plot_training_curve,
 )
 from leafapp.data import get_loaders
 from leafapp.checkpoints import load_checkpoint
@@ -57,7 +58,9 @@ def main(checkpoint_path: str|Path, data_type: str):
         f"Macro F1: {overall_metrics['f1']}\n"
     )
 
-    # TODO: plot history metrics (from the checkpoint) and some overall_metrics (confusion_matrix, per-class-metrix)
+    plot_training_curve(history_metrics)
+    
+    # TODO: plot some overall_metrics (confusion_matrix, per-class-metrix)
     # TODO: save final metrics locally(include associated model)
 
 
