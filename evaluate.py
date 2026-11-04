@@ -27,16 +27,16 @@ def main(checkpoint_path: str|Path, data_type: str):
     model, _, history_metrics, config = load_checkpoint(checkpoint_path)
 
     # load data to evaluate against
+    accepted_data_types = {"validation": val_loader, "test": test_loader} 
+    if data_type not in accepted_data_types.keys():
+            raise ValueError(f"data_type should be one of {accepted_data_types.keys()}")
+    
     _, val_loader, test_loader, class_names = get_loaders(
             fraction=config["data"]["fraction"],
             image_size=config["data"]["image_size"],
             batch_size=config["data"]["batch_size"],
             seed=config["seed"],
         )
-    
-    accepted_data_types = {"validation": val_loader, "test": test_loader} 
-    if data_type not in accepted_data_types.keys():
-        raise ValueError(f"data_type should be one of {accepted_data_types.keys()}")
     target_data = accepted_data_types[data_type]
 
     # run model and calculate metrics
