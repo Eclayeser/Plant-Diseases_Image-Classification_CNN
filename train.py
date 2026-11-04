@@ -23,7 +23,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
     Train the model for one pass over the loader, updating its weights.
     
     Raises ValueError if the loader is empty.
-    Returns (average loss, accuracy) over all batches in the epoch.
+    Returns a dict with the epoch's average "loss", "accuracy" and "f1" (macro).
     """
     model.train()
 
@@ -68,9 +68,9 @@ def main():
     """
     Train BasicCNN using configs/prototype.yaml and save a checkpoint.
 
-    Prints train/val loss and accuracy each epoch, then saves the model,
-    config and class names to a uniquely named file (timestamp + short id)
-    in checkpoint_dir.
+    Prints train/val loss, accuracy and f1 each epoch and records them as
+    history, then saves the model, config, class names and history to a
+    uniquely named file (timestamp + short id) in checkpoint_dir.
     """
     cfg = load_config(ROOT / "configs" / "prototype.yaml")
     torch.manual_seed(cfg["seed"])
