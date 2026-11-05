@@ -1,7 +1,7 @@
 # Saves and loads model weights together with the information needed to use them.
 from pathlib import Path
 import torch
-from leafapp.models.cnn import BasicCNN
+from leafapp.config import build_model
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -26,7 +26,7 @@ def save_checkpoint(path, model, cfg, class_names, history_metrics):
 
 def load_checkpoint(path):
     """
-    Rebuild a BasicCNN from a checkpoint saved with save_checkpoint.
+    Rebuild a model from a checkpoint saved with save_checkpoint.
     A relative path is resolved against the project root, not the current directory.
 
     Returns (model, class_names, history_metrics, config). The model is in eval mode.
@@ -34,11 +34,8 @@ def load_checkpoint(path):
     checkpoint = torch.load(ROOT / path, map_location="cpu")
     config = checkpoint["config"]
 
-    model = BasicCNN(
-        num_classes=len(checkpoint["class_names"]),
-        channels=config["model"]["channels"],
-        image_size=config["data"]["image_size"],
-    )
+    model = build_model(config["model"], config["data"], checkpoint["class_names"])
+
     model.load_state_dict(checkpoint["state_dict"])
     model.eval()
 
