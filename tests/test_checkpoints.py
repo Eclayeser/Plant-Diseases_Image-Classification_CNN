@@ -5,7 +5,7 @@ from leafapp.checkpoints import save_checkpoint, load_checkpoint
 
 
 def test_checkpoint_round_trip_gives_same_outputs(tmp_path):
-    cfg = {"model": {"channels": [8]}, "data": {"image_size": 32}}
+    cfg = {"model": {"type": "BasicCNN", "channels": [8]}, "data": {"image_size": 32}}
     class_names = ["a", "b", "c"]
     model = BasicCNN(num_classes=len(class_names), channels=cfg["model"]["channels"], image_size=cfg["data"]["image_size"])
     model.eval()
@@ -19,7 +19,7 @@ def test_checkpoint_round_trip_gives_same_outputs(tmp_path):
         assert torch.equal(loaded_model(x), model(x)), "Loaded model gives different outputs"
 
 def test_checkpoint_keeps_config_class_names_and_history_metrics(tmp_path):
-    cfg = {"model": {"channels": [8]}, "data": {"image_size": 32}, "seed": 42}
+    cfg = {"model": {"type": "BasicCNN", "channels": [8]}, "data": {"image_size": 32}, "seed": 42}
     class_names = ["a", "b", "c"]
     model = BasicCNN(num_classes=len(class_names), channels=cfg["model"]["channels"], image_size=cfg["data"]["image_size"])
 
