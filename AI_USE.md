@@ -54,6 +54,7 @@
 
 ## train.py (SGP-10, Mario Cavicchioli)
 
+- Claude explained argparse (and the alternatives), and gave a fill-in-the-blank skeleton for `parse_args()`. I filled in the logic; the description/help/docstring wording was refined by Claude from my drafts. (SGP-19, Mario Cavicchioli)
 - `train_one_epoch()`, `evaluate()` (moved and heavily (no AI) edited by **SGP-12**, renamed to `calculate_metrics_per_loader()`; now in `leafapp/eval_functions.py`) and `main()`: Claude gave skeletons with blanks; I wrote the setup (config, loaders, model, loss, optimiser, seed), the training step, the epoch loop and the checkpoint saving call, and adapted `evaluate()` from `train_one_epoch()`. Claude corrected my mistakes.
 - Given by Claude: the accuracy bookkeeping lines (`argmax`, `correct`), the device one-liner, the `ROOT` path fix (suggested by CodeRabbit), the timestamped checkpoint filename with a unique run id (suggested by CodeRabbit) and folder creation, the print format, and the docstrings.
 - Approximate share of AI-generated code: 30%
@@ -64,7 +65,10 @@
 
 - `make_fake_loader()` and the weight-change test: mostly written by Claude, reviewed and run by me.
 - Metrics test and the `evaluate` no-update test (`evaluate` ceased to exist after **SGP-12**): written by me.
-- Approximate share of AI-generated code: 60%
+- `test_parse_args_gives_default_path`: written by me, claude corrected my mistakes. (SGP-19, Mario Cavicchioli)
+- `test_parse_args_reads_custom_config`: structure given by Claude with blanks, filled in by me. (SGP-19, Mario Cavicchioli)
+- `test_train_one_epoch_rejects_empty_loader`: restored from my SGP-10 test (removed in SGP-12), code given by Claude. (SGP-19, Mario Cavicchioli)
+- Approximate share of AI-generated code: 50%
 
 ## tests/test_checkpoints.py (SGP-10, Mario Cavicchioli)
 
