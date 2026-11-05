@@ -5,7 +5,8 @@ import uuid
 
 import torch
 from torch import nn
-from leafapp.config import load_config, build_model
+from leafapp.config import load_config
+from leafapp.model_constructor import build_model
 from leafapp.data import get_loaders
 from leafapp.checkpoints import save_checkpoint
 from leafapp.eval_functions import (

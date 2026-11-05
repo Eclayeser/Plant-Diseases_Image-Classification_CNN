@@ -1,7 +1,7 @@
 # Saves and loads model weights together with the information needed to use them.
 from pathlib import Path
 import torch
-from leafapp.config import build_model
+from leafapp.model_constructor import build_model
 
 ROOT = Path(__file__).resolve().parent.parent
 
