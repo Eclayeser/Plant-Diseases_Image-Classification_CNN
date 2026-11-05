@@ -9,7 +9,6 @@ The `notebooks/`, `tests/`, and `documents/` folders hold exploratory work, auto
 
 The prototype and final product will share the same codebase.
 Prototype settings will be kept in `configs/prototype.yaml`, and ClearML tags will identify prototype runs.
-A `v0.1-prototype` Git tag will mark the version delivered as the prototype.
 
 ## Tools
 
