@@ -1,6 +1,7 @@
 # Meeting number 4 - Summary
 ## Date: *04/11/2026*
-### Type: *Online (Reading Week)*
+## Type: *Online (Reading Week)*
+## Dyration: *1 hour*
 
 ### Attendees (6/7):
 - Illia, Mark, Mario, Pranay, Javier, Reon
