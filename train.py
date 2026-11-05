@@ -1,4 +1,5 @@
 # Runs model training and validation, records results and saves checkpoints.
+import argparse
 from pathlib import Path
 from datetime import datetime
 import uuid
@@ -16,6 +17,14 @@ from leafapp.eval_functions import (
 )
 
 ROOT = Path(__file__).resolve().parent
+
+def parse_args():
+    """Read the command-line arguments and return them (currently just --config)."""
+
+    parser = argparse.ArgumentParser(description="Train a CNN model and save a checkpoint.")
+    parser.add_argument("--config", default="configs/prototype.yaml", help="Path to the YAML config file for this run.")
+    return parser.parse_args()
+
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
     """
@@ -63,15 +72,15 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
 
 
-def main():
+def main(config_path):
     """
-    Train a CNN model using configs/prototype.yaml and save a checkpoint.
+    Train a model using the given config (default: configs/prototype.yaml) and save a checkpoint.
 
     Prints train/val loss, accuracy and f1 each epoch and records them as
     history, then saves the model, config, class names and history to a
     uniquely named file (timestamp + short id) in checkpoint_dir.
     """
-    cfg = load_config(ROOT / "configs" / "prototype.yaml") # SGP-19 issue
+    cfg = load_config(ROOT / config_path) 
     torch.manual_seed(cfg["seed"])
     train_loader, val_loader, _, class_names = get_loaders(
         fraction=cfg["data"]["fraction"],
@@ -130,7 +139,8 @@ def main():
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     run_id = uuid.uuid4().hex[:6]   # e.g. "a3f9c1": 6 random hex characters
-    checkpoint_path = ROOT / cfg["train"]["checkpoint_dir"] / f"basic_cnn_{timestamp}_{run_id}.pt"
+    config_name = Path(config_path).stem
+    checkpoint_path = ROOT / cfg["train"]["checkpoint_dir"] / f"{config_name}_{timestamp}_{run_id}.pt"
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
     save_checkpoint(
@@ -143,4 +153,5 @@ def main():
     print(f"Saved checkpoint to {checkpoint_path}")
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(args.config)
