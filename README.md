@@ -48,16 +48,26 @@ python -m pip install -r requirements.txt
 python train.py
 ```
 - Settings (data fraction, image size, batch size, model channels, learning rate, epochs, seed) are read from `configs/prototype.yaml`.
-- Each epoch prints train and validation loss and accuracy.
-- At the end, the model is saved to `outputs/basic_cnn_<timestamp>_<id>.pt` (a unique name per run). The `outputs/` folder is ignored by git.
+- Each epoch prints train and validation loss, accuracy and f1 score.
+- At the end, the model is saved to `outputs/models/basic_cnn_<timestamp>_<id>.pt` (a unique name per run). The `outputs/` folder is ignored by git.
 
 ### Load a trained model
 ```python
 from leafapp.checkpoints import load_checkpoint
 
-model, class_names, config = load_checkpoint("outputs/basic_cnn_<timestamp>_<id>.pt")
+model, class_names, history_metrics, config = load_checkpoint("outputs/models/basic_cnn_<timestamp>_<id>.pt")
 ```
-The checkpoint stores the weights, the full config and the class names, so the model is rebuilt with the same settings and the same data split (`config["seed"]`, `config["data"]["fraction"]`) can be recreated for evaluation. The model is returned in eval mode, on the CPU.
+The checkpoint stores the weights, metrics recorded during the training, the full config and the class names, so the model is rebuilt with the same settings and the same data split (`config["seed"]`, `config["data"]["fraction"]`) can be recreated for evaluation. The model is returned in eval mode, on the CPU.
+
+### Evaluate a trained model
+```bash
+python evaluate.py {RELATIVE_PATH_TO_CHECKPOINT} {DATA_SET_TYPE}
+```
+- `{RELATIVE_PATH_TO_CHECKPOINT}` is path to the model you want to evaluate, e.g. `outputs\models\basic_cnn_20261104-215131_f55919.pt`
+- `{DATA_SET_TYPE}` determines which data set you want to use for evaluation. Only accepts either `"validation"` or `"test"`
+- At the end of the run, the evaluation report is produced and saved to `outputs/eval_reports/<data_type>_<timestamp>_report.txt`, and any diagrams/graphs are saved to `outputs/diagrams/<data_type>_<timestamp>_<diagram_type>.png`.
+
+*Important Note:* Remember! Do not use test data set for any sort of model tunning. The test data set exists solely for final evaluation and designed to prevent biased model adjustments.
 
 ## Running the tests
 
