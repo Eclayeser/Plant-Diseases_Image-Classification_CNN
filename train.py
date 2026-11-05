@@ -18,13 +18,16 @@ from leafapp.eval_functions import (
 
 ROOT = Path(__file__).resolve().parent
 
-def parse_args():
-    """Read the command-line arguments and return them (currently just --config)."""
+def parse_args(argv=None):
+    """
+    Read the command-line arguments and return them (currently just --config).
+    
+    If argv is None, the real command line is used.
+    """
 
     parser = argparse.ArgumentParser(description="Train a CNN model and save a checkpoint.")
     parser.add_argument("--config", default="configs/prototype.yaml", help="Path to the YAML config file for this run.")
-    return parser.parse_args()
-
+    return parser.parse_args(argv)
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
     """
@@ -70,11 +73,9 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
     return epoch_metrics
 
-
-
 def main(config_path):
     """
-    Train a model using the given config (default: configs/prototype.yaml) and save a checkpoint.
+    Train a model using the config at config_path and save a checkpoint.
 
     Prints train/val loss, accuracy and f1 each epoch and records them as
     history, then saves the model, config, class names and history to a
