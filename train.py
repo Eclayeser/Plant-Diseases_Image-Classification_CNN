@@ -5,11 +5,9 @@ import uuid
 
 import torch
 from torch import nn
-from leafapp.config import load_config
+from leafapp.config import load_config, build_model
 from leafapp.data import get_loaders
-from leafapp.models.cnn import BasicCNN
 from leafapp.checkpoints import save_checkpoint
-
 from leafapp.eval_functions import (
     calculate_metrics_per_loader,
     calculate_f1_score,
@@ -66,13 +64,13 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
 def main():
     """
-    Train BasicCNN using configs/prototype.yaml and save a checkpoint.
+    Train a CNN model using configs/prototype.yaml and save a checkpoint.
 
     Prints train/val loss, accuracy and f1 each epoch and records them as
     history, then saves the model, config, class names and history to a
     uniquely named file (timestamp + short id) in checkpoint_dir.
     """
-    cfg = load_config(ROOT / "configs" / "prototype.yaml")
+    cfg = load_config(ROOT / "configs" / "prototype.yaml") # SGP-19 issue
     torch.manual_seed(cfg["seed"])
     train_loader, val_loader, _, class_names = get_loaders(
         fraction=cfg["data"]["fraction"],
@@ -81,11 +79,7 @@ def main():
         seed=cfg["seed"],
     )
 
-    model = BasicCNN(
-        num_classes=len(class_names),
-        channels=cfg["model"]["channels"],
-        image_size=cfg["data"]["image_size"],
-    )
+    model = build_model(cfg["model"], cfg["data"], class_names)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
