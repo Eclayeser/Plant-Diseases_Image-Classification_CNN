@@ -1,9 +1,7 @@
-# Holds the settings for an initial prototype run.
-
 seed: 42
 data:
   image_size: 128
-  fraction: 0.05
+  fraction: 0.2
   batch_size: 32
 model:
   channels: [16, 32, 64]
