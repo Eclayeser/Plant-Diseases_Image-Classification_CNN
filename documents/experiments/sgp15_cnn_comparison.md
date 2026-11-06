@@ -10,7 +10,7 @@ All runs use the same settings so that only the architecture changes:
 | Model | Config | Channels | Parameters | Val accuracy | Val F1 | Checkpoint |
 |---|---|---|---|---|---|---|
 | Baseline | `prototype_small_data_frac.yaml` | [16, 32, 64] | 662,599 | 0.630 | 0.534 | `prototype_small_data_frac_20261106-101034_9934d5.pt` |
-| Wider | `cnn_wider.yaml` | [32, 64, 128] | 1,371,239 | | | |
+| Wider | `cnn_wider.yaml` | [32, 64, 128] | 1,371,239 | 0.668 | 0.566 | `cnn_wider_20261106-102850_dceb83.pt` |
 | Deeper | `cnn_deeper.yaml` | [16, 32, 64, 128] | 416,967 | | | |
 
 ## Observations
@@ -19,6 +19,11 @@ All runs use the same settings so that only the architecture changes:
   pooling layer halves the feature map size before the final linear layer.
 - For the baseline, validation loss was still decreasing at epoch 5
   (1.570 → 1.371 → 1.208), so more epochs may improve it.
+- The wider model improved validation accuracy by 3.8 points (0.630 → 0.668)
+  and F1 by 3.2 points (0.534 → 0.566), but it has about twice as many parameters.
+- For the wider model, validation loss increased slightly from epoch 4 to 5
+  (1.114 → 1.138) while training loss kept decreasing, which may be an early
+  sign of overfitting.
 
 ## Limitations
 - All models use the same training settings (5 epochs, lr 0.001). This keeps the
