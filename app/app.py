@@ -1,28 +1,44 @@
+
+import os
+
 import gradio as gr
-from torchvision import transforms
 import pandas as pd
 import torch
 
-def get_diseases():
-    return [
-        "Tomato - Healthy",
-        "Tomato - Early Blight",
-        "Tomato - Late Blight",
-        "Tomato - Leaf Mold",
-        "Tomato - Septoria Leaf Spot"
-    ]
-def get_probabilities():
-    return [0.75, 0.12, 0.07, 0.04, 0.02]
+from leafapp.checkpoints import load_checkpoint
+from leafapp.data import make_transforms
 
-# TODO: Connect this function to the trained CNN model once it is ready.
-# For now, the Gradio interface uses dummy predictions.
-def get_cnn_predictions(processed_image, model, class_names):
+
+CHECKPOINT_PATH = os.getenv("CHECKPOINT_PATH")
+
+
+def load_model():
+    # Load the trained CNN model
+    if not CHECKPOINT_PATH:
+        raise RuntimeError(
+            "Please set CHECKPOINT_PATH to a trained model."
+        )
+
+    model, class_names, _, config = load_checkpoint(CHECKPOINT_PATH)
+
+    # Use the same image preprocessing as evaluation
+    _, transform = make_transforms(config["data"]["image_size"], augment=False)
+
+    return model, class_names, transform
+
+
+def get_cnn_predictions(image, model, class_names):
     model.eval()
-    with torch.no_grad():
-        output = model(processed_image.unsqueeze(0))
 
-    probs = torch.softmax(output, dim=1)[0]
-    top5 = torch.topk(probs, 5)
+    # Get predictions from the CNN
+    with torch.no_grad():
+        output = model(image.unsqueeze(0))
+
+    # Convert the output into probabilities
+    probabilities = torch.softmax(output, dim=1)[0]
+
+    # Find the 5 most likely diseases
+    top5 = torch.topk(probabilities, 5)
 
     diseases = []
     for i in top5.indices:
@@ -33,49 +49,36 @@ def get_cnn_predictions(processed_image, model, class_names):
         "Probability": top5.values.tolist()
     })
 
-def get_predictions(processed_image):
-    #  TODO: switch to get_cnn_predictions when the model is ready.
-    diseases = get_diseases()
-    probabilities = get_probabilities()
-
-    return pd.DataFrame({
-        "Disease": diseases,
-        "Probability": probabilities
-    })
-
-
-
 
 def predict(image):
     if image is None:
         return None
-    
-    # Preprocess the image to match the CNN input requirements
-    transform = transforms.Compose([
-    transforms.Resize((128, 128)),
-    transforms.ToTensor(),
-    ])
+
+    # Prepare the uploaded image
     image = image.convert("RGB")
-    processed_image = transform(image)
+    processed_image = TRANSFORM(image)
 
-    return get_predictions(processed_image)
+    return get_cnn_predictions(processed_image, MODEL, CLASS_NAMES)
 
-# Create the Gradio interface for image upload and prediction display
+
+MODEL, CLASS_NAMES, TRANSFORM = load_model()
+
+
+# Create the Gradio interface
 demo = gr.Interface(
     fn=predict,
-    
     inputs=gr.Image(type="pil", label="Upload a leaf image"),
     outputs=gr.BarPlot(
-    x="Disease",
-    y="Probability",
-    title="Top 5 Predictions",
-    x_label_angle=45
+        x="Disease",
+        y="Probability",
+        title="Top 5 Predictions",
+        x_label_angle=45
     ),
-    
     title="Plant Disease Classification",
-    description="UI prototype: Predictions are simulated using dummy values. The trained CNN model is not connected yet.",
+    description="Upload a plant leaf image to identify its disease.",
     api_name="predict"
 )
+
 
 if __name__ == "__main__":
     demo.launch()
