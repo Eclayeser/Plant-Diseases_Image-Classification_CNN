@@ -56,7 +56,7 @@ python train.py --config configs/prototype_small_data_frac.yaml     # or any oth
 ```python
 from leafapp.checkpoints import load_checkpoint
 
-model, class_names, history_metrics, config = load_checkpoint("outputs/models/<config name>_<timestamp>_<id>.pt")
+model, class_names, history_metrics, config = load_checkpoint("outputs/models/<model type>_<timestamp>_<id>.pt")
 ```
 The checkpoint stores the weights, metrics recorded during the training, the full config and the class names, so the model is rebuilt with the same settings and the same data split (`config["seed"]`, `config["data"]["fraction"]`) can be recreated for evaluation. The model is returned in eval mode, on the CPU.
 
