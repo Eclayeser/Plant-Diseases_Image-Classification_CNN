@@ -1,6 +1,7 @@
 # Meeting number 2 - Summary
 ## Date: *26/10/2026*
-### Type: *In-Person*
+## Type: *In-Person*
+## Dyration: *1 hour*
 
 ### Attendees (7/7):
 - Illia, Mark, Mario, Pranay, Nil, Javier, Reon
