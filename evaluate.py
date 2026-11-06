@@ -73,7 +73,8 @@ def main(checkpoint_path: str|Path, data_type: str):
         )
 
     # plot and save diagrams
-    run_name = f"{data_type}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    checkpoint_name = Path(checkpoint_path).stem
+    run_name = f"{checkpoint_name}_{data_type}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     curve_path = DIAGRAMS_DIR / f"{run_name}_training_curve.png"
     matrix_path = DIAGRAMS_DIR / f"{run_name}_confusion_matrix.png"
 
