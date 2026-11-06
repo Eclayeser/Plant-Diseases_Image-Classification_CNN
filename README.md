@@ -50,7 +50,7 @@ python train.py --config configs/prototype_small_data_frac.yaml     # or any oth
 ```
 - Settings (data fraction, image size, batch size, model channels, learning rate, epochs, seed) are read from the chosen config file.
 - Each epoch prints train and validation loss, accuracy and f1 score.
-- At the end, the model is saved to `outputs/models/<config name>_<timestamp>_<id>.pt`, e.g. `prototype_20261105-184800_a3f9c1.pt`.
+- At the end, the model is saved to `outputs/models/<model type>_<timestamp>_<id>.pt`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
 
 ### Load a trained model
 ```python
