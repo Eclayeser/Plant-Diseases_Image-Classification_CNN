@@ -1,6 +1,7 @@
 from typing import Any
 
 from leafapp.models.cnn import BasicCNN
+from leafapp.models.resnet import build_resnet18
 
 def build_model(model_settings: dict[str, Any], data_specs: dict[str, Any], class_names: list[str]):
     model = None
@@ -16,6 +17,8 @@ def build_model(model_settings: dict[str, Any], data_specs: dict[str, Any], clas
         )
 
     # when new model is implemented, wire its construction here via if statement!
+    if model_settings["type"] == "ResNet18":
+        model = build_resnet18(num_classes=len(class_names))
 
     if model is None:
         raise ValueError(f"Failed to construct a model. Config file specifies {model_settings['type']} - unidentified type.")
