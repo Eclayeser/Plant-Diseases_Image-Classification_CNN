@@ -21,7 +21,7 @@ Overall, most people continue working on the tasks they were assigned last week 
 4. Few issues created to accommodate those who will finish their tickets before next meeting
 
 ### TODOs - Cycle 2
-*all issues unassigned and will be picked up by those who complete their curret issues first*
+*all issues unassigned and will be picked up by those who complete their current issues first*
 - **Enable different model building via config**, SGP-23
 - **Add --config argument to evaluate.py**, SGP-20
 - **Add --config argument to train.py**, SGP-19
