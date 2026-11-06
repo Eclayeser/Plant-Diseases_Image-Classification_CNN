@@ -11,7 +11,7 @@ All runs use the same settings so that only the architecture changes:
 |---|---|---|---|---|---|---|
 | Baseline | `prototype_small_data_frac.yaml` | [16, 32, 64] | 662,599 | 0.630 | 0.534 | `prototype_small_data_frac_20261106-101034_9934d5.pt` |
 | Wider | `cnn_wider.yaml` | [32, 64, 128] | 1,371,239 | 0.668 | 0.566 | `cnn_wider_20261106-102850_dceb83.pt` |
-| Deeper | `cnn_deeper.yaml` | [16, 32, 64, 128] | 416,967 | | | |
+| Deeper | `cnn_deeper.yaml` | [16, 32, 64, 128] | 416,967 | 0.572 | 0.454 | `cnn_deeper_20261106-103407_af0549.pt` |
 
 ## Observations
 - About 96% of the baseline's parameters are in the final linear layer.
@@ -24,6 +24,10 @@ All runs use the same settings so that only the architecture changes:
 - For the wider model, validation loss increased slightly from epoch 4 to 5
   (1.114 → 1.138) while training loss kept decreasing, which may be an early
   sign of overfitting.
+- The deeper model performed worst after 5 epochs (accuracy 0.572, F1 0.454),
+  but its validation loss was still dropping quickly (1.809 → 1.680 → 1.405),
+  so it is likely undertrained rather than a worse architecture. Deeper models
+  often need more epochs to converge.
 
 ## Limitations
 - All models use the same training settings (5 epochs, lr 0.001). This keeps the
