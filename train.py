@@ -88,6 +88,7 @@ def main(config_path):
         image_size=cfg["data"]["image_size"],
         batch_size=cfg["data"]["batch_size"],
         seed=cfg["seed"],
+        normalize=cfg["data"].get("normalize", False),
     )
 
     model = build_model(cfg["model"], cfg["data"], class_names)
