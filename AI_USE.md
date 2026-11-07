@@ -14,6 +14,130 @@
   switch, batch conversion, and the split's sizes, overlap and labels. I reviewed them, ran and made sure they pass.
 - Approximate share of AI-generated code: 100%
 
+## meetings/meeting_1_summary.md, meeting_2_summary.md, meeting_3_summary.md (SGP-8, Mark Tarnavskyi)
+
+- Approximate share of AI-generated documentation: 0%
+
+## report_word/\* (SGP-8, Mark Tarnavskyi)
+
+- Approximate share of AI-generated documentation: 0%
+
+## README.md
+
+- "#Tools section": 0% AI-generated documentation (SGP-8, Mark Tarnavskyi)
+
+- "#Evaluate a trained model": 0% AI-generated documentation (SGP-12, Mark Tarnavskyi)
+
+## leafapp/models/cnn.py (SGP-6, Mario Cavicchioli)
+
+- Tool: Claude (Anthropic), used as a tutor.
+- `conv_block()`, `BasicCNN.__init__()`, `forward()`: Claude worked as a guide through the building process; I wrote the logic (layer sizes, chaining the blocks, the channel loop, the Linear input size formula). Claude pointed out my mistakes, which I fixed.
+- Docstring and comments in `BasicCNN`: written by Claude.
+- Approximate share of AI-generated code: less than 25%
+
+## leafapp/models/resnet.py (SGP-13, Illia Putintsev)
+
+- Tool: Claude (Anthropic), used as a tutor and reviewer.
+- `build_resnet18()`: code generated in full by Claude, which explained each line to me. Docstring written with Claude's help.
+- Approximate share of AI-generated code: 25%
+
+## tests/test_models.py (SGP-6, Mario Cavicchioli)
+
+- Test structure given by Claude with blanks; I filled in the model, input, call and assert, then ran it.
+- Approximate share of AI-generated code: 25%
+
+## leafapp/config.py (SGP-10, Mario Cavicchioli)
+
+- `load_config()`: the `yaml.safe_load` snippet was given by Claude; I wrapped it in the function and added the return.
+- Approximate share of AI-generated code: 75%
+
+## leafapp/checkpoints.py (SGP-10, Mario Cavicchioli)
+
+- Claude explained `state_dict`, `torch.save`/`torch.load` and `map_location`, and gave fill-in-the-blank skeletons for `save_checkpoint()` and `load_checkpoint()`. I filled in the logic (what to save, rebuilding the model from the saved config, loading the weights, eval mode) and fixed my mistakes after Claude pointed them out.
+- Saving the whole config (suggested by Mark in review) and the atomic save via a temporary file (suggested by CodeRabbit): code given by Claude.
+- Docstrings: written by Claude.
+- Approximate share of AI-generated code: 45%
+
+## train.py (SGP-10, Mario Cavicchioli)
+
+- Claude explained argparse (and the alternatives), and gave a fill-in-the-blank skeleton for `parse_args()`. I filled in the logic; the description/help/docstring wording was refined by Claude from my drafts. (SGP-19, Mario Cavicchioli)
+- `train_one_epoch()`, `evaluate()` (moved and heavily (no AI) edited by **SGP-12**, renamed to `calculate_metrics_per_loader()`; now in `leafapp/eval_functions.py`) and `main()`: Claude gave skeletons with blanks; I wrote the setup (config, loaders, model, loss, optimiser, seed), the training step, the epoch loop and the checkpoint saving call, and adapted `evaluate()` from `train_one_epoch()`. Claude corrected my mistakes.
+- Given by Claude: the accuracy bookkeeping lines (`argmax`, `correct`), the device one-liner, the `ROOT` path fix (suggested by CodeRabbit), the timestamped checkpoint filename with a unique run id (suggested by CodeRabbit) and folder creation, the print format, and the docstrings.
+- Approximate share of AI-generated code: 30%
+
+- **SGP-12, Mark Tarnavskyi** hand-written edits
+
+## tests/test_train.py (SGP-10, Mario Cavicchioli)
+
+- `make_fake_loader()` and the weight-change test: mostly written by Claude, reviewed and run by me.
+- Metrics test and the `evaluate` no-update test (`evaluate` ceased to exist after **SGP-12**): written by me.
+- `test_parse_args_gives_default_path`: written by me, claude corrected my mistakes. (SGP-19, Mario Cavicchioli)
+- `test_parse_args_reads_custom_config`: structure given by Claude with blanks, filled in by me. (SGP-19, Mario Cavicchioli)
+- `test_train_one_epoch_rejects_empty_loader`: restored from my SGP-10 test (removed in SGP-12), code given by Claude. (SGP-19, Mario Cavicchioli)
+- Approximate share of AI-generated code: 50%
+
+## tests/test_checkpoints.py (SGP-10, Mario Cavicchioli)
+
+- Claude explained `tmp_path` and gave skeletons for both tests; I filled in the model setup, the save/load calls and the comparisons.
+- Approximate share of AI-generated code: 60%
+
+## configs/prototype.yaml (SGP-6/SGP-10, Mario Cavicchioli)
+
+- Structure suggested by Claude; I added the keys as the code needed them.
+- Approximate share of AI-generated code: 35%
+
+## leafapp/eval_functions.py (SGP-12, Mark Tarnavskyi)
+
+- All code is hand-written and has been inspired by LGT/SGT notebooks. Only AI-generated code is relative-path resolution and minimal docstrings.
+- Used Claude for 2 review/debugging sessions, each lasting about 4-6 hours
+- Approximate share of AI-generated code: 10%
+
+## evaluate.py (SGP-12, Mark Tarnavskyi)
+
+- All code is hand-written. Only AI-generated code is a docstring
+- Used Claude for 1 review/debugging session which lasted about 3 hours
+- Approximate share of AI-generated code: 5%
+
+## tests/test_eval_functions.py (SGP-12, Mark Tarnavskyi)
+
+- All four tests generated by Claude. I reviewed them, ran and made sure they pass.
+- Approximate share of AI-generated code: 100%
+
+## leafapp/model_constructor.py (SGP-23, Mark Tarnavskyi)
+
+- All code is hand-written.
+- Used Claude for 1 review/debugging session which lasted about 5-10 minutes
+- Approximate share of AI-generated code: 0%
+
+## tests/test_eval_functions.py (SGP-12, Mark Tarnavskyi)
+
+- All four tests generated by Claude. I reviewed them, ran and made sure they pass.
+- Approximate share of AI-generated code: 100%
+
+## leafapp/data.py, normalisation option (SGP-13, Illia Putintsev)
+
+- `normalize` option in `make_transforms()` and `get_loaders()`: Claude explained 
+normalisation, provided suggestions on integrating normalisation option, I wrote it
+myself and Claude reviewed at the end.
+- Approximate share of AI-generated code: 50%
+
+## configs/resnet18.yaml (SGP-13, Illia Putintsev)
+
+- Written by me from configs/prototype.yaml; Claude suggested two fixes (the header comment and checkpoint_dir).
+- Approximate share of AI-generated code: 10%
+
+## tests/test_models.py, tests/test_data.py (SGP-13, Illia Putintsev)
+
+- `test_resnet_output_shape` and `test_normalize_gives_imagenet_values`: written by me, following Mario's BasicCNN test; Claude explained the test pattern.
+- `test_normalize_is_applied_once_without_augment`, `test_normalize_off_keeps_totensor_values`: generated by Claude; I ran them and checked they pass.
+- Approximate share of AI-generated code: 50%
+
+## leafapp/model_constructor.py, train.py, evaluate.py (SGP-13, Illia Putintsev)
+
+- ResNet18 branch in `build_model()` - written by me and reviewed by Claude.
+- `normalize` passed to `get_loaders()` in train.py and evaluate.py: lines generated by Claude.
+- Approximate share of AI-generated code: 50% of the new lines
+
 ## SGP-14: Regularised CNN prototype, Javier
 
 - Tool: Codex
