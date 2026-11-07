@@ -63,13 +63,13 @@ The checkpoint stores the weights, metrics recorded during the training, the ful
 ## Evaluate a trained model
 
 ```bash
-python evaluate.py --checkpoint outputs/models/<file>.pt
+python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt
 ```
 
-This evaluates on the validation set by default. To evaluate on the test set instead:
+Replace the filename with your own checkpoint from `outputs/models/`. This evaluates on the validation set by default. To evaluate on the test set instead:
 
 ```bash
-python evaluate.py --checkpoint outputs/models/<file>.pt --split test
+python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt --split test
 ```
 
 - The evaluation report is saved to `outputs/eval_reports/` and the diagrams to `outputs/diagrams/`.
