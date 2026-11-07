@@ -1,4 +1,4 @@
-# Checks that evaluation metrics are calculated correctly.
+# Checks that evaluate.py reads its command-line arguments correctly.
 import pytest
 from evaluate import parse_args
 
