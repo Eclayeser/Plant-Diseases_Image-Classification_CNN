@@ -60,15 +60,21 @@ model, class_names, history_metrics, config = load_checkpoint("outputs/models/<m
 ```
 The checkpoint stores the weights, metrics recorded during the training, the full config and the class names, so the model is rebuilt with the same settings and the same data split (`config["seed"]`, `config["data"]["fraction"]`) can be recreated for evaluation. The model is returned in eval mode, on the CPU.
 
-### Evaluate a trained model
-```bash
-python evaluate.py {RELATIVE_PATH_TO_CHECKPOINT} {DATA_SET_TYPE}
-```
-- `{RELATIVE_PATH_TO_CHECKPOINT}` is path to the model you want to evaluate, e.g. `outputs\models\example_cnn_20261104-215131_f55919.pt`
-- `{DATA_SET_TYPE}` determines which data set you want to use for evaluation. Only accepts either `"validation"` or `"test"`
-- At the end of the run, the evaluation report is produced and saved to `outputs/eval_reports/<data_type>_<timestamp>_report.txt`, and any diagrams/graphs are saved to `outputs/diagrams/<data_type>_<timestamp>_<diagram_type>.png`.
+## Evaluate a trained model
 
-*Important Note:* Remember! Do not use test data set for any sort of model tunning. The test data set exists solely for final evaluation and designed to prevent biased model adjustments.
+```bash
+python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt
+```
+
+Replace the filename with your own checkpoint from `outputs/models/`. This evaluates on the validation set by default. To evaluate on the test set instead:
+
+```bash
+python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt --split test
+```
+
+- The evaluation report is saved to `outputs/eval_reports/` and the diagrams to `outputs/diagrams/`.
+
+The default is validation so the test set isn't used by accident while you're still choosing between models.
 
 ## Running the tests
 
