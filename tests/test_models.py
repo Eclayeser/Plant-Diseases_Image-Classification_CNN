@@ -2,6 +2,7 @@ import pytest
 import torch
 from torch import nn
 from leafapp.models.cnn import BasicCNN
+from leafapp.models.regularised_cnn import RegularisedCNN
 from leafapp.models.resnet import build_resnet18
 from PIL import Image
 from leafapp.data import make_transforms
@@ -30,11 +31,11 @@ def test_normalize_gives_imagenet_values():
     ), "Normalize should give the ImageNet values"
 
 
-@pytest.mark.parametrize("regularisation", ["none", "dropout", "batchnorm"])
+@pytest.mark.parametrize("regularisation", ["dropout", "batchnorm"])
 def test_variants_support_forward_and_backward(regularisation):
     torch.manual_seed(42)
 
-    model = BasicCNN(
+    model = RegularisedCNN(
         num_classes=5,
         channels=(8, 16),
         image_size=32,
@@ -68,7 +69,7 @@ def test_dropout_matches_baseline_in_eval_mode():
         "image_size": 32,
     }
     baseline = BasicCNN(**settings)
-    regularised = BasicCNN(
+    regularised = RegularisedCNN(
         **settings,
         regularisation="dropout",
         dropout_p=0.5,
@@ -100,7 +101,7 @@ def test_dropout_matches_baseline_in_eval_mode():
 def test_batchnorm_statistics_update_only_during_training():
     torch.manual_seed(42)
 
-    model = BasicCNN(
+    model = RegularisedCNN(
         num_classes=5,
         channels=(8,),
         image_size=32,
@@ -135,13 +136,13 @@ def test_batchnorm_statistics_update_only_during_training():
 
 def test_unknown_regularisation_is_rejected():
     with pytest.raises(ValueError, match="regularisation"):
-        BasicCNN(regularisation="unknown")
+        RegularisedCNN(regularisation="unknown")
 
 
 @pytest.mark.parametrize("dropout_p", [-0.1, 1.0])
 def test_invalid_dropout_probability_is_rejected(dropout_p):
     with pytest.raises(ValueError, match="dropout_p"):
-        BasicCNN(
+        RegularisedCNN(
             regularisation="dropout",
             dropout_p=dropout_p,
         )
