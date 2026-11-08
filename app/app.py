@@ -40,7 +40,7 @@ def get_cnn_predictions(image, model, class_names):
     probabilities = torch.softmax(output, dim=1)[0]
 
     # Find the 5 most likely diseases
-    top5 = torch.topk(probabilities, 5)
+    top5 = torch.topk(probabilities, min(5, len(class_names)))
 
     diseases = []
     for i in top5.indices:
