@@ -15,9 +15,7 @@ CHECKPOINT_PATH = os.getenv("CHECKPOINT_PATH")
 def load_model():
     # Load the trained CNN model
     if not CHECKPOINT_PATH:
-        raise RuntimeError(
-            "Please set CHECKPOINT_PATH to a trained model."
-        )
+        return None, None, None
 
     model, class_names, _, config = load_checkpoint(CHECKPOINT_PATH)
 
@@ -51,8 +49,12 @@ def get_cnn_predictions(image, model, class_names):
 
 
 def predict(image):
+    
     if image is None:
         return None
+
+    if MODEL is None:
+        raise gr.Error("No trained model loaded. Set CHECKPOINT_PATH to a trained checkpoint.")
 
     # Prepare the uploaded image
     image = image.convert("RGB")
