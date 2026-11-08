@@ -40,7 +40,8 @@ def get_cnn_predictions(image, model, class_names):
 
     diseases = []
     for i in top5.indices:
-        diseases.append(class_names[int(i)])
+        name = class_names[int(i)].replace("___", " - ").replace("_", " ")
+        diseases.append(name)
 
     return pd.DataFrame({
         "Disease": diseases,
