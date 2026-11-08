@@ -1,5 +1,6 @@
 datasets==5.1.0
-pillow>=12.0.0,<13.0.0
+# gradio 6.30.0 requires pillow<13, so pillow is pinned to 12.3.0
+pillow==12.3.0
 pytest==9.2.0
 torch==2.14.1
 torchvision==0.29.1
