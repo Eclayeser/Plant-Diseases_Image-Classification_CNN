@@ -1,4 +1,3 @@
-
 import os
 
 import gradio as gr
@@ -7,6 +6,10 @@ import torch
 
 from leafapp.checkpoints import load_checkpoint
 from leafapp.data import make_transforms
+from PIL import Image
+
+
+Image.MAX_IMAGE_PIXELS = 20_000_000
 
 
 CHECKPOINT_PATH = os.getenv("CHECKPOINT_PATH")
@@ -89,4 +92,4 @@ demo = gr.Interface(
 
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(max_file_size="10mb")
