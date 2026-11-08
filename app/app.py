@@ -74,7 +74,8 @@ demo = gr.Interface(
         x="Disease",
         y="Probability",
         title="Top 5 Predictions",
-        x_label_angle=45
+        x_label_angle=45,
+        sort="-y"
     ),
     title="Plant Disease Classification",
     description="Upload a plant leaf image to identify its disease.",
