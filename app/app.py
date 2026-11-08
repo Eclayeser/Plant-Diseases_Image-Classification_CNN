@@ -20,7 +20,11 @@ def load_model():
     model, class_names, _, config = load_checkpoint(CHECKPOINT_PATH)
 
     # Use the same image preprocessing as evaluation
-    _, transform = make_transforms(config["data"]["image_size"], augment=False)
+    _, transform = make_transforms(
+    config["data"]["image_size"],
+    augment=False,
+    normalize=config["data"].get("normalize", False),
+    )
 
     return model, class_names, transform
 
