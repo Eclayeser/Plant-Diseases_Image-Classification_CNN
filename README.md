@@ -50,13 +50,13 @@ python train.py --config configs/prototype_small_data_frac.yaml     # or any oth
 ```
 - Settings (data fraction, image size, batch size, model channels, learning rate, epochs, seed) are read from the chosen config file.
 - Each epoch prints train and validation loss, accuracy and f1 score.
-- At the end, the model is saved to `outputs/models/<config name>_<timestamp>_<id>.pt`, e.g. `prototype_20261105-184800_a3f9c1.pt`.
+- At the end, the model is saved to `outputs/models/<model type>_<timestamp>_<id>.pt`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
 
 ### Load a trained model
 ```python
 from leafapp.checkpoints import load_checkpoint
 
-model, class_names, history_metrics, config = load_checkpoint("outputs/models/<config name>_<timestamp>_<id>.pt")
+model, class_names, history_metrics, config = load_checkpoint("outputs/models/<model type>_<timestamp>_<id>.pt")
 ```
 The checkpoint stores the weights, metrics recorded during the training, the full config and the class names, so the model is rebuilt with the same settings and the same data split (`config["seed"]`, `config["data"]["fraction"]`) can be recreated for evaluation. The model is returned in eval mode, on the CPU.
 

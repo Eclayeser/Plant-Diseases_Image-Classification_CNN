@@ -88,6 +88,7 @@ def main(config_path):
         image_size=cfg["data"]["image_size"],
         batch_size=cfg["data"]["batch_size"],
         seed=cfg["seed"],
+        normalize=cfg["data"].get("normalize", False),
     )
 
     model = build_model(cfg["model"], cfg["data"], class_names)
@@ -140,8 +141,7 @@ def main(config_path):
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     run_id = uuid.uuid4().hex[:6]   # e.g. "a3f9c1": 6 random hex characters
-    config_name = Path(config_path).stem
-    checkpoint_path = ROOT / cfg["train"]["checkpoint_dir"] / f"{config_name}_{timestamp}_{run_id}.pt"
+    checkpoint_path = ROOT / cfg["train"]["checkpoint_dir"] / f"{cfg['model']['type'].lower()}_{timestamp}_{run_id}.pt"
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
     save_checkpoint(

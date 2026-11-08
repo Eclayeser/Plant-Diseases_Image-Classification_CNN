@@ -36,6 +36,7 @@ def main(checkpoint_path: str|Path, data_type: str):
             image_size=config["data"]["image_size"],
             batch_size=config["data"]["batch_size"],
             seed=config["seed"],
+            normalize=config["data"].get("normalize", False),
         )
     loaders = {"validation": val_loader, "test": test_loader}
     target_data = loaders[data_type]

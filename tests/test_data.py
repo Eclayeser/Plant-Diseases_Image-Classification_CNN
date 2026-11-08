@@ -1,6 +1,6 @@
 from datasets import ClassLabel, Dataset
 from PIL import Image
-
+import torch
 from leafapp.data import make_batch_transform, make_transforms, split
 
 
@@ -43,3 +43,22 @@ def test_split_sizes_no_overlap_and_all_labels():
     assert not (train_ids & val_ids or train_ids & test_ids or val_ids & test_ids)
     for pile in (train, val, test):
         assert set(pile["label"]) == {0, 1, 2, 3}
+
+
+def test_normalize_is_applied_once_without_augment():
+    """With augment off, train_tf and eval_tf normalise the photo exactly once."""
+    photo = Image.new("RGB", (8, 8), color=(102, 204, 51))
+    train_tf, eval_tf = make_transforms(8, augment=False, normalize=True)
+    assert torch.equal(train_tf(photo), eval_tf(photo)), "train_tf and eval_tf differ"
+    assert torch.allclose(
+        eval_tf(photo)[:, 0, 0], torch.tensor([-0.37, 1.54, -0.92]), atol=0.01
+    ), "The photo was not normalised exactly once"
+
+
+def test_normalize_off_keeps_totensor_values():
+    """The default, normalize=False, leaves ToTensor's 0 to 1 values unchanged."""
+    photo = Image.new("RGB", (8, 8), color=(102, 204, 51))
+    _, eval_tf = make_transforms(8)
+    assert torch.allclose(
+        eval_tf(photo)[:, 0, 0], torch.tensor([0.4, 0.8, 0.2]), atol=0.01
+    ), "normalize=False should not change the values"
