@@ -21,9 +21,9 @@ def load_model():
 
     # Use the same image preprocessing as evaluation
     _, transform = make_transforms(
-    config["data"]["image_size"],
-    augment=False,
-    normalize=config["data"].get("normalize", False),
+        config["data"]["image_size"],
+        augment=False,
+        normalize=config["data"].get("normalize", False),
     )
 
     return model, class_names, transform
