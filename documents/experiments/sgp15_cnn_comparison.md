@@ -47,3 +47,26 @@ Within each run, all models use the same training settings so that only the arch
   comparison controlled, but it may not be the best setting for each architecture.
 - Each result comes from a single run with one seed, so small differences (e.g. baseline vs deeper in Run 2) may not be significant.
 - Run 2 checkpoints are named after the model type, so all three start with `basiccnn_`; the table records which file belongs to which config.
+
+
+## Evaluation details (Run 2, validation set)
+
+Each Run 2 checkpoint was evaluated with `evaluate.py` on the validation split. The test split was not used, so it is kept for the final model.
+
+| Model | Top-1 | Top-3 | Top-5 | Macro precision | Macro recall | Macro F1 |
+|---|---|---|---|---|---|---|
+| Baseline | 0.782 | 0.926 | 0.969 | 0.790 | 0.689 | 0.701 |
+| Wider | 0.827 | 0.946 | 0.974 | 0.820 | 0.770 | 0.773 |
+| Deeper | 0.776 | 0.928 | 0.965 | 0.732 | 0.703 | 0.698 |
+
+### Observations
+- Top-3 accuracy is above 0.92 for all three models, meaning the correct disease is among the top 3 predictions for over 92% of validation images. This supports showing the top 5 predictions in the Gradio UI.
+- The wider model's improvement comes mostly from recall (0.689 → 0.770). Some classes the baseline mostly missed improved a lot, e.g. Apple scab (0.16 → 0.68) and Tomato Leaf Mold (0.17 → 0.59).
+- The deeper model reaches about the same accuracy and macro F1 as the baseline with around 37% fewer parameters (416,967 vs 662,599), but its macro precision is lower (0.732 vs 0.790).
+- Some classes are weak for all three models, e.g. Tomato Early blight (recall 0.23 / 0.27 / 0.30). Corn Cercospora leaf spot got worse with the bigger models (0.62 / 0.38 / 0.19), and the deeper model did not correctly classify any of the 8 Cedar apple rust validation images.
+- Accuracy is higher than macro F1 for every model. Large classes such as Orange Haunglongbing (165 images) and Soybean healthy (152) score well, while many small classes score lower, so class imbalance pulls macro F1 down.
+
+### Notes
+- Some classes have very few validation images (Potato healthy has 5, Cedar apple rust has 8), so per-class results for them can change a lot between runs.
+- The reports are in `outputs/eval_reports/` (gitignored): baseline `validation_2026-11-08_20-17-57`, wider `validation_2026-11-08_20-19-30`, deeper `validation_2026-11-08_20-23-24`.
+- `evaluate.py` was run with positional arguments, before SGP-20 (#36) switches it to argparse.
