@@ -39,9 +39,9 @@ Run 1 used the same wider and deeper configs with `fraction: 0.05`; they were la
   but its validation loss was still dropping quickly (1.809 → 1.680 → 1.405),
   so it is likely undertrained rather than a worse architecture. Deeper models
   often need more epochs to converge.
-- **Run 2 (20% of the data):** more data improved every model by 15–20 accuracy points.
-- Unlike Run 1, the wider model's validation loss kept decreasing in Run 2 (0.727 → 0.699 → 0.589), suggesting less evidence of overfitting with more data. It is still the best model (accuracy 0.827, F1 0.773).
-- The deeper model improved the most (+20.4 points, compared with +15.2 for the baseline) and now almost matches the baseline (0.776 vs 0.782) with 37% fewer parameters. This suggests that the deeper model may benefit more from additional data or training epochs.
+- **Run 2 (20% of the data):** every model scored 15–20 accuracy points higher than in Run 1. The two runs use different validation sets (the split is made from the sampled data), so this is only a rough sign that more data helps, not an exact measure.
+- Unlike Run 1, the wider model's validation loss kept decreasing in Run 2 (0.727 → 0.699 → 0.589), so there was less sign of overfitting in this run. It is still the best model (accuracy 0.827, F1 0.773).
+- The deeper model improved the most (+20.4 points, compared with +15.2 for the baseline) and now almost matches the baseline (0.776 vs 0.782) with 37% fewer parameters. This may mean the deeper model benefits more from additional data or longer training, but the two runs are not directly comparable.
 
 ## Limitations
 - All models use the same training settings (5 epochs, lr 0.001). This keeps the
@@ -76,7 +76,7 @@ Each Run 2 checkpoint was evaluated with `evaluate.py` on the validation split. 
 
 ![Wider model training curves](figures/wider_training_curve.png)
 
-- Validation accuracy and F1 were still increasing at epoch 5, and the training and validation curves stay close, so there is no sign of overfitting. ... The wider model is probably undertrained, so training it for more epochs is a reasonable next step.
+- Validation accuracy and F1 were still increasing at epoch 5, and the training and validation curves stay close, so there is no sign of overfitting. The wider model is probably undertrained, so training it for more epochs is a reasonable next step.
 
 The confusion matrices and training curves for all three models are in `documents/experiments/figures/`.
 
