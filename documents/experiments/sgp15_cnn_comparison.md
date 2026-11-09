@@ -66,6 +66,19 @@ Each Run 2 checkpoint was evaluated with `evaluate.py` on the validation split. 
 - Some classes are weak for all three models, e.g. Tomato Early blight (recall 0.23 / 0.27 / 0.30). Corn Cercospora leaf spot got worse with the bigger models (0.62 / 0.38 / 0.19), and the deeper model did not correctly classify any of the 8 Cedar apple rust validation images.
 - Accuracy is higher than macro F1 for every model. Large classes such as Orange Haunglongbing (165 images) and Soybean healthy (152) score well, while many small classes score lower, so class imbalance pulls macro F1 down.
 
+### Confusion matrix and training curves
+
+![Wider model confusion matrix](figures/wider_confusion_matrix.png)
+
+- Most errors happen between tomato diseases. For the wider model, Tomato Leaf Mold was predicted as Septoria leaf spot 8 times (out of 29), Spider mites as Target Spot 10 times (out of 50), and Yellow Leaf Curl Virus as Bacterial spot 14 times (out of 160).
+- Septoria leaf spot collects many wrong predictions from other tomato classes, which explains its low precision (0.50).
+
+![Wider model training curves](figures/wider_training_curve.png)
+
+- Validation accuracy and F1 were still increasing at epoch 5, and the training and validation curves stay close, so there is no sign of overfitting. The models are probably undertrained, so training for more epochs is a reasonable next step.
+
+The confusion matrices and training curves for all three models are in `documents/experiments/figures/`.
+
 ### Notes
 - Some classes have very few validation images (Potato healthy has 5, Cedar apple rust has 8), so per-class results for them can change a lot between runs.
 - The reports are in `outputs/eval_reports/` (gitignored): baseline `validation_2026-11-08_20-17-57`, wider `validation_2026-11-08_20-19-30`, deeper `validation_2026-11-08_20-23-24`.
