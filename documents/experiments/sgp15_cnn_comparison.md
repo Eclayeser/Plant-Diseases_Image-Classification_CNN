@@ -83,7 +83,7 @@ The confusion matrices and training curves for all three models are in `document
 ### Deeper model: confusion matrix and training curves
 - It never predicted Cedar apple rust. Of the 8 validation images, 4 were predicted as Orange Huanglongbing and 3 as Potato Late blight.
 - Its low precision for Grape healthy (0.36) comes mainly from Soybean healthy: 11 of the 152 Soybean images were predicted as Grape healthy.
-- Corn Cercospora leaf spot was mostly confused with Corn Northern Leaf Blight (9 of 16 images), which also explains why Northern Leaf Blight has recall 1.00 but precision 0.71.
+- Corn Cercospora leaf spot was mostly confused with Corn Northern Leaf Blight (9 of 16 images). These wrong predictions lower Northern Leaf Blight's precision (0.71).
 - The training curves look similar to the wider model: no sign of overfitting, and validation scores were still improving at epoch 5.
 
 ### Baseline model: confusion matrix and training curves
