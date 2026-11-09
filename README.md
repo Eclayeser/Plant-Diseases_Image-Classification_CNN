@@ -76,6 +76,28 @@ python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.p
 
 The default is validation so the test set isn't used by accident while you're still choosing between models.
 
+## Running the UI
+
+The Gradio app in `app/app.py` loads a trained checkpoint and shows the top 5 predicted diseases for an uploaded leaf image.
+
+First train a model (see **Training the model**), then start the app with the path to the checkpoint:
+
+```powershell
+# Windows (PowerShell)
+$env:CHECKPOINT_PATH="outputs/models/<model type>_<timestamp>_<id>.pt"
+python -m app.app
+```
+
+```bash
+# Mac / Linux
+CHECKPOINT_PATH=outputs/models/<model type>_<timestamp>_<id>.pt python -m app.app
+```
+- Replace `<model type>_<timestamp>_<id>.pt` with the name of your checkpoint in `outputs/models/`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
+- Open the local link shown in the terminal (usually http://127.0.0.1:7860) and upload a leaf image.
+- The image is preprocessed with the same settings as during evaluation (image size and normalisation are read from the checkpoint config).
+- If `CHECKPOINT_PATH` is not set, the app still starts but shows an error when an image is uploaded.
+- Uploads are limited to 10 MB.
+
 ## Running the tests
 
 ```bash
