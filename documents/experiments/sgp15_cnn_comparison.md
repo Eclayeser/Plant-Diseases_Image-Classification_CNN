@@ -79,6 +79,12 @@ Each Run 2 checkpoint was evaluated with `evaluate.py` on the validation split. 
 
 The confusion matrices and training curves for all three models are in `documents/experiments/figures/`.
 
+### Deeper model: confusion matrix and training curves
+- It never predicted Cedar apple rust. Of the 8 validation images, 4 were predicted as Orange Huanglongbing and 3 as Potato Late blight.
+- Its low precision for Grape healthy (0.36) comes mainly from Soybean healthy: 11 of the 152 Soybean images were predicted as Grape healthy.
+- Corn Cercospora leaf spot was mostly confused with Corn Northern Leaf Blight (9 of 16 images), which also explains why Northern Leaf Blight has recall 1.00 but precision 0.71.
+- The training curves look similar to the wider model: no sign of overfitting, and validation scores were still improving at epoch 5.
+
 ### Notes
 - Some classes have very few validation images (Potato healthy has 5, Cedar apple rust has 8), so per-class results for them can change a lot between runs.
 - The reports are in `outputs/eval_reports/` (gitignored): baseline `validation_2026-11-08_20-17-57`, wider `validation_2026-11-08_20-19-30`, deeper `validation_2026-11-08_20-23-24`.
