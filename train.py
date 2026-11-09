@@ -15,6 +15,12 @@ from leafapp.eval_functions import (
     calculate_f1_score,
     calculate_accuracy,
 )
+from leafapp.tracking import (
+    close_task,
+    initialise_task,
+    log_epoch_metrics,
+    upload_checkpoint,
+)
 
 ROOT = Path(__file__).resolve().parent
 
@@ -96,6 +102,15 @@ def main(config_path):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
+    config_name = Path(config_path).stem
+    task = initialise_task(
+        config=cfg,
+        project_name="Plant-Disease-Image-Classification",
+        task_name=f"{cfg['model']['type']} - {config_name}",
+        tags=["training", config_name],
+    )
+    logger = task.get_logger()
+
     # metrics which are to record per-epoch
     history_metrics = {
         "losses": {
@@ -115,6 +130,16 @@ def main(config_path):
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg["train"]["lr"], weight_decay=cfg["train"]["weight_decay"])
 
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    run_id = uuid.uuid4().hex[:6]
+    checkpoint_dir = ROOT / cfg["train"]["checkpoint_dir"]
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_path = checkpoint_dir / f"{cfg['model']['type'].lower()}_{timestamp}_{run_id}.pt"
+    best_checkpoint_path = checkpoint_path.with_name(
+        f"{checkpoint_path.stem}_best.pt"
+    )
+    best_validation_loss = float("inf")
+
     for epoch in range(cfg["train"]["epochs"]):
         train_epoch_metrics = train_one_epoch(model, train_loader, criterion, optimizer, device)
         val_epoch_metrics = calculate_metrics_per_loader(
@@ -133,16 +158,28 @@ def main(config_path):
         history_metrics["accuracies"]["validation"].append(val_epoch_metrics["accuracy"])
         history_metrics["f1s"]["validation"].append(val_epoch_metrics["f1"])
 
+        log_epoch_metrics(
+            logger=logger,
+            epoch=epoch + 1,
+            training_metrics=train_epoch_metrics,
+            validation_metrics=val_epoch_metrics,
+        )
+
+        if val_epoch_metrics["loss"] < best_validation_loss:
+            best_validation_loss = val_epoch_metrics["loss"]
+            save_checkpoint(
+                path=best_checkpoint_path,
+                model=model,
+                cfg=cfg,
+                class_names=class_names,
+                history_metrics=history_metrics,
+            )
+
         print(
                 f"Epoch {epoch + 1}: "
                 f"train loss {train_epoch_metrics['loss']:.3f}, train acc {train_epoch_metrics['accuracy']:.3f}, train f1 {train_epoch_metrics['f1']:.3f} | "
                 f"val loss {val_epoch_metrics['loss']:.3f}, val acc {val_epoch_metrics['accuracy']:.3f}, val f1 {val_epoch_metrics['f1']:.3f}"
             )
-
-    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    run_id = uuid.uuid4().hex[:6]   # e.g. "a3f9c1": 6 random hex characters
-    checkpoint_path = ROOT / cfg["train"]["checkpoint_dir"] / f"{cfg['model']['type'].lower()}_{timestamp}_{run_id}.pt"
-    checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
     save_checkpoint(
         path=checkpoint_path,
@@ -152,6 +189,9 @@ def main(config_path):
         history_metrics=history_metrics,
     )
     print(f"Saved checkpoint to {checkpoint_path}")
+    upload_checkpoint(task, checkpoint_path, "final_checkpoint")
+    upload_checkpoint(task, best_checkpoint_path, "best_checkpoint")
+    close_task(task)
 
 if __name__ == "__main__":
     args = parse_args()
