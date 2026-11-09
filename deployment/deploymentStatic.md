@@ -54,7 +54,11 @@ When a new model checkpoint is available:
 - [X] CNN produces real predictions.
 - [X] Top five predictions display correctly.
 - [X] Results are consistent with the original PyTorch model.
-- [ ] Application works on Hugging Face.
+- [X] Application works on Hugging Face.
+
+## 7. Commiting changes
+Use the following line:
+hf upload YOUR_USERNAME/YOUR_SPACE_NAME ./deployment . --repo-type space
 
 ## Notes
 
