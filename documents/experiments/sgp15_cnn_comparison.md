@@ -85,6 +85,12 @@ The confusion matrices and training curves for all three models are in `document
 - Corn Cercospora leaf spot was mostly confused with Corn Northern Leaf Blight (9 of 16 images), which also explains why Northern Leaf Blight has recall 1.00 but precision 0.71.
 - The training curves look similar to the wider model: no sign of overfitting, and validation scores were still improving at epoch 5.
 
+### Baseline model: confusion matrix and training curves
+
+- Many wrong predictions go to two classes. Tomato Yellow Leaf Curl Virus receives predictions from other tomato diseases (e.g. 11 Bacterial spot, 9 Spider mites and 7 Early blight images), and Blueberry healthy receives 10 Septoria leaf spot and 6 Apple healthy images. This explains their low precision (0.72 and 0.57).
+- Tomato Leaf Mold was mostly predicted as Peach Bacterial spot (10 of 29 images), and only 5 were correct.
+- Unlike the wider model, validation accuracy stops improving after epoch 4 and validation F1 drops slightly at epoch 5, while training loss keeps decreasing. The baseline seems to reach its limit earlier than the wider model.
+
 ### Notes
 - Some classes have very few validation images (Potato healthy has 5, Cedar apple rust has 8), so per-class results for them can change a lot between runs.
 - The reports are in `outputs/eval_reports/` (gitignored): baseline `validation_2026-11-08_20-17-57`, wider `validation_2026-11-08_20-19-30`, deeper `validation_2026-11-08_20-23-24`.
