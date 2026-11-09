@@ -14,6 +14,7 @@ Within each run, all models use the same training settings so that only the arch
 | Wider | `cnn_wider.yaml` | [32, 64, 128] | 1,371,239 | 0.668 | 0.566 | `cnn_wider_20261106-102850_dceb83.pt` |
 | Deeper | `cnn_deeper.yaml` | [16, 32, 64, 128] | 416,967 | 0.572 | 0.454 | `cnn_deeper_20261106-103407_af0549.pt` |
 
+Run 1 used the same wider and deeper configs with `fraction: 0.05`; they were later changed to `0.2` for Run 2. To reproduce Run 1, set `data.fraction` to `0.05` in the config.
 
 ### Run 2: 20% of the data
 
