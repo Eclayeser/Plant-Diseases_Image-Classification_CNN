@@ -76,7 +76,7 @@ Each Run 2 checkpoint was evaluated with `evaluate.py` on the validation split. 
 
 ![Wider model training curves](figures/wider_training_curve.png)
 
-- Validation accuracy and F1 were still increasing at epoch 5, and the training and validation curves stay close, so there is no sign of overfitting. The models are probably undertrained, so training for more epochs is a reasonable next step.
+- Validation accuracy and F1 were still increasing at epoch 5, and the training and validation curves stay close, so there is no sign of overfitting. ... The wider model is probably undertrained, so training it for more epochs is a reasonable next step.
 
 The confusion matrices and training curves for all three models are in `documents/experiments/figures/`.
 
