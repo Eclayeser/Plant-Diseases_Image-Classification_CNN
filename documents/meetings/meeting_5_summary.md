@@ -18,6 +18,9 @@ Since we have the monitoring system integrated, we decided that our main focus f
 - Improve the monitoring system to meet "must-to-complete" requirements and make experiment-run analysis more accessible and profound
 - Everyone to start experimenting with different models and parameters, steadily narrowing down to the best model and its settings to choose for the final shipment
 
+**Important!**
+The whole time until now, we used to **Rebase and Merge** each pull request, which later resulted in unwwanted duplicates of commits but with different hashes. During the meeting we forcefully changed the approach, and now we are going to be merging without rebasing. However, this is why the commit history might appear slightly confusing in some places. Regardless, the original authors and time commited should be preserved now.
+
 ### Decisions and Items completed:
 1. Everyone had a short stand-up: "what issue they completed / which issues they were still working on", "any comment regarding their issue"
 2. Marking discussed. All team members have solidified their understanding about importance of their consistent project contributions
