@@ -1,4 +1,5 @@
 # Runs model training and validation, records results and saves checkpoints.
+import argparse
 from pathlib import Path
 from datetime import datetime
 import uuid
@@ -6,22 +7,39 @@ import uuid
 import torch
 from torch import nn
 from leafapp.config import load_config
+from leafapp.model_constructor import build_model
 from leafapp.data import get_loaders
-from leafapp.models.cnn import BasicCNN
 from leafapp.checkpoints import save_checkpoint
+from leafapp.eval_functions import (
+    calculate_metrics_per_loader,
+    calculate_f1_score,
+    calculate_accuracy,
+)
 
 ROOT = Path(__file__).resolve().parent
+
+def parse_args(argv=None):
+    """
+    Read the command-line arguments and return them (currently just --config).
+    
+    If argv is None, the real command line is used.
+    """
+
+    parser = argparse.ArgumentParser(description="Train a CNN model and save a checkpoint.")
+    parser.add_argument("--config", default="configs/prototype.yaml", help="Path to the YAML config file for this run.")
+    return parser.parse_args(argv)
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
     """
     Train the model for one pass over the loader, updating its weights.
     
     Raises ValueError if the loader is empty.
-    Returns (average loss, accuracy) over all batches in the epoch.
+    Returns a dict with the epoch's average "loss", "accuracy" and "f1" (macro).
     """
     model.train()
 
-    total_loss, correct, total = 0, 0, 0
+    total_loss, total = 0, 0
+    all_preds, all_labels = [], []
 
     for batch in loader:
         images, labels = batch["pixels"], batch["label"]
@@ -32,83 +50,98 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
         loss = criterion(logits, labels)  # how wrong?
         loss.backward()                   # work out how each weight should change
         optimizer.step()                  # change them
+ 
+        batch_size = labels.size(0)
+        total += batch_size
 
-        preds = logits.argmax(dim=1)
-        total_loss += loss.item() * labels.size(0)
-        correct += (preds == labels).sum().item()
-        total += labels.size(0)
-
-    if total == 0:
-        raise ValueError("The loader produced no samples, so the metrics can't be computed")
-
-    return total_loss / total, correct / total
-
-def evaluate(model, loader, criterion, device):
-    """
-    Measure the model on the loader without updating its weights.
-
-    Runs in eval mode with gradients disabled.
-    Raises ValueError if the loader is empty.
-    Returns (average loss, accuracy).
-    """
-    model.eval()
-    total_loss, correct, total = 0, 0, 0
-
-    with torch.no_grad():
-        for batch in loader:
-            images, labels = batch["pixels"], batch["label"]
-            images, labels = images.to(device), labels.to(device)
-
-            logits = model(images)
-            loss = criterion(logits, labels)
-
-            preds = logits.argmax(dim=1)
-            total_loss += loss.item() * labels.size(0)
-            correct += (preds == labels).sum().item()
-            total += labels.size(0)
+        total_loss += loss.item() * batch_size
+        all_preds.append(logits.argmax(dim=1).cpu())
+        all_labels.append(labels.cpu())
 
     if total == 0:
         raise ValueError("The loader produced no samples, so the metrics can't be computed")
-      
-    return total_loss / total, correct / total
 
-def main():
-    """
-    Train BasicCNN using configs/prototype.yaml and save a checkpoint.
+    true_labels, predicted_labels = torch.cat(all_labels), torch.cat(all_preds)
+    f1 = calculate_f1_score(true_labels, predicted_labels)
+    accuracy = calculate_accuracy(true_labels, predicted_labels)
 
-    Prints train/val loss and accuracy each epoch, then saves the model,
-    config and class names to a uniquely named file (timestamp + short id)
-    in checkpoint_dir.
+    epoch_metrics = {
+        "loss": total_loss / total,
+        "accuracy": accuracy,
+        "f1": f1
+    }
+
+    return epoch_metrics
+
+def main(config_path):
     """
-    cfg = load_config(ROOT / "configs" / "prototype.yaml")
+    Train a model using the config at config_path and save a checkpoint.
+
+    Prints train/val loss, accuracy and f1 each epoch and records them as
+    history, then saves the model, config, class names and history to a
+    uniquely named file (timestamp + short id) in checkpoint_dir.
+    """
+    cfg = load_config(ROOT / config_path) 
     torch.manual_seed(cfg["seed"])
-    train_loader, val_loader, test_loader, class_names = get_loaders(
+    train_loader, val_loader, _, class_names = get_loaders(
         fraction=cfg["data"]["fraction"],
         image_size=cfg["data"]["image_size"],
         batch_size=cfg["data"]["batch_size"],
         seed=cfg["seed"],
+        normalize=cfg["data"].get("normalize", False),
     )
 
-    model = BasicCNN(
-        num_classes=len(class_names),
-        channels=cfg["model"]["channels"],
-        image_size=cfg["data"]["image_size"],
-    )
+    model = build_model(cfg["model"], cfg["data"], class_names)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
+
+    # metrics which are to record per-epoch
+    history_metrics = {
+        "losses": {
+            "training": [],
+            "validation": []
+        },
+        "accuracies": {
+            "training": [],
+            "validation": [] 
+        },
+        "f1s": {
+            "training": [],
+            "validation": [] 
+        }
+    }
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg["train"]["lr"], weight_decay=cfg["train"]["weight_decay"])
 
     for epoch in range(cfg["train"]["epochs"]):
-        train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
-        val_loss, val_acc = evaluate(model, val_loader, criterion, device)
-        print(f"Epoch {epoch + 1}: train loss {train_loss:.3f}, train acc {train_acc:.2f} | val loss {val_loss:.3f}, val acc {val_acc:.2f}")
+        train_epoch_metrics = train_one_epoch(model, train_loader, criterion, optimizer, device)
+        val_epoch_metrics = calculate_metrics_per_loader(
+            model=model,
+            loader=val_loader,
+            device=device,
+            class_names=class_names,
+            criterion=criterion,                # triggers loss calculation
+            metrics_list=["accuracy", "f1"]     # + the indicated metrics
+        )
+        
+        history_metrics["losses"]["training"].append(train_epoch_metrics["loss"]) 
+        history_metrics["accuracies"]["training"].append(train_epoch_metrics["accuracy"])
+        history_metrics["f1s"]["training"].append(train_epoch_metrics["f1"])
+        history_metrics["losses"]["validation"].append(val_epoch_metrics["loss"])
+        history_metrics["accuracies"]["validation"].append(val_epoch_metrics["accuracy"])
+        history_metrics["f1s"]["validation"].append(val_epoch_metrics["f1"])
+
+        print(
+                f"Epoch {epoch + 1}: "
+                f"train loss {train_epoch_metrics['loss']:.3f}, train acc {train_epoch_metrics['accuracy']:.3f}, train f1 {train_epoch_metrics['f1']:.3f} | "
+                f"val loss {val_epoch_metrics['loss']:.3f}, val acc {val_epoch_metrics['accuracy']:.3f}, val f1 {val_epoch_metrics['f1']:.3f}"
+            )
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     run_id = uuid.uuid4().hex[:6]   # e.g. "a3f9c1": 6 random hex characters
-    checkpoint_path = ROOT / cfg["train"]["checkpoint_dir"] / f"basic_cnn_{timestamp}_{run_id}.pt"
+    checkpoint_path = ROOT / cfg["train"]["checkpoint_dir"] / f"{cfg['model']['type'].lower()}_{timestamp}_{run_id}.pt"
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
     save_checkpoint(
@@ -116,8 +149,10 @@ def main():
         model=model,
         cfg=cfg,
         class_names=class_names,
+        history_metrics=history_metrics,
     )
     print(f"Saved checkpoint to {checkpoint_path}")
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(args.config)

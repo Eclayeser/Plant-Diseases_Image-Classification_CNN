@@ -9,7 +9,6 @@ The `notebooks/`, `tests/`, and `documents/` folders hold exploratory work, auto
 
 The prototype and final product will share the same codebase.
 Prototype settings will be kept in `configs/prototype.yaml`, and ClearML tags will identify prototype runs.
-A `v0.1-prototype` Git tag will mark the version delivered as the prototype.
 
 ## Tools
 
@@ -41,23 +40,63 @@ python -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
+
 ## Training the model
 
 ### Run training
 ```bash
-python train.py
+python train.py                                                     # uses configs/prototype.yaml
+python train.py --config configs/prototype_small_data_frac.yaml     # or any other config file
 ```
-- Settings (data fraction, image size, batch size, model channels, learning rate, epochs, seed) are read from `configs/prototype.yaml`.
-- Each epoch prints train and validation loss and accuracy.
-- At the end, the model is saved to `outputs/basic_cnn_<timestamp>_<id>.pt` (a unique name per run). The `outputs/` folder is ignored by git.
+- Settings (data fraction, image size, batch size, model channels, learning rate, epochs, seed) are read from the chosen config file.
+- Each epoch prints train and validation loss, accuracy and f1 score.
+- At the end, the model is saved to `outputs/models/<model type>_<timestamp>_<id>.pt`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
 
 ### Load a trained model
 ```python
 from leafapp.checkpoints import load_checkpoint
 
-model, class_names, config = load_checkpoint("outputs/basic_cnn_<timestamp>_<id>.pt")
+model, class_names, history_metrics, config = load_checkpoint("outputs/models/<model type>_<timestamp>_<id>.pt")
 ```
-The checkpoint stores the weights, the full config and the class names, so the model is rebuilt with the same settings and the same data split (`config["seed"]`, `config["data"]["fraction"]`) can be recreated for evaluation. The model is returned in eval mode, on the CPU.
+The checkpoint stores the weights, metrics recorded during the training, the full config and the class names, so the model is rebuilt with the same settings and the same data split (`config["seed"]`, `config["data"]["fraction"]`) can be recreated for evaluation. The model is returned in eval mode, on the CPU.
+
+## Evaluate a trained model
+
+```bash
+python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt
+```
+
+Replace the filename with your own checkpoint from `outputs/models/`. This evaluates on the validation set by default. To evaluate on the test set instead:
+
+```bash
+python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt --split test
+```
+
+- The evaluation report is saved to `outputs/eval_reports/` and the diagrams to `outputs/diagrams/`.
+
+The default is validation so the test set isn't used by accident while you're still choosing between models.
+
+## Running the UI
+
+The Gradio app in `app/app.py` loads a trained checkpoint and shows the top 5 predicted diseases for an uploaded leaf image.
+
+First train a model (see **Training the model**), then start the app with the path to the checkpoint:
+
+```powershell
+# Windows (PowerShell)
+$env:CHECKPOINT_PATH="outputs/models/<model type>_<timestamp>_<id>.pt"
+python -m app.app
+```
+
+```bash
+# Mac / Linux
+CHECKPOINT_PATH=outputs/models/<model type>_<timestamp>_<id>.pt python -m app.app
+```
+- Replace `<model type>_<timestamp>_<id>.pt` with the name of your checkpoint in `outputs/models/`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
+- Open the local link shown in the terminal (usually http://127.0.0.1:7860) and upload a leaf image.
+- The image is preprocessed with the same settings as during evaluation (image size and normalisation are read from the checkpoint config).
+- If `CHECKPOINT_PATH` is not set, the app still starts but shows an error when an image is uploaded.
+- Uploads are limited to 10 MB.
 
 ## Running the tests
 
