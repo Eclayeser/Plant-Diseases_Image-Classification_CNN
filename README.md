@@ -60,15 +60,43 @@ model, class_names, history_metrics, config = load_checkpoint("outputs/models/<m
 ```
 The checkpoint stores the weights, metrics recorded during the training, the full config and the class names, so the model is rebuilt with the same settings and the same data split (`config["seed"]`, `config["data"]["fraction"]`) can be recreated for evaluation. The model is returned in eval mode, on the CPU.
 
-### Evaluate a trained model
-```bash
-python evaluate.py {RELATIVE_PATH_TO_CHECKPOINT} {DATA_SET_TYPE}
-```
-- `{RELATIVE_PATH_TO_CHECKPOINT}` is path to the model you want to evaluate, e.g. `outputs\models\example_cnn_20261104-215131_f55919.pt`
-- `{DATA_SET_TYPE}` determines which data set you want to use for evaluation. Only accepts either `"validation"` or `"test"`
-- At the end of the run, the evaluation report is produced and saved to `outputs/eval_reports/<data_type>_<timestamp>_report.txt`, and any diagrams/graphs are saved to `outputs/diagrams/<data_type>_<timestamp>_<diagram_type>.png`.
+## Evaluate a trained model
 
-*Important Note:* Remember! Do not use test data set for any sort of model tunning. The test data set exists solely for final evaluation and designed to prevent biased model adjustments.
+```bash
+python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt
+```
+
+Replace the filename with your own checkpoint from `outputs/models/`. This evaluates on the validation set by default. To evaluate on the test set instead:
+
+```bash
+python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt --split test
+```
+
+- The evaluation report is saved to `outputs/eval_reports/` and the diagrams to `outputs/diagrams/`.
+
+The default is validation so the test set isn't used by accident while you're still choosing between models.
+
+## Running the UI
+
+The Gradio app in `app/app.py` loads a trained checkpoint and shows the top 5 predicted diseases for an uploaded leaf image.
+
+First train a model (see **Training the model**), then start the app with the path to the checkpoint:
+
+```powershell
+# Windows (PowerShell)
+$env:CHECKPOINT_PATH="outputs/models/<model type>_<timestamp>_<id>.pt"
+python -m app.app
+```
+
+```bash
+# Mac / Linux
+CHECKPOINT_PATH=outputs/models/<model type>_<timestamp>_<id>.pt python -m app.app
+```
+- Replace `<model type>_<timestamp>_<id>.pt` with the name of your checkpoint in `outputs/models/`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
+- Open the local link shown in the terminal (usually http://127.0.0.1:7860) and upload a leaf image.
+- The image is preprocessed with the same settings as during evaluation (image size and normalisation are read from the checkpoint config).
+- If `CHECKPOINT_PATH` is not set, the app still starts but shows an error when an image is uploaded.
+- Uploads are limited to 10 MB.
 
 ## Running the tests
 
