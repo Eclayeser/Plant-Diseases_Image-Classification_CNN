@@ -20,7 +20,7 @@ Overall, most people continue working on the tasks they were assigned last week 
 3. As part of SGP-12, brainstormed and picked what metrics and methods should evaluation process include to allow for thorough analyses in future
 4. Few issues created to accommodate those who will finish their tickets before next meeting
 
-### TODOs - Cycle 2
+### New TODOs - Cycle 2
 *all issues unassigned and will be picked up by those who complete their current issues first*
 - **Enable different model building via config**, SGP-23
 - **Add --config argument to evaluate.py**, SGP-20

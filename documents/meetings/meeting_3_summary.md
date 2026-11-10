@@ -19,7 +19,7 @@ As we continue working on development Cycle 1, everyone expressed their opinion 
 3. Discussed the future of the project and solidified current approach
 4. Discussed responsibilities and planned the meeting for the Reading Week
 
-### TODOs - Cycle 1 (additionally created)
+### New TODOs - Cycle 1 (additionally created)
 - **resNet18 prototype**, Illia, SGP-13
 - **Prototype test-set evaluation**, Mark, SGP-12
 - **Regularised CNN prototype**, Javier, SGP-14
