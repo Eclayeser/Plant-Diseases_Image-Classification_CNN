@@ -50,8 +50,6 @@ python train.py --config configs/prototype_small_data_frac.yaml     # or any oth
 ```
 - Settings (data fraction, image size, batch size, model channels, learning rate, epochs, seed) are read from the chosen config file.
 - Each epoch prints train and validation loss, accuracy and f1 score.
-- ClearML records the full config and per-epoch train/validation metrics, and stores both the final and lowest-validation-loss checkpoints as task artifacts. Tasks share the `Plant-Disease-Image-Classification` project and are tagged with their config name for comparison.
-- Configure ClearML credentials and a server with `clearml-init` before training; see the [ClearML setup guide](https://clear.ml/docs/latest/docs/clearml_sdk/clearml_sdk_setup/).
 - At the end, the model is saved to `outputs/models/<model type>_<timestamp>_<id>.pt`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
 
 ### Load a trained model
