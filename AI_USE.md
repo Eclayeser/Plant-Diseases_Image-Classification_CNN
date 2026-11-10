@@ -30,6 +30,8 @@
 
 - "#Evaluate a trained model" (argparse usage update): 70% AI-generated documentation (SGP-20, Mario Cavicchioli)
 
+- "#Running ClearML": 0% AI-generated documentation (SGP-3, Reon Carroll-Ito)
+
 ## leafapp/models/cnn.py (SGP-6, Mario Cavicchioli)
 
 - Tool: Claude (Anthropic), used as a tutor.
@@ -156,3 +158,19 @@ myself and Claude reviewed at the end.
 
 - Four `parse_args` tests (default split, custom split, missing checkpoint, invalid split): Claude gave a fill-in-the-blank structure; I completed them and ran them locally.
 - Approximate share of AI-generated code: 70%
+
+## leafapp/tracking.py (SGP-3, Reon Carroll-Ito)
+
+- `log_epoch_metrics()` and `upload_checkpoint()` were reviewed and debugged by GPT-6.
+- Approximate share of AI-generated code: 40%
+
+## tests/test_tracking.py (SGP-3, Reon Carroll-Ito)
+
+- `test_log_epoch_metrics_reports_each_split_and_metric()` and `test_upload_checkpoint_registers_artifact_path()`: GPT-6 gave a skeletal structure; I filled in the training and validation metrics and the checkpoint path.
+- Approximate share of AI-generated code: 60%
+
+## train.py (SGP-3, Reon Carroll-Ito)
+
+- Code to import functions from `leafapp/tracking.py` were hand-written.
+- Code to log epoch metrics and upload checkpoints were debugged by GPT-6.
+- Approximate share of AI-generated code: 5%
