@@ -76,6 +76,52 @@ python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.p
 
 The default is validation so the test set isn't used by accident while you're still choosing between models.
 
+## Running ClearML
+
+The ClearML WebUI records experiments in the form of tasks.
+Each task:
+- Logs training and validation metrics at every epoch
+- Saves the lowest-validation-loss checkpoint alongside the final checkpoint
+- Uploads both as ClearML artifacts
+
+### Setting up
+
+A ClearML server is assumed to be accessible and `clearml` should already be installed in the virtual environment from `requirements.txt` during initial setup.
+
+#### ClearML initialisation
+```
+clearml-init
+```
+Paste the API credentials generated in the ClearML WebUI: Profile Settings > Workspace > Create new credentials
+
+If the initialisation command above has already been run previously, edit the ClearML configuration file that already exists.
+
+##### To edit the ClearML configuration file:
+1. Open the configuration file:
+    - Linux - `~/clearml.conf`
+    - Mac - `$HOME/clearml.conf`
+    - Windows - `\User\<username>\clearml.conf`
+
+2. Modify the `access_key` and `secret_key` fields respectively with the generated API credentials.
+3. Save configuration file.
+
+### For collaborators
+
+A shared ClearML account will be used with identical API credentials.
+
+Tasks run inside Pumpkin Jr's workspace within the project `Plant-Disease-Image-Classification`
+
+### Interface
+
+After running the training a new task should appear to the left inside the `Plant-Disease-Image-Classification` project (a new project with this name should be created automatically).
+
+The default configuration will run 5 iterations, saves a best and final checkpoint, and exits after successfully completing a task.
+
+Tags can be added to tasks (e.g. `prototype_small_data_frac`, `resnet18`) to facilitate filtering tasks and comparing relevant experiments.
+
+Every logged task in "Tasks List" has the following tabs: "Exection", "Configuration", "Artifacts", "Info", "Console", "Scalars", "Plots" and "Debug samples".
+
+
 ## Running the UI
 
 The Gradio app in `app/app.py` loads a trained checkpoint and shows the top 5 predicted diseases for an uploaded leaf image.
