@@ -45,9 +45,13 @@ def log_epoch_metrics(
 
 def upload_checkpoint(task: Any, checkpoint_path: str | Path, name: str) -> None:
     """Upload a saved checkpoint as a ClearML task artifact."""
+    artifact_path = Path(checkpoint_path)
+    if not artifact_path.is_file():
+        raise FileNotFoundError(f"Checkpoint with name {name} not found at {checkpoint_path}")
+    
     task.upload_artifact(
         name=name,
-        artifact_object=str(checkpoint_path),
+        artifact_object=artifact_path,
         wait_on_upload=True,
     )
 
