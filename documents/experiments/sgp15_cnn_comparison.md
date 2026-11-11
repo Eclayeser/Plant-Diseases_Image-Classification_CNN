@@ -65,28 +65,34 @@ Each Run 2 checkpoint was evaluated with `evaluate.py` on the validation split. 
 - The wider model's improvement comes mostly from recall (0.689 → 0.770). Some classes the baseline mostly missed improved a lot, e.g. Apple scab (0.16 → 0.68) and Tomato Leaf Mold (0.17 → 0.59).
 - The deeper model reaches about the same accuracy and macro F1 as the baseline with around 37% fewer parameters (416,967 vs 662,599), but its macro precision is lower (0.732 vs 0.790).
 - Some classes are weak for all three models, e.g. Tomato Early blight (recall 0.23 / 0.27 / 0.30). Corn Cercospora leaf spot got worse with the bigger models (0.62 / 0.38 / 0.19), and the deeper model did not correctly classify any of the 8 Cedar apple rust validation images.
-- Accuracy is higher than macro F1 for every model. Large classes such as Orange Haunglongbing (165 images) and Soybean healthy (152) score well, while many small classes score lower, so class imbalance pulls macro F1 down.
+- Accuracy is higher than macro F1 for every model. Large classes such as Orange Huanglongbing (165 images) and Soybean healthy (152) score well, while many small classes score lower, so class imbalance pulls macro F1 down.
 
 ### Confusion matrix and training curves
 
-![Wider model confusion matrix](figures/wider_confusion_matrix.png)
+![Wider model confusion matrix](SGP-15/wider_confusion_matrix.png)
 
 - Most errors happen between tomato diseases. For the wider model, Tomato Leaf Mold was predicted as Septoria leaf spot 8 times (out of 29), Spider mites as Target Spot 10 times (out of 50), and Yellow Leaf Curl Virus as Bacterial spot 14 times (out of 160).
 - Septoria leaf spot collects many wrong predictions from other tomato classes, which explains its low precision (0.50).
 
-![Wider model training curves](figures/wider_training_curve.png)
+![Wider model training curves](SGP-15/wider_training_curve.png)
 
 - Validation accuracy and F1 were still increasing at epoch 5, and the training and validation curves stay close, so there is no sign of overfitting. The wider model is probably undertrained, so training it for more epochs is a reasonable next step.
 
-The confusion matrices and training curves for all three models are in `documents/experiments/figures/`.
+The confusion matrices, training curves and model checkpoints for all three models are in `documents/experiments/SGP-15/`.
 
 ### Deeper model: confusion matrix and training curves
+![Deeper model confusion matrix](SGP-15/deeper_confusion_matrix.png)
+
+![Deeper model training curves](SGP-15/deeper_training_curve.png)
 - It never predicted Cedar apple rust. Of the 8 validation images, 4 were predicted as Orange Huanglongbing and 3 as Potato Late blight.
 - Its low precision for Grape healthy (0.36) comes mainly from Soybean healthy: 11 of the 152 Soybean images were predicted as Grape healthy.
 - Corn Cercospora leaf spot was mostly confused with Corn Northern Leaf Blight (9 of 16 images). These wrong predictions lower Northern Leaf Blight's precision (0.71).
 - The training curves look similar to the wider model: no sign of overfitting, and validation scores were still improving at epoch 5.
 
 ### Baseline model: confusion matrix and training curves
+![Baseline model confusion matrix](SGP-15/baseline_confusion_matrix.png)
+
+![Baseline model training curves](SGP-15/baseline_training_curve.png)
 
 - Many wrong predictions go to two classes. Tomato Yellow Leaf Curl Virus receives predictions from other tomato diseases (e.g. 11 Bacterial spot, 9 Spider mites and 7 Early blight images), and Blueberry healthy receives 10 Septoria leaf spot and 6 Apple healthy images. This explains their low precision (0.72 and 0.57).
 - Tomato Leaf Mold was mostly predicted as Peach Bacterial spot (10 of 29 images), and only 5 were correct.
@@ -94,5 +100,5 @@ The confusion matrices and training curves for all three models are in `document
 
 ### Notes
 - Some classes have very few validation images (Potato healthy has 5, Cedar apple rust has 8), so per-class results for them can change a lot between runs.
-- The reports are in `outputs/eval_reports/` (gitignored): baseline `validation_2026-11-08_20-17-57`, wider `validation_2026-11-08_20-19-30`, deeper `validation_2026-11-08_20-23-24`.
+- The reports are in `documents/experiments/SGP-15/`: baseline `validation_2026-11-08_20-17-57`, wider `validation_2026-11-08_20-19-30`, deeper `validation_2026-11-08_20-23-24`.
 - `evaluate.py` was run with positional arguments, before SGP-20 (#36) switches it to argparse.
