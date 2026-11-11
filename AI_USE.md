@@ -150,7 +150,7 @@ myself and Claude reviewed at the end.
 ## documents/experiments/sgp15_cnn_comparison.md (SGP-15, Gul Nil Kayalıoğlu)
 
 - I trained the wider and deeper CNN models using my own configurations, evaluated them with the existing `evaluate.py`, and compared the results myself. Claude checked my analysis against the experimental results, reviewed my observations, and helped me turn my notes into a more structured technical report with clearer wording.
-- Approximate share of AI-generated code:45
+- Approximate share of AI-generated documentation: 45%
 
 ## evaluate.py, argparse CLI (SGP-20, Mario Cavicchioli)
 
