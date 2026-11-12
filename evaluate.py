@@ -16,6 +16,9 @@ from leafapp.checkpoints import load_checkpoint
 REPORTS_DIR = Path("outputs") / "eval_reports"
 DIAGRAMS_DIR = Path("outputs") / "diagrams"
 ACCEPTED_DATA_TYPES = ("validation", "test")
+# TODO: as part of SGP-33, implement same tagging logic as in train.py
+# RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
+
 
 def parse_args(argv=None):
     """Read the command-line arguments (--checkpoint, --split) and return them."""
@@ -23,6 +26,8 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Evaluate a saved checkpoint on the validation or test set.")
     parser.add_argument("--checkpoint", required=True, help="Path to the .pt checkpoint to evaluate.")
     parser.add_argument("--split", choices=ACCEPTED_DATA_TYPES, default="validation", help="Which split to evaluate on (default: validation).")
+    # parser.add_argument("--responsible", required=True, help="Name who is responsible for / triggered the run.")
+    # parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
     return parser.parse_args(argv)
 
 
