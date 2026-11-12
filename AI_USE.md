@@ -180,6 +180,7 @@ myself and Claude reviewed at the end.
 ## SGP-14: Regularised CNN prototype, Javier
 
 - Tool: Codex
-- Provided the initial configurable CNN implementation and model tests.
-- I reviewed the code and ran the tests locally.
-- Approximate share of AI-generated new code: 50%.
+- Codex provided part of the initial CNN implementation and model tests. I reviewed that code and ran the tests locally.
+- For Illia’s review feedback, Codex helped implement the `make_block()` refactor and added a regression test for blocks with an extra layer.
+- I ran the full suite locally (41 tests passed) and verified that checkpoints from before the refactor still load with identical predictions.
+- Approximate AI-generated share of the initial new code: 50%.
