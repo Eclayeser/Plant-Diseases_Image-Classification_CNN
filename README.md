@@ -54,7 +54,7 @@ python train.py --config configs/prototype_small_data_frac.yaml --responsible <y
 
 ### Understanding --run-type
 
-`--run-type` is optional (default: `exploring`). It describes the purpose of the run and is recorded as the `@run-type:<type>` tag on the ClearML task.
+`--run-type` is optional (default: `debugging`). It describes the purpose of the run and is recorded as the `@run-type:<type>` tag on the ClearML task.
 
 | Run type | When to use it |
 |---|---|

@@ -49,8 +49,8 @@ def test_parse_args_requires_responsible():
         parse_args([])
 
 def test_parse_args_reads_responsible():
-    args = parse_args(["--responsible", "Mark"])
-    assert args.responsible == "Mark", "Did not read the --responsible value"
+    args = parse_args(["--responsible", "    Mark Tarnavskyi "])
+    assert args.responsible == "mark-tarnavskyi", "Did not read the --responsible value"
 
 def test_parse_args_run_type_default():
     args = parse_args(["--responsible", "tester"])

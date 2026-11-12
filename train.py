@@ -27,16 +27,29 @@ RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see READ
 
 def parse_args(argv=None):
     """
-    Read the command-line arguments and return them (currently just --config).
+    Read the command-line arguments and return them.
     
     If argv is None, the real command line is used.
     """
 
     parser = argparse.ArgumentParser(description="Train a CNN model and save a checkpoint.")
     parser.add_argument("--config", default="configs/prototype.yaml", help="Path to the YAML config file for this run.")
-    parser.add_argument("--responsible", required=True, help="Name who is responsible for / triggered the run.")
+    parser.add_argument("--responsible", required=True, help="Name who is responsible for / triggered the run.", type=responsible_name)
     parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
     return parser.parse_args(argv)
+
+
+def responsible_name(value):
+    """
+    Sanitises name into lowercase kebab format.
+
+    Raises if the name is empty or whitespace-only.
+    """
+    slug = "-".join(value.lower().split())
+    if not slug:
+        raise argparse.ArgumentTypeError("--responsible must not be empty.")
+    return slug
+
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
     """
