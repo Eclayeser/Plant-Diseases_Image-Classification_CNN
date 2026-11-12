@@ -9,6 +9,9 @@ import torch
 from PIL import Image
 from leafapp.data import make_transforms
 
+import importlib
+import pandas as pd
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -65,3 +68,33 @@ def test_cnn_inference(trained_model):
     assert torch.isfinite(probabilities).all()
     assert torch.all((probabilities >= 0) & (probabilities <= 1))
     assert torch.isclose(probabilities.sum(), torch.tensor(1.0), atol=1e-5)
+
+
+def test_gradio_cnn_integration(trained_model, monkeypatch):
+    """Verify that Gradio processes images through the trained CNN."""
+    model, class_names, _, config = trained_model
+
+    _, transform = make_transforms(
+        config["data"]["image_size"],
+        augment=False,
+        normalize=config["data"].get("normalize", False),
+    )
+
+    # Load SGP-4's interface and attach the trained CNN.
+    ui = importlib.import_module("app.app")
+    monkeypatch.setattr(ui, "MODEL", model)
+    monkeypatch.setattr(ui, "CLASS_NAMES", class_names)
+    monkeypatch.setattr(ui, "TRANSFORM", transform)
+
+    # Simulate a grayscale image uploaded through Gradio.
+    image = Image.new("L", (256, 256), color=120)
+    predictions = ui.predict(image)
+
+    # Check that the UI returns the expected prediction data.
+    assert isinstance(predictions, pd.DataFrame)
+    assert list(predictions.columns) == ["Disease", "Probability"]
+    assert len(predictions) == min(5, len(class_names))
+
+    assert predictions["Disease"].notna().all()
+    assert predictions["Probability"].between(0, 1).all()
+    assert predictions["Probability"].is_monotonic_decreasing
