@@ -34,7 +34,7 @@ def parse_args(argv=None):
 
     parser = argparse.ArgumentParser(description="Train a CNN model and save a checkpoint.")
     parser.add_argument("--config", default="configs/prototype.yaml", help="Path to the YAML config file for this run.")
-    parser.add_argument("--responsible", help="Name who is responsible for / triggered the run.")
+    parser.add_argument("--responsible", required=True, help="Name who is responsible for / triggered the run.")
     parser.add_argument("--run-type", choices=RUN_TYPES, default="testing", help=f"Describe the purpose of the run.")
     return parser.parse_args(argv)
 
@@ -110,7 +110,12 @@ def main(config_path, responsible, run_type):
         config=cfg,
         project_name="Plant-Disease-Image-Classification",
         task_name=f"{cfg['model']['type']} - {config_name}",
-        tags=["training", config_name],
+        tags=[
+            f"@run-type:{run_type}",
+            f"@model:{cfg['model']['type']}",
+            f"@responsible:{responsible}",
+            "@task-type:train.py"
+        ],
     )
     logger = task.get_logger()
 
