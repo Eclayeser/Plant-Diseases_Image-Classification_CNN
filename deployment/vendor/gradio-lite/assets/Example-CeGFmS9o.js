@@ -1,0 +1,2 @@
+import{a as i,i as l,s as r,f as o,G as u,d as f,w as c,k as v,x as d}from"../lite.js";function m(n){let t=(n[0]||"")+"",a;return{c(){a=d(t)},m(e,s){v(e,a,s)},p(e,[s]){s&1&&t!==(t=(e[0]||"")+"")&&c(a,t)},i:u,o:u,d(e){e&&f(a)}}}function x(n,t,a){let{value:e}=t;return n.$$set=s=>{"value"in s&&a(0,e=s.value)},[e]}class p extends i{constructor(t){super(),l(this,t,x,m,r,{value:0})}get value(){return this.$$.ctx[0]}set value(t){this.$$set({value:t}),o()}}export{p as default};
+//# sourceMappingURL=Example-CeGFmS9o.js.map
