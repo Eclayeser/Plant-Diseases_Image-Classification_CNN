@@ -13,6 +13,8 @@ import torch
 from PIL import Image
 from leafapp.checkpoints import load_checkpoint
 from leafapp.data import make_transforms
+import subprocess
+import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -98,3 +100,50 @@ def test_gradio_cnn_integration(inference_setup, monkeypatch):
     assert predictions["Disease"].notna().all()
     assert predictions["Probability"].between(0, 1).all()
     assert predictions["Probability"].is_monotonic_decreasing
+
+def test_checkpoint_loaded_on_startup():
+    """Verify that Gradio loads the CNN automatically at startup."""
+
+    # Find the checkpoint to use.
+    checkpoint = os.getenv("CHECKPOINT_PATH")
+
+    if checkpoint:
+        path = Path(checkpoint).expanduser()
+        if not path.is_absolute():
+            path = ROOT / path
+    else:
+        checkpoints = list((ROOT / "outputs/models").glob("*.pt"))
+        assert checkpoints, "No trained checkpoint found."
+        path = max(checkpoints, key=lambda p: p.stat().st_mtime)
+
+    assert path.is_file()
+
+    # Simulate the environment configured by run_local.sh.
+    env = os.environ.copy()
+    env["CHECKPOINT_PATH"] = str(path.resolve())
+
+    # Start a fresh Python process to test real app initialization.
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            """
+import importlib
+
+ui = importlib.import_module("app.app")
+
+assert ui.MODEL is not None
+assert ui.CLASS_NAMES
+assert ui.TRANSFORM is not None
+assert not ui.MODEL.training
+assert ui.demo.fn is ui.predict
+""",
+        ],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=90,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
