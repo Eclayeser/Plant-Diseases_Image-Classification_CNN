@@ -23,6 +23,7 @@ from leafapp.tracking import (
 )
 
 ROOT = Path(__file__).resolve().parent
+RUN_TYPES = ("debugging", "testing", "benchmarking")    # see README.md to understand difference
 
 def parse_args(argv=None):
     """
@@ -33,6 +34,8 @@ def parse_args(argv=None):
 
     parser = argparse.ArgumentParser(description="Train a CNN model and save a checkpoint.")
     parser.add_argument("--config", default="configs/prototype.yaml", help="Path to the YAML config file for this run.")
+    parser.add_argument("--responsible", help="Name who is responsible for / triggered the run.")
+    parser.add_argument("--run-type", choices=RUN_TYPES, default="testing", help=f"Describe the purpose of the run.")
     return parser.parse_args(argv)
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
@@ -79,7 +82,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
     return epoch_metrics
 
-def main(config_path):
+def main(config_path, responsible, run_type):
     """
     Train a model using the config at config_path and save a checkpoint.
 
@@ -195,4 +198,4 @@ def main(config_path):
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args.config)
+    main(args.config, args.responsible, args.run_type)
