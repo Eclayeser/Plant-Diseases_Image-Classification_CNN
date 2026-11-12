@@ -1,4 +1,5 @@
-import sys
+# Evaluates a selected model and produces performance metrics and error analysis.
+import argparse
 import torch
 from torch import nn
 from pathlib import Path
@@ -15,6 +16,14 @@ from leafapp.checkpoints import load_checkpoint
 REPORTS_DIR = Path("outputs") / "eval_reports"
 DIAGRAMS_DIR = Path("outputs") / "diagrams"
 ACCEPTED_DATA_TYPES = ("validation", "test")
+
+def parse_args(argv=None):
+    """Read the command-line arguments (--checkpoint, --split) and return them."""
+
+    parser = argparse.ArgumentParser(description="Evaluate a saved checkpoint on the validation or test set.")
+    parser.add_argument("--checkpoint", required=True, help="Path to the .pt checkpoint to evaluate.")
+    parser.add_argument("--split", choices=ACCEPTED_DATA_TYPES, default="validation", help="Which split to evaluate on (default: validation).")
+    return parser.parse_args(argv)
 
 
 def main(checkpoint_path: str|Path, data_type: str):
@@ -64,7 +73,8 @@ def main(checkpoint_path: str|Path, data_type: str):
         )
 
     # plot and save diagrams
-    run_name = f"{data_type}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    checkpoint_name = Path(checkpoint_path).stem
+    run_name = f"{checkpoint_name}_{data_type}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     curve_path = DIAGRAMS_DIR / f"{run_name}_training_curve.png"
     matrix_path = DIAGRAMS_DIR / f"{run_name}_confusion_matrix.png"
 
@@ -95,15 +105,5 @@ def main(checkpoint_path: str|Path, data_type: str):
 
 
 if __name__ == "__main__":
-    try:
-        checkpoint_path = Path(sys.argv[1])
-        data_type = str(sys.argv[2])
-
-    except:
-        raise ValueError(
-                            f"Failed to process required inputs. Check the following provided:\n"
-                            f" - First input: checkpoint_path (str | Path)\n"
-                            f" - Second input: data_type (str)\n"
-                        )
-    
-    main(checkpoint_path, data_type)
+    args = parse_args()
+    main(args.checkpoint, args.split)
