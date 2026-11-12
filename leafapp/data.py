@@ -3,6 +3,8 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 
 DATASET_NAME = "DScomp380/plant_village"
+IMAGENET_MEAN = [0.485, 0.456, 0.406]
+IMAGENET_STD = [0.229, 0.224, 0.225]
 
 
 def load_subset(fraction, seed):
@@ -45,12 +47,14 @@ def split(ds, seed, val_frac=0.15, test_frac=0.15):
     return train, val, test
 
 
-def make_transforms(image_size, augment=True):
+def make_transforms(image_size, augment=True, normalize=False):
     """Build the image transforms for training and evaluation.
 
     Return (train_tf, eval_tf). Both resize images to image_size and
     convert them to tensors. train_tf also adds random flips, rotations
-    and colour changes when augment is True.
+    and colour changes when augment is True. When normalize is True, both
+    also normalise the tensors with the ImageNet mean and std, which
+    pretrained models like ResNet18 expect.
     """
     eval_tf = transforms.Compose(
         [
@@ -70,6 +74,11 @@ def make_transforms(image_size, augment=True):
         )
     else:
         train_tf = eval_tf
+        
+    if normalize:
+        normalization = transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)
+        eval_tf = transforms.Compose([eval_tf, normalization])
+        train_tf = transforms.Compose([train_tf, normalization])
     return train_tf, eval_tf
 
 
@@ -86,7 +95,8 @@ def make_batch_transform(image_transform):
     return transform_batch
 
 
-def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=True):
+def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=True,
+                normalize=False):
     """Build the train, validation and test loaders for plant_village.
 
     Return (train_loader, val_loader, test_loader, class_names). Each
@@ -96,7 +106,7 @@ def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=Tr
     """
     rows = load_subset(fraction, seed)
     train, val, test = split(rows, seed)
-    train_tf, eval_tf = make_transforms(image_size, augment)
+    train_tf, eval_tf = make_transforms(image_size, augment, normalize)
 
     train.set_transform(make_batch_transform(train_tf))
     val.set_transform(make_batch_transform(eval_tf))
