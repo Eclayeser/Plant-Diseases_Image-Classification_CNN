@@ -181,3 +181,11 @@ myself and Claude reviewed at the end.
 - Code to import functions from `leafapp/tracking.py` were hand-written.
 - Code to log epoch metrics and upload checkpoints were debugged by GPT-6.
 - Approximate share of AI-generated code: 5%
+
+## SGP-14: Regularised CNN prototype, Javier
+
+- Tool: Codex
+- Codex provided part of the initial CNN implementation and model tests. I reviewed that code and ran the tests locally.
+- For Illia’s review feedback, Codex helped implement the `make_block()` refactor and added a regression test for blocks with an extra layer.
+- I ran the full suite locally (41 tests passed) and verified that checkpoints from before the refactor still load with identical predictions.
+- Approximate AI-generated share of the initial new code: 50%.
