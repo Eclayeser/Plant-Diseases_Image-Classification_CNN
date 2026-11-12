@@ -1,9 +1,7 @@
-from torch import nn
-
-from leafapp.models.cnn import BasicCNN
+from leafapp.models import cnn
 
 
-class RegularisedCNN(BasicCNN):
+class RegularisedCNN(cnn.BasicCNN):
     """Reuse the baseline CNN with one regularisation option."""
 
     def __init__(
@@ -20,16 +18,18 @@ class RegularisedCNN(BasicCNN):
         if regularisation == "dropout" and not 0 <= dropout_p < 1:
             raise ValueError("dropout_p must be at least 0 and less than 1")
 
+        self._regularisation = regularisation
+        self._dropout_p = dropout_p
         super().__init__(
             num_classes=num_classes,
             channels=channels,
             image_size=image_size,
         )
 
-        for i, block in enumerate(self.features):
-            conv, relu, pool = block
-            if regularisation == "dropout":
-                layers = (conv, relu, nn.Dropout2d(p=dropout_p), pool)
-            else:
-                layers = (conv, nn.BatchNorm2d(conv.out_channels), relu, pool)
-            self.features[i] = nn.Sequential(*layers)
+    def make_block(self, in_ch, out_ch):
+        return cnn.conv_block(
+            in_ch,
+            out_ch,
+            regularisation=self._regularisation,
+            dropout_p=self._dropout_p,
+        )

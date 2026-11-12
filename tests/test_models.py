@@ -1,6 +1,7 @@
 import pytest
 import torch
 from torch import nn
+from leafapp.models import cnn
 from leafapp.models.cnn import BasicCNN
 from leafapp.models.regularised_cnn import RegularisedCNN
 from leafapp.models.resnet import build_resnet18
@@ -58,6 +59,29 @@ def test_variants_support_forward_and_backward(regularisation):
     assert first_conv_gradient is not None
     assert torch.isfinite(first_conv_gradient).all()
     assert torch.count_nonzero(first_conv_gradient) > 0
+
+
+@pytest.mark.parametrize("regularisation", ["dropout", "batchnorm"])
+def test_regularised_cnn_keeps_extra_shared_block_layer(monkeypatch, regularisation):
+    original_conv_block = cnn.conv_block
+
+    def conv_block_with_extra_layer(*args, **kwargs):
+        block = original_conv_block(*args, **kwargs)
+        block.append(nn.Identity())
+        return block
+
+    monkeypatch.setattr(cnn, "conv_block", conv_block_with_extra_layer)
+
+    model = RegularisedCNN(
+        num_classes=5,
+        channels=(8,),
+        image_size=32,
+        regularisation=regularisation,
+    )
+
+    assert isinstance(model.features[0][-1], nn.Identity)
+    with torch.no_grad():
+        assert model(torch.randn(2, 3, 32, 32)).shape == (2, 5)
 
 
 def test_dropout_matches_baseline_in_eval_mode():
