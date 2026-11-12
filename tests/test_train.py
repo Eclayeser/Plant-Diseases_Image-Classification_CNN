@@ -96,7 +96,7 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path):
     for name in ("log_epoch_metrics", "save_checkpoint", "upload_checkpoint", "close_task"):
         monkeypatch.setattr(train, name, MagicMock())
 
-    train.main("configs/prototype.yaml", "Mark", "production")
+    train.main("configs/prototype.yaml", "Mark", "production", "")
 
     assert captured["tags"] == [
         "@run-type:production",

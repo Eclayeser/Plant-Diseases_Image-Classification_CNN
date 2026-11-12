@@ -34,12 +34,13 @@ def parse_args(argv=None):
 
     parser = argparse.ArgumentParser(description="Train a CNN model and save a checkpoint.")
     parser.add_argument("--config", default="configs/prototype.yaml", help="Path to the YAML config file for this run.")
-    parser.add_argument("--responsible", required=True, help="Name who is responsible for / triggered the run.", type=responsible_name)
+    parser.add_argument("--responsible", required=True, help="Name who is responsible for / triggered the run.", type=validate_responsible_name)
     parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
+    parser.add_argument("--issue-id", default="", help="Pin issue identifier in format 'SGP-XXX'", type=validate_issue_id)
     return parser.parse_args(argv)
 
 
-def responsible_name(value):
+def validate_responsible_name(value):
     """
     Sanitises name into lowercase kebab format.
 
@@ -49,6 +50,15 @@ def responsible_name(value):
     if not slug:
         raise argparse.ArgumentTypeError("--responsible must not be empty.")
     return slug
+
+
+def validate_issue_id(value):
+    """
+    Ensures issue is in the right format. Raises otherwise
+    """
+    if value and not value.startswith("SGP-"):
+        raise argparse.ArgumentTypeError("--issue-id must be in 'SGP-XXX' format.")
+    return value
 
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
@@ -95,7 +105,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
     return epoch_metrics
 
-def main(config_path, responsible, run_type):
+def main(config_path, responsible, run_type, issue_id):
     """
     Train a model using the config at config_path and save a checkpoint.
 
@@ -119,16 +129,22 @@ def main(config_path, responsible, run_type):
     model.to(device)
 
     config_name = Path(config_path).stem
+
+    tags=[
+        f"@run-type:{run_type}",
+        f"@model:{cfg['model']['type']}",
+        f"@responsible:{responsible}",
+        "@task-type:train.py"
+    ]
+    if issue_id:
+        tags.append(f"@issue:{issue_id}")
+
     task = initialise_task(
         config=cfg,
         project_name="Plant-Disease-Image-Classification",
         task_name=f"{cfg['model']['type']} - {config_name}",
-        tags=[
-            f"@run-type:{run_type}",
-            f"@model:{cfg['model']['type']}",
-            f"@responsible:{responsible}",
-            "@task-type:train.py"
-        ],
+        tags=tags,
+        
     )
     logger = task.get_logger()
 
@@ -216,4 +232,4 @@ def main(config_path, responsible, run_type):
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args.config, args.responsible, args.run_type)
+    main(args.config, args.responsible, args.run_type, args.issue_id)
