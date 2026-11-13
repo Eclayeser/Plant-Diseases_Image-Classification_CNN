@@ -186,3 +186,8 @@ myself and Claude reviewed at the end.
 
 - Wrote initial skeleton myself, CLAUDE.md completed the rest
 - Approximate share of AI-generated code: 70%
+
+## documents/experiments/sgp40_wider_cnn_variants.md (SGP-40, Gul Nil Kayalıoğlu)
+
+- I created the even wider and wider + deeper CNN configurations, ran the three models using ClearML, and compared their validation results. Claude helped me check the results, review my observations, and organise the comparison into a clearer technical report.
+- Approximate share of AI-generated documentation: 40%
