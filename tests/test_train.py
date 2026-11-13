@@ -5,8 +5,10 @@ import torch
 from torch import nn
 from leafapp.models.cnn import BasicCNN
 import train
-from train import train_one_epoch, parse_args, RUN_TYPES
+from train import train_one_epoch, parse_args, RUN_TYPES, NAMES
 from utils import make_fake_loader
+
+VALID_NAME = NAMES[0]
 
 def test_train_one_epoch_returns_valid_metrics():
     model = BasicCNN(num_classes=5, channels=(8,), image_size=32)
@@ -37,11 +39,11 @@ def test_train_one_epoch_rejects_empty_loader():
         train_one_epoch(model, [], nn.CrossEntropyLoss(), optimizer, torch.device("cpu"))
 
 def test_parse_args_gives_default_path():
-    args = parse_args(["--responsible", "tester"])
+    args = parse_args(["--responsible", VALID_NAME])
     assert args.config == "configs/prototype.yaml", "Did not return default path"
 
 def test_parse_args_reads_custom_config():
-    args = parse_args(["--config", "configs/resnet18.yaml", "--responsible", "tester"])
+    args = parse_args(["--config", "configs/resnet18.yaml", "--responsible", VALID_NAME])
     assert args.config == "configs/resnet18.yaml", "Did not read the --config value"
 
 def test_parse_args_requires_responsible():
@@ -49,22 +51,26 @@ def test_parse_args_requires_responsible():
         parse_args([])
 
 def test_parse_args_reads_responsible():
-    args = parse_args(["--responsible", "    Mark Tarnavskyi "])
-    assert args.responsible == "mark-tarnavskyi", "Did not read the --responsible value"
+    args = parse_args(["--responsible", "Mark Tarnavskyi"])
+    assert args.responsible == "Mark Tarnavskyi", "Did not read the --responsible value"
+
+def test_parse_args_rejects_unknown_responsible():
+    with pytest.raises(SystemExit):
+        parse_args(["--responsible", "Not A Teammate"])
 
 def test_parse_args_run_type_default():
-    args = parse_args(["--responsible", "tester"])
+    args = parse_args(["--responsible", VALID_NAME])
     assert args.run_type == "debugging", "Did not return the default run type"
     assert args.run_type in RUN_TYPES
 
 @pytest.mark.parametrize("run_type", RUN_TYPES)
 def test_parse_args_accepts_every_run_type(run_type):
-    args = parse_args(["--responsible", "tester", "--run-type", run_type])
+    args = parse_args(["--responsible", VALID_NAME, "--run-type", run_type])
     assert args.run_type == run_type, "Did not read the --run-type value"
 
 def test_parse_args_rejects_invalid_run_type():
     with pytest.raises(SystemExit):
-        parse_args(["--responsible", "tester", "--run-type", "not-a-run-type"])
+        parse_args(["--responsible", VALID_NAME, "--run-type", "not-a-run-type"])
 
 def test_main_tags_task_with_run_details(monkeypatch, tmp_path):
     cfg = {
@@ -96,11 +102,11 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path):
     for name in ("log_epoch_metrics", "save_checkpoint", "upload_checkpoint", "close_task"):
         monkeypatch.setattr(train, name, MagicMock())
 
-    train.main("configs/prototype.yaml", "Mark", "production", "")
+    train.main("configs/prototype.yaml", "Mark Tarnavskyi", "production", "")
 
     assert captured["tags"] == [
         "@run-type:production",
         "@model:BasicCNN",
-        "@responsible:Mark",
+        "@responsible:mark-tarnavskyi",
         "@task-type:train.py",
     ]

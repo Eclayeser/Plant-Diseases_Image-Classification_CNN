@@ -24,6 +24,7 @@ from leafapp.tracking import (
 
 ROOT = Path(__file__).resolve().parent
 RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
+NAMES = ("Mark Tarnavskyi", "Pranay Singh", "Illia Putinstev", "Javier Fimia", "Reon Carroll-ito", "Nil Kayalioglu", "Mario Westphallen")
 
 def parse_args(argv=None):
     """
@@ -34,21 +35,17 @@ def parse_args(argv=None):
 
     parser = argparse.ArgumentParser(description="Train a CNN model and save a checkpoint.")
     parser.add_argument("--config", default="configs/prototype.yaml", help="Path to the YAML config file for this run.")
-    parser.add_argument("--responsible", required=True, help="Name who is responsible for / triggered the run.", type=validate_responsible_name)
+    parser.add_argument("--responsible", required=True, choices=NAMES, help="Name who is responsible for / triggered the run.")
     parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
     parser.add_argument("--issue-id", default="", help="Pin issue identifier in format 'SGP-XXX'", type=validate_issue_id)
     return parser.parse_args(argv)
 
 
-def validate_responsible_name(value):
+def sanitise_name(value):
     """
     Sanitises name into lowercase kebab format.
-
-    Raises if the name is empty or whitespace-only.
     """
     slug = "-".join(value.lower().split())
-    if not slug:
-        raise argparse.ArgumentTypeError("--responsible must not be empty.")
     return slug
 
 
@@ -133,7 +130,7 @@ def main(config_path, responsible, run_type, issue_id):
     tags=[
         f"@run-type:{run_type}",
         f"@model:{cfg['model']['type']}",
-        f"@responsible:{responsible}",
+        f"@responsible:{sanitise_name(responsible)}",
         "@task-type:train.py"
     ]
     if issue_id:
