@@ -1,6 +1,7 @@
 # Meeting number 2 - Summary
 ## Date: *26/10/2026*
-### Type: *In-Person*
+## Type: *In-Person*
+## Dyration: *1 hour*
 
 ### Attendees (7/7):
 - Illia, Mark, Mario, Pranay, Nil, Javier, Reon
@@ -15,7 +16,7 @@ Discussed initial responsibilities and first development steps
 2. Completed risk assessment to identify potential risks before starting the project -> recorded the risk-response pairs
 3. Created and assigned initial first-cycle issues via Linear.
 
-### TODOs - Cycle 1
+### New TODOs - Cycle 1
 - **Set up general project architecture**, Javier, SGP-2
 - **Prepare data for prototype CNN**, Illia, SGP-7
 - **Build small prototype CNN**, Mario, SGP-6
