@@ -70,6 +70,7 @@
 - Approximate share of AI-generated code: 30%
 
 - **SGP-12, Mark Tarnavskyi** hand-written edits
+- `choose_optimizer()` call replacing the hard-coded AdamW: added by me. (SGP-27, Mario Cavicchioli)
 
 ## tests/test_train.py (SGP-10, Mario Cavicchioli)
 
