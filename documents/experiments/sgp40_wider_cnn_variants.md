@@ -30,3 +30,15 @@ The checkpoints are in `documents/experiments/SGP-40/`.
 - Wider and even wider performed very similarly during training. Their curves are close and sometimes cross, so it is hard to say if even wider is actually better based on just one run.
 - Wider + deeper has about 25% fewer parameters than wider because the extra pooling layer makes the feature map smaller before the final linear layer. It had the highest validation loss at the start (1.572), but improved to 0.584 by epoch 5. Its F1 was also slightly better than wider (0.776 vs 0.773).
 - Validation loss was still going down at epoch 5 for all three models. There is no obvious overfitting so far, and training for more epochs might give better results.
+
+## Recommendation
+
+- For now, I think wider `[32, 64, 128]` is the better choice for the team. Even wider performed slightly better, but the difference is small compared to its larger size and longer training time.
+- As a next step, we could train wider and wider + deeper for more than 5 epochs. Both were still improving, and wider + deeper was catching up with the other models.
+
+## Limitations
+
+- Each model was only trained once with one seed, so the results might change with another run.
+- Wider got slightly different results compared to SGP-15 (accuracy 0.833 vs 0.827, while F1 stayed at 0.773), even though the settings and seed were the same. I'm not sure what caused this difference.
+- I didn't use `evaluate.py` because its results are not logged to ClearML yet (SGP-33). The metrics in this report come from the training history saved in the checkpoints.
+- `train.py` originally saved all checkpoints with names starting with `basiccnn_`. I renamed the copies in `SGP-40/` to match their configs, but kept the original timestamps and IDs so they can still be matched to the ClearML runs.
