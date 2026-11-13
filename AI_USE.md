@@ -181,3 +181,8 @@ myself and Claude reviewed at the end.
 - Code to import functions from `leafapp/tracking.py` were hand-written.
 - Code to log epoch metrics and upload checkpoints were debugged by GPT-6.
 - Approximate share of AI-generated code: 5%
+
+## .github/workflows/tests.yml (SGP-9, Mark Tarnavskyi)
+
+- Wrote initial skeleton myself, CLAUDE.md completed the rest
+- Approximate share of AI-generated code: 70%
