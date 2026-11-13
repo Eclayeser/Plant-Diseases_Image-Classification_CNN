@@ -109,4 +109,6 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path):
         "@model:BasicCNN",
         "@responsible:mark-tarnavskyi",
         "@task-type:train.py",
+        "@config-name:prototype",
     ]
+    assert captured["task_name"] == "BasicCNN - prototype"

@@ -131,7 +131,8 @@ def main(config_path, responsible, run_type, issue_id):
         f"@run-type:{run_type}",
         f"@model:{cfg['model']['type']}",
         f"@responsible:{sanitise_name(responsible)}",
-        "@task-type:train.py"
+        "@task-type:train.py",
+        f"@config-name:{config_name}"
     ]
     if issue_id:
         tags.append(f"@issue:{issue_id}")

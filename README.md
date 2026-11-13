@@ -45,8 +45,8 @@ python -m pip install -r requirements.txt
 
 ### Run training
 ```bash
-python train.py --responsible <your name>                                                                                  # uses configs/prototype.yaml and the default run type
-python train.py --config configs/prototype_small_data_frac.yaml --responsible <your name> --run-type comparison --issue-id SGP-30  # or any other config file and run type; --issue-id is optional
+python train.py --responsible "<your name>"                                                                                  # uses configs/prototype.yaml and the default run type
+python train.py --config configs/prototype_small_data_frac.yaml --responsible "<your name>" --run-type comparison --issue-id SGP-30  # or any other config file and run type; --issue-id is optional
 ```
 - Settings (data fraction, image size, batch size, model channels, learning rate, epochs, seed) are read from the chosen config file.
 - Each epoch prints train and validation loss, accuracy and f1 score.
@@ -128,7 +128,7 @@ After running the training a new task should appear to the left inside the `Plan
 
 The default configuration will run 5 iterations, saves a best and final checkpoint, and exits after successfully completing a task.
 
-Each task is tagged automatically with `@run-type:<type>`, `@model:<model type>` and `@responsible:<name>`, plus `@issue:<id>` when `--issue-id` is given. Use these tags to filter the "Tasks List", e.g. filter by `@run-type:production` to see only the official runs.
+Each task is tagged automatically with `@run-type:<type>`, `@model:<model type>` and `@responsible:<name>` and `@config-name:<config file name without extension>`, plus `@issue:<id>` when `--issue-id` is given. Use these tags to filter the "Tasks List", e.g. filter by `@run-type:production` to see only the official runs.
 
 Every logged task in "Tasks List" has the following tabs: "Exection", "Configuration", "Artifacts", "Info", "Console", "Scalars", "Plots" and "Debug samples".
 
