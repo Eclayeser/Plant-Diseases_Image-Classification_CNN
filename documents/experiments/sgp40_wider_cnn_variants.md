@@ -21,3 +21,5 @@ The checkpoints are in `documents/experiments/SGP-40/`.
 ![Validation accuracy](SGP-40/accuracy_validation.png)
 
 ![Validation loss](SGP-40/loss_validation.png)
+
+![Validation F1](SGP-40/f1_validation.png)
