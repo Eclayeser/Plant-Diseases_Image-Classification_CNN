@@ -186,3 +186,19 @@ myself and Claude reviewed at the end.
 
 - Wrote initial skeleton myself, CLAUDE.md completed the rest
 - Approximate share of AI-generated code: 70%
+
+## leafapp/optimizer_constructor.py (SGP-27, Mario Cavicchioli)
+- `choose_optimizer()` and `OPTIMIZERS`: Claude explained the design (factory function like `build_model`, name-to-class dict, default for old configs, `ValueError` for unknown names) and gave a fill-in-the-blank skeleton; I completed it, and Claude corrected my mistakes (including the `.get` line).
+- Approximate share of AI-generated code: 50%
+
+## tests/test_optimizer_constructor.py (SGP-27, Mario Cavicchioli)
+- Four tests (default, Adam, values passed through, unknown name): Claude gave a fill-in-the-blank structure; I completed them and ran them.
+- Approximate share of AI-generated code: 60%
+
+## configs/cnn_wider_adam.yaml, cnn_wider_lr0003.yaml, cnn_wider_lr003.yaml (SGP-27, Mario Cavicchioli)
+- Copied from `cnn_wider.yaml` and edited by me; Claude helped plan which runs were needed.
+- Approximate share of AI-generated code: 0%
+
+## documents/experiments/SGP-27/sgp27_optimiser_comparison.md (SGP-27, Mario Cavicchioli)
+- I ran the experiments and exported the charts from ClearML; Claude helped me interpret the results and wrote the report text, which I reviewed and edited.
+- Approximate share of AI-generated documentation: 75%
