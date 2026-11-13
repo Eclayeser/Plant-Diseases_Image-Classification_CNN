@@ -17,3 +17,7 @@ All three models use the same settings agreed in #main-discussions, so only the 
 | Wider + deeper | `cnn_wider_deeper.yaml` | [32, 64, 128, 256] | 1,027,431 | 0.823 | 0.776 | 0.584 | `cnn_wider_deeper_20261111-234033_42be13.pt` |
 
 The checkpoints are in `documents/experiments/SGP-40/`.
+
+![Validation accuracy](SGP-40/accuracy_validation.png)
+
+![Validation loss](SGP-40/loss_validation.png)
