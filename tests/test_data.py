@@ -2,6 +2,7 @@ from datasets import ClassLabel, Dataset
 from PIL import Image
 import torch
 from leafapp.data import make_batch_transform, make_transforms, split
+import pytest
 
 
 def test_transforms_give_right_shape_and_range():
@@ -62,3 +63,18 @@ def test_normalize_off_keeps_totensor_values():
     assert torch.allclose(
         eval_tf(photo)[:, 0, 0], torch.tensor([0.4, 0.8, 0.2]), atol=0.01
     ), "normalize=False should not change the values"
+    
+
+def test_normalize_plant_village_uses_own_stats():
+    """normalize="plant_village" uses our training split's mean and std."""
+    photo = Image.new("RGB", (8, 8), color=(102, 204, 51))
+    _, eval_tf = make_transforms(8, augment=False, normalize="plant_village")
+    assert torch.allclose(
+        eval_tf(photo)[:, 0, 0], torch.tensor([-0.35, 1.86, -1.01]), atol=0.01
+    ), "normalize='plant_village' should use the plant_village mean and std"
+
+
+def test_normalize_rejects_unknown_name():
+    """An unknown normalize name raises a ValueError instead of being ignored."""
+    with pytest.raises(ValueError):
+        make_transforms(8, normalize="plantvillage")

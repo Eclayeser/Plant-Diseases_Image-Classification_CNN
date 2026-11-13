@@ -5,6 +5,12 @@ from torch.utils.data import DataLoader
 DATASET_NAME = "DScomp380/plant_village"
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
+PLANT_VILLAGE_MEAN = [0.4671, 0.4897, 0.4125]
+PLANT_VILLAGE_STD = [0.1914, 0.1669, 0.2109]
+NORMALIZATION_STATS = {
+    "imagenet": (IMAGENET_MEAN, IMAGENET_STD),
+    "plant_village": (PLANT_VILLAGE_MEAN, PLANT_VILLAGE_STD),
+}
 
 
 def load_subset(fraction, seed):
@@ -52,9 +58,10 @@ def make_transforms(image_size, augment=True, normalize=False):
 
     Return (train_tf, eval_tf). Both resize images to image_size and
     convert them to tensors. train_tf also adds random flips, rotations
-    and colour changes when augment is True. When normalize is True, both
-    also normalise the tensors with the ImageNet mean and std, which
-    pretrained models like ResNet18 expect.
+    and colour changes when augment is True. normalize picks the mean and
+    std both transforms normalise the tensors with: "imagenet" (or True),
+    which pretrained models like ResNet18 expect, or "plant_village", our
+    training split's own. False skips normalising.
     """
     eval_tf = transforms.Compose(
         [
@@ -76,7 +83,14 @@ def make_transforms(image_size, augment=True, normalize=False):
         train_tf = eval_tf
         
     if normalize:
-        normalization = transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)
+        stats = "imagenet" if normalize is True else normalize
+        if stats not in NORMALIZATION_STATS:
+            raise ValueError(
+                f"Invalid normalize {normalize!r}: expected True, False, "
+                "'imagenet' or 'plant_village'"
+            )
+        mean, std = NORMALIZATION_STATS[stats]
+        normalization = transforms.Normalize(mean, std)
         eval_tf = transforms.Compose([eval_tf, normalization])
         train_tf = transforms.Compose([train_tf, normalization])
     return train_tf, eval_tf
