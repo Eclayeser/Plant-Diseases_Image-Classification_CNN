@@ -12,11 +12,11 @@ All three models use the same settings agreed in #main-discussions, so only the 
 
 | Model | Config | Channels | Parameters | Val accuracy | Val F1 | Val loss | Checkpoint |
 |---|---|---|---|---|---|---|---|
-| Wider | `cnn_wider.yaml` | [32, 64, 128] | 1,371,239 | 0.833 | 0.773 | 0.550 | `cnn_wider_20261111-234519_53b550.pt` |
-| Even wider | `cnn_even_wider.yaml` | [64, 128, 256] | 2,926,759 | 0.838 | 0.787 | 0.534 | `cnn_even_wider_20261111-232941_67ac4e.pt` |
-| Wider + deeper | `cnn_wider_deeper.yaml` | [32, 64, 128, 256] | 1,027,431 | 0.823 | 0.776 | 0.584 | `cnn_wider_deeper_20261111-234033_42be13.pt` |
+| Wider | `cnn_wider.yaml` | [32, 64, 128] | 1,371,239 | 0.833 | 0.773 | 0.550 | `basiccnn_20261111-234519_53b550.pt` |
+| Even wider | `cnn_even_wider.yaml` | [64, 128, 256] | 2,926,759 | 0.838 | 0.787 | 0.534 | `basiccnn_20261111-232941_67ac4e.pt` |
+| Wider + deeper | `cnn_wider_deeper.yaml` | [32, 64, 128, 256] | 1,027,431 | 0.823 | 0.776 | 0.584 | `basiccnn_20261111-234033_42be13.pt` |
 
-The checkpoints are in `documents/experiments/SGP-40/`.
+The checkpoints are not committed to the repository. They are stored as artifacts (`final_checkpoint` and `best_checkpoint`) in each ClearML task.
 
 ![Validation accuracy](SGP-40/accuracy_validation.png)
 
@@ -39,6 +39,5 @@ The checkpoints are in `documents/experiments/SGP-40/`.
 ## Limitations
 
 - Each model was only trained once with one seed, so the results might change with another run.
-- Wider got slightly different results compared to SGP-15 (accuracy 0.833 vs 0.827, while F1 stayed at 0.773), even though the settings and seed were the same. I'm not sure what caused this difference.
+- Wider got slightly different results compared to SGP-15 (accuracy 0.833 vs 0.827, while F1 stayed at 0.773), even though the settings and seed were the same. This is because ClearML's `Task.init` sets its own seed (1337), so the training batches are shuffled in a different order. 
 - I didn't use `evaluate.py` because its results are not logged to ClearML yet (SGP-33). The metrics in this report come from the training history saved in the checkpoints.
-- `train.py` originally saved all checkpoints with names starting with `basiccnn_`. I renamed the copies in `SGP-40/` to match their configs, but kept the original timestamps and IDs so they can still be matched to the ClearML runs.
