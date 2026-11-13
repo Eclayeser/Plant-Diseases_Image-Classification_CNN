@@ -70,6 +70,7 @@
 - Approximate share of AI-generated code: 30%
 
 - **SGP-12, Mark Tarnavskyi** hand-written edits
+- `augment` passed to `get_loaders()` from the config: written by me; Claude corrected the argument name. (SGP-32, Mario Cavicchioli)
 
 ## tests/test_train.py (SGP-10, Mario Cavicchioli)
 
