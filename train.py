@@ -24,7 +24,7 @@ from leafapp.tracking import (
 
 ROOT = Path(__file__).resolve().parent
 RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
-NAMES = ("Mark Tarnavskyi", "Pranay Singh", "Illia Putinstev", "Javier Fimia", "Reon Carroll-ito", "Nil Kayalioglu", "Mario Westphallen")
+NAMES = ("Mark Tarnavskyi", "Pranay Singh", "Illia Putinstev", "Javier Fimia", "Reon Carroll-ito", "Nil Kayalioglu", "Mario Westphalen Cavicchioli")
 
 def parse_args(argv=None):
     """
