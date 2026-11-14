@@ -82,7 +82,7 @@ def make_transforms(image_size, augment=True, normalize=False):
     else:
         train_tf = eval_tf
         
-    if normalize:
+    if normalize is not False:
         stats = "imagenet" if normalize is True else normalize
         if stats not in NORMALIZATION_STATS:
             raise ValueError(

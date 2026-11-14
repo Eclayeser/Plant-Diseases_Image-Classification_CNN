@@ -74,7 +74,8 @@ def test_normalize_plant_village_uses_own_stats():
     ), "normalize='plant_village' should use the plant_village mean and std"
 
 
-def test_normalize_rejects_unknown_name():
-    """An unknown normalize name raises a ValueError instead of being ignored."""
+@pytest.mark.parametrize("bad_value", ["plantvillage", ""])
+def test_normalize_rejects_unknown_name(bad_value):
+    """An unknown or empty normalize name raises a ValueError instead of being ignored."""
     with pytest.raises(ValueError):
-        make_transforms(8, normalize="plantvillage")
+        make_transforms(8, normalize=bad_value)
