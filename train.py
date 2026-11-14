@@ -95,7 +95,7 @@ def main(config_path):
         batch_size=cfg["data"]["batch_size"],
         seed=cfg["seed"],
         normalize=cfg["data"].get("normalize", False),
-        augment=cfg["data"].get("augment", True),
+        augment=cfg["data"].setdefault("augment", True),
     )
 
     model = build_model(cfg["model"], cfg["data"], class_names)
