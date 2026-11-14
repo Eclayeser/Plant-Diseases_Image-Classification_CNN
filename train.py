@@ -102,7 +102,7 @@ def main(config_path):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
-
+    optimizer = choose_optimizer(model.parameters(), cfg["train"])
     config_name = Path(config_path).stem
     task = initialise_task(
         config=cfg,
@@ -129,7 +129,6 @@ def main(config_path):
     }
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = choose_optimizer(model.parameters(), cfg["train"])
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     run_id = uuid.uuid4().hex[:6]

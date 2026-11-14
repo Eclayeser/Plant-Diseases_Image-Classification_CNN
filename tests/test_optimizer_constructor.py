@@ -33,3 +33,8 @@ def test_unknown_optimizer_raises():
     settings = {"optimizer": "adamw", "lr": 0.001, "weight_decay": 0.01}
     with pytest.raises(ValueError):
         choose_optimizer(make_params(), settings)
+
+def test_missing_optimizer_is_recorded_in_settings():
+    settings = {"lr": 0.001, "weight_decay": 0.01}
+    choose_optimizer(make_params(), settings)
+    assert settings["optimizer"] == "AdamW", "The default optimiser should be written into the settings"
