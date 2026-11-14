@@ -119,6 +119,7 @@ def main(config_path, responsible, run_type, issue_id):
         batch_size=cfg["data"]["batch_size"],
         seed=cfg["seed"],
         normalize=cfg["data"].get("normalize", False),
+        augment=cfg["data"].setdefault("augment", True),
     )
 
     model = build_model(cfg["model"], cfg["data"], class_names)

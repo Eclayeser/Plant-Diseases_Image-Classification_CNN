@@ -52,6 +52,7 @@ python train.py --config configs/prototype_small_data_frac.yaml --responsible "<
 - `normalize` under `data:` sets how image colours are normalised: `false` (default), `imagenet` (ImageNet's mean and std, needed for ResNet18; older configs write this as `true`), or `plant_village` (our training split's own mean and std, computed by `compute_norm_stats.py`).
 - Each epoch prints train and validation loss, accuracy and f1 score.
 - At the end, the model is saved to `outputs/models/<model type>_<timestamp>_<id>.pt`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
+- Set `augment: false` under `data:` to turn off training augmentation (random flips, rotations and colour changes). It is on by default.
 
 ### Understanding --run-type
 
