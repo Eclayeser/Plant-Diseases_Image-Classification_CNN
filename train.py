@@ -112,6 +112,8 @@ def main(config_path, responsible, run_type, issue_id):
     """
     cfg = load_config(ROOT / config_path) 
     cfg["data"].setdefault("normalize", False)  # record the default for ClearML visibility
+    cfg["train"].setdefault("patience", None) # record the default for patience
+    cfg["train"].setdefault("min_delta", 0.0) # default for min_delta
     torch.manual_seed(cfg["seed"])
     train_loader, val_loader, _, class_names = get_loaders(
         fraction=cfg["data"]["fraction"],
