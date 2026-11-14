@@ -23,17 +23,40 @@ from leafapp.tracking import (
 )
 
 ROOT = Path(__file__).resolve().parent
+RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
+NAMES = ("Mark Tarnavskyi", "Pranay Singh", "Illia Putintsev", "Javier Fimia", "Reon Carroll-Ito", "Nil Kayalioglu", "Mario Westphalen Cavicchioli")
 
 def parse_args(argv=None):
     """
-    Read the command-line arguments and return them (currently just --config).
+    Read the command-line arguments and return them.
     
     If argv is None, the real command line is used.
     """
 
     parser = argparse.ArgumentParser(description="Train a CNN model and save a checkpoint.")
     parser.add_argument("--config", default="configs/prototype.yaml", help="Path to the YAML config file for this run.")
+    parser.add_argument("--responsible", required=True, choices=NAMES, help="Name who is responsible for / triggered the run.")
+    parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
+    parser.add_argument("--issue-id", default="", help="Pin issue identifier in format 'SGP-XXX'", type=validate_issue_id)
     return parser.parse_args(argv)
+
+
+def sanitise_name(value):
+    """
+    Sanitises name into lowercase kebab format.
+    """
+    slug = "-".join(value.lower().split())
+    return slug
+
+
+def validate_issue_id(value):
+    """
+    Ensures issue is in the right format. Raises otherwise
+    """
+    if value and not value.startswith("SGP-"):
+        raise argparse.ArgumentTypeError("--issue-id must be in 'SGP-XXX' format.")
+    return value
+
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
     """
@@ -79,7 +102,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
     return epoch_metrics
 
-def main(config_path):
+def main(config_path, responsible, run_type, issue_id):
     """
     Train a model using the config at config_path and save a checkpoint.
 
@@ -103,11 +126,23 @@ def main(config_path):
     model.to(device)
 
     config_name = Path(config_path).stem
+
+    tags=[
+        f"@run-type:{run_type}",
+        f"@model:{cfg['model']['type']}",
+        f"@responsible:{sanitise_name(responsible)}",
+        "@task-type:train.py",
+        f"@config-name:{config_name}"
+    ]
+    if issue_id:
+        tags.append(f"@issue:{issue_id}")
+
     task = initialise_task(
         config=cfg,
         project_name="Plant-Disease-Image-Classification",
         task_name=f"{cfg['model']['type']} - {config_name}",
-        tags=["training", config_name],
+        tags=tags,
+        
     )
     logger = task.get_logger()
 
@@ -195,4 +230,4 @@ def main(config_path):
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args.config)
+    main(args.config, args.responsible, args.run_type, args.issue_id)
