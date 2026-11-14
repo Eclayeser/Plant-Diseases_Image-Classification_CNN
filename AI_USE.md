@@ -216,3 +216,7 @@ myself and Claude reviewed at the end.
 - I ran all the experiments, exported the charts from ClearML, wrote the Purpose and the Setup text, the first draft of the observations, decisions and limitations.
 - Claude's work: the document layout and tables, the analysis points behind each observation, style and grammar corrections, and a check of every number against my training logs. Enhanced my points, found the concrete evidence and reworded some sentences.
 - Approximate share of AI-generated documentation: 75%
+## documents/experiments/sgp40_wider_cnn_variants.md (SGP-40, Gul Nil Kayalıoğlu)
+
+- I created the even wider and wider + deeper CNN configurations, ran the three models using ClearML, and compared their validation results. Claude helped me check the results, review my observations, and organise the comparison into a clearer technical report.
+- Approximate share of AI-generated documentation: 40%
