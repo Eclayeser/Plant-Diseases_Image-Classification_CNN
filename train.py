@@ -10,6 +10,7 @@ from leafapp.config import load_config
 from leafapp.model_constructor import build_model
 from leafapp.data import get_loaders
 from leafapp.checkpoints import save_checkpoint
+from leafapp.early_stopping import EarlyStopping
 from leafapp.eval_functions import (
     calculate_metrics_per_loader,
     calculate_f1_score,
@@ -112,8 +113,8 @@ def main(config_path, responsible, run_type, issue_id):
     """
     cfg = load_config(ROOT / config_path) 
     cfg["data"].setdefault("normalize", False)  # record the default for ClearML visibility
-    cfg["train"].setdefault("patience", None) # record the default for patience
-    cfg["train"].setdefault("min_delta", 0.0) # default for min_delta
+    cfg["train"].setdefault("patience", None) # None = early stopping off
+    cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
     torch.manual_seed(cfg["seed"])
     train_loader, val_loader, _, class_names = get_loaders(
         fraction=cfg["data"]["fraction"],
@@ -178,6 +179,11 @@ def main(config_path, responsible, run_type, issue_id):
         f"{checkpoint_path.stem}_best.pt"
     )
     best_validation_loss = float("inf")
+    patience = cfg["train"]["patience"]
+    if patience is not None:
+        early_stopping = EarlyStopping(patience=patience, min_delta=cfg["train"]["min_delta"])
+    else:
+        early_stopping = None
 
     for epoch in range(cfg["train"]["epochs"]):
         train_epoch_metrics = train_one_epoch(model, train_loader, criterion, optimizer, device)
@@ -219,6 +225,11 @@ def main(config_path, responsible, run_type, issue_id):
                 f"train loss {train_epoch_metrics['loss']:.3f}, train acc {train_epoch_metrics['accuracy']:.3f}, train f1 {train_epoch_metrics['f1']:.3f} | "
                 f"val loss {val_epoch_metrics['loss']:.3f}, val acc {val_epoch_metrics['accuracy']:.3f}, val f1 {val_epoch_metrics['f1']:.3f}"
             )
+        
+        if early_stopping is not None and early_stopping.step(val_epoch_metrics["loss"]):
+            print(f"Stopped early after epoch {epoch + 1}: no improvement for {patience} epochs")
+            logger.report_single_value("stopped_epoch", epoch + 1)
+            break
 
     save_checkpoint(
         path=checkpoint_path,
