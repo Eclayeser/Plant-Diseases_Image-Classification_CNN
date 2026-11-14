@@ -8,6 +8,7 @@ import torch
 from torch import nn
 from leafapp.config import load_config
 from leafapp.model_constructor import build_model
+from leafapp.optimizer_constructor import choose_optimizer
 from leafapp.data import get_loaders
 from leafapp.checkpoints import save_checkpoint
 from leafapp.eval_functions import (
@@ -101,7 +102,7 @@ def main(config_path):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
-
+    optimizer = choose_optimizer(model.parameters(), cfg["train"])
     config_name = Path(config_path).stem
     task = initialise_task(
         config=cfg,
@@ -128,7 +129,6 @@ def main(config_path):
     }
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=cfg["train"]["lr"], weight_decay=cfg["train"]["weight_decay"])
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     run_id = uuid.uuid4().hex[:6]

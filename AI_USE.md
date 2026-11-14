@@ -67,9 +67,11 @@
 - Claude explained argparse (and the alternatives), and gave a fill-in-the-blank skeleton for `parse_args()`. I filled in the logic; the description/help/docstring wording was refined by Claude from my drafts. (SGP-19, Mario Cavicchioli)
 - `train_one_epoch()`, `evaluate()` (moved and heavily (no AI) edited by **SGP-12**, renamed to `calculate_metrics_per_loader()`; now in `leafapp/eval_functions.py`) and `main()`: Claude gave skeletons with blanks; I wrote the setup (config, loaders, model, loss, optimiser, seed), the training step, the epoch loop and the checkpoint saving call, and adapted `evaluate()` from `train_one_epoch()`. Claude corrected my mistakes.
 - Given by Claude: the accuracy bookkeeping lines (`argmax`, `correct`), the device one-liner, the `ROOT` path fix (suggested by CodeRabbit), the timestamped checkpoint filename with a unique run id (suggested by CodeRabbit) and folder creation, the print format, and the docstrings.
+- Moved the `choose_optimizer()` call before `initialise_task()` so the optimiser is in the config when it's uploaded: done by me after Claude explained why the order matters. (SGP-27, Mario Cavicchioli)
 - Approximate share of AI-generated code: 30%
 
 - **SGP-12, Mark Tarnavskyi** hand-written edits
+- `choose_optimizer()` call replacing the hard-coded AdamW: added by me. (SGP-27, Mario Cavicchioli)
 
 ## tests/test_train.py (SGP-10, Mario Cavicchioli)
 
@@ -186,3 +188,21 @@ myself and Claude reviewed at the end.
 
 - Wrote initial skeleton myself, CLAUDE.md completed the rest
 - Approximate share of AI-generated code: 70%
+
+## leafapp/optimizer_constructor.py (SGP-27, Mario Cavicchioli)
+- `choose_optimizer()` and `OPTIMIZERS`: Claude explained the design (factory function like `build_model`, name-to-class dict, default for old configs, `ValueError` for unknown names) and gave a fill-in-the-blank skeleton; I completed it, and Claude corrected my mistakes (including the `.get` line).
+- `.get` → `.setdefault` so the chosen optimiser is recorded in ClearML and the checkpoint: Claude explained the difference and the side effect; I made the change. Docstring update written by Claude.
+- Approximate share of AI-generated code: 50%
+
+## tests/test_optimizer_constructor.py (SGP-27, Mario Cavicchioli)
+- Four tests (default, Adam, values passed through, unknown name): Claude gave a fill-in-the-blank structure; I completed them and ran them.
+- `test_missing_optimizer_is_recorded_in_settings`: arrange/act given by Claude; I wrote the assert, which Claude corrected.
+- Approximate share of AI-generated code: 60%
+
+## configs/cnn_wider_adam.yaml, cnn_wider_lr0003.yaml, cnn_wider_lr003.yaml (SGP-27, Mario Cavicchioli)
+- Copied from `cnn_wider.yaml` and edited by me; Claude helped plan which runs were needed.
+- Approximate share of AI-generated code: 0%
+
+## documents/experiments/SGP-27/sgp27_optimiser_comparison.md (SGP-27, Mario Cavicchioli)
+- I ran the experiments and exported the charts from ClearML; Claude helped me interpret the results and wrote the report text, which I reviewed and edited.
+- Approximate share of AI-generated documentation: 75%
