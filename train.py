@@ -111,6 +111,7 @@ def main(config_path, responsible, run_type, issue_id):
     uniquely named file (timestamp + short id) in checkpoint_dir.
     """
     cfg = load_config(ROOT / config_path) 
+    cfg["data"].setdefault("normalize", False)  # record the default for ClearML visibility
     torch.manual_seed(cfg["seed"])
     train_loader, val_loader, _, class_names = get_loaders(
         fraction=cfg["data"]["fraction"],
