@@ -1,2 +1,7 @@
-outputs/
+# Ignore the local Python environment and generated caches.
+/.venv/
 __pycache__/
+*.py[cod]
+outputs/
+.pytest_cache/
+*.pt

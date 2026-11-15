@@ -45,12 +45,27 @@ python -m pip install -r requirements.txt
 
 ### Run training
 ```bash
-python train.py                                                     # uses configs/prototype.yaml
-python train.py --config configs/prototype_small_data_frac.yaml     # or any other config file
+python train.py --responsible "<your name>"                                                                                  # uses configs/prototype.yaml and the default run type
+python train.py --config configs/prototype_small_data_frac.yaml --responsible "<your name>" --run-type comparison --issue-id SGP-30  # or any other config file and run type; --issue-id is optional
 ```
 - Settings (data fraction, image size, batch size, model channels, learning rate, epochs, seed) are read from the chosen config file.
+- `normalize` under `data:` sets how image colours are normalised: `false` (default), `imagenet` (ImageNet's mean and std, needed for ResNet18; older configs write this as `true`), or `plant_village` (our training split's own mean and std, computed by `compute_norm_stats.py`).
+- `patience` and `min_delta` under `train:` turn on early stopping: training stops once the validation loss fails to beat its best by more than `min_delta` (default `0.0`) for `patience` epochs in a row, so `epochs` becomes the maximum. Leave `patience` out to train all epochs. The stop epoch is printed and logged to ClearML as `stopped_epoch`, and the best checkpoint is still the epoch with the lowest validation loss. Example: `configs/cnn_wider_normalize_plant_village_early_stopping.yaml`.
 - Each epoch prints train and validation loss, accuracy and f1 score.
 - At the end, the model is saved to `outputs/models/<model type>_<timestamp>_<id>.pt`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
+- Set `augment: false` under `data:` to turn off training augmentation (random flips, rotations and colour changes). It is on by default.
+- `optimizer` under `train:` chooses the optimiser: `AdamW` (default) or `Adam`. See `documents/experiments/SGP-27/` for why AdamW is the default.
+
+### Understanding --run-type
+
+`--run-type` is optional (default: `debugging`). It describes the purpose of the run and is recorded as the `@run-type:<type>` tag on the ClearML task.
+
+| Run type | When to use it |
+|---|---|
+| `debugging` | Making the code or pipeline work. The metrics don't matter, only that nothing crashes. |
+| `exploring` | Trying something new (a model, loss or augmentation) and looking at the metrics for a rough idea of whether it works. |
+| `comparison` | Measuring performance in a controlled way: tuning hyperparameters, or comparing models with the same seed, data fraction and epochs. |
+| `production` | The final run with the chosen model and settings. |
 
 ### Load a trained model
 ```python
@@ -60,15 +75,89 @@ model, class_names, history_metrics, config = load_checkpoint("outputs/models/<m
 ```
 The checkpoint stores the weights, metrics recorded during the training, the full config and the class names, so the model is rebuilt with the same settings and the same data split (`config["seed"]`, `config["data"]["fraction"]`) can be recreated for evaluation. The model is returned in eval mode, on the CPU.
 
-### Evaluate a trained model
-```bash
-python evaluate.py {RELATIVE_PATH_TO_CHECKPOINT} {DATA_SET_TYPE}
-```
-- `{RELATIVE_PATH_TO_CHECKPOINT}` is path to the model you want to evaluate, e.g. `outputs\models\example_cnn_20261104-215131_f55919.pt`
-- `{DATA_SET_TYPE}` determines which data set you want to use for evaluation. Only accepts either `"validation"` or `"test"`
-- At the end of the run, the evaluation report is produced and saved to `outputs/eval_reports/<data_type>_<timestamp>_report.txt`, and any diagrams/graphs are saved to `outputs/diagrams/<data_type>_<timestamp>_<diagram_type>.png`.
+## Evaluate a trained model
 
-*Important Note:* Remember! Do not use test data set for any sort of model tunning. The test data set exists solely for final evaluation and designed to prevent biased model adjustments.
+```bash
+python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt
+```
+
+Replace the filename with your own checkpoint from `outputs/models/`. This evaluates on the validation set by default. To evaluate on the test set instead:
+
+```bash
+python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt --split test
+```
+
+- The evaluation report is saved to `outputs/eval_reports/` and the diagrams to `outputs/diagrams/`.
+
+The default is validation so the test set isn't used by accident while you're still choosing between models.
+
+## Running ClearML
+
+The ClearML WebUI records experiments in the form of tasks.
+Each task:
+- Logs training and validation metrics at every epoch
+- Saves the lowest-validation-loss checkpoint alongside the final checkpoint
+- Uploads both as ClearML artifacts
+
+### Setting up
+
+A ClearML server is assumed to be accessible and `clearml` should already be installed in the virtual environment from `requirements.txt` during initial setup.
+
+#### ClearML initialisation
+```
+clearml-init
+```
+Paste the API credentials generated in the ClearML WebUI: Profile Settings > Workspace > Create new credentials
+
+If the initialisation command above has already been run previously, edit the ClearML configuration file that already exists.
+
+##### To edit the ClearML configuration file:
+1. Open the configuration file:
+    - Linux - `~/clearml.conf`
+    - Mac - `$HOME/clearml.conf`
+    - Windows - `\User\<username>\clearml.conf`
+
+2. Modify the `access_key` and `secret_key` fields respectively with the generated API credentials.
+3. Save configuration file.
+
+### For collaborators
+
+A shared ClearML account will be used with identical API credentials.
+
+Tasks run inside Pumpkin Jr's workspace within the project `Plant-Disease-Image-Classification`
+
+### Interface
+
+After running the training a new task should appear to the left inside the `Plant-Disease-Image-Classification` project (a new project with this name should be created automatically).
+
+The default configuration will run 5 iterations, saves a best and final checkpoint, and exits after successfully completing a task.
+
+Each task is tagged automatically with `@run-type:<type>`, `@model:<model type>` and `@responsible:<name>` and `@config-name:<config file name without extension>`, plus `@issue:<id>` when `--issue-id` is given. Use these tags to filter the "Tasks List", e.g. filter by `@run-type:production` to see only the official runs.
+
+Every logged task in "Tasks List" has the following tabs: "Exection", "Configuration", "Artifacts", "Info", "Console", "Scalars", "Plots" and "Debug samples".
+
+
+## Running the UI
+
+The Gradio app in `app/app.py` loads a trained checkpoint and shows the top 5 predicted diseases for an uploaded leaf image.
+
+First train a model (see **Training the model**), then start the app with the path to the checkpoint:
+
+```powershell
+# Windows (PowerShell)
+$env:CHECKPOINT_PATH="outputs/models/<model type>_<timestamp>_<id>.pt"
+python -m app.app
+```
+
+```bash
+# Mac / Linux
+CHECKPOINT_PATH=outputs/models/<model type>_<timestamp>_<id>.pt python -m app.app
+```
+- Replace `<model type>_<timestamp>_<id>.pt` with the name of your checkpoint in `outputs/models/`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
+- Open the local link shown in the terminal (usually http://127.0.0.1:7860) and upload a leaf image.
+- The image is preprocessed with the same settings as during evaluation (image size and normalisation are read from the checkpoint config).
+- If `CHECKPOINT_PATH` is not set, the app still starts but shows an error when an image is uploaded.
+- Uploads are limited to 10 MB.
 
 ## Running the tests
 
