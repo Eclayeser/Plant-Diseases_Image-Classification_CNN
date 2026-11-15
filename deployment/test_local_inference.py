@@ -2,6 +2,7 @@
 Test 1: Verify that a trained CNN checkpoint can be loaded.
 Test 2: Verify that the CNN processes an image and returns valid probabilities.
 Test 3: Verify that Gradio's predict() function returns the top five classifications.
+Test 4: Proves whether Gradio automatically loads the specified checkpoint
 """
 
 import importlib
@@ -11,7 +12,8 @@ import pandas as pd
 import pytest
 import torch
 from PIL import Image
-from leafapp.checkpoints import load_checkpoint
+from leafapp.checkpoints import load_checkpoint, save_checkpoint
+from leafapp.models.cnn import BasicCNN
 from leafapp.data import make_transforms
 import subprocess
 import sys
@@ -21,21 +23,30 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture(scope="module")
-def trained_model():
-    """Load the specified checkpoint or the latest available one."""
-    checkpoint = os.getenv("CHECKPOINT_PATH")
+def checkpoint_path(tmp_path_factory):
+    """Create a temporary CNN checkpoint for testing."""
+    config = {
+        "model": {"type": "BasicCNN", "channels": [8]},
+        "data": {"image_size": 32, "normalize": False},
+    }
+    class_names = ["healthy", "rust", "blight"]
 
-    if checkpoint:
-        path = Path(checkpoint).expanduser()
-        if not path.is_absolute():
-            path = ROOT / path
-    else:
-        checkpoints = list((ROOT / "outputs/models").glob("*.pt"))
-        assert checkpoints, "No trained checkpoint found."
-        path = max(checkpoints, key=lambda p: p.stat().st_mtime)
+    model = BasicCNN(
+        num_classes=len(class_names),
+        channels=config["model"]["channels"],
+        image_size=config["data"]["image_size"],
+    )
 
-    assert path.is_file(), f"Checkpoint not found: {path}"
-    return load_checkpoint(path)
+    path = tmp_path_factory.mktemp("sgp5") / "test_model.pt"
+    save_checkpoint(path, model, config, class_names, history_metrics={})
+
+    return path
+
+
+@pytest.fixture(scope="module")
+def trained_model(checkpoint_path):
+    """Load the temporary checkpoint."""
+    return load_checkpoint(checkpoint_path)
 
 
 @pytest.fixture(scope="module")
@@ -101,28 +112,15 @@ def test_gradio_cnn_integration(inference_setup, monkeypatch):
     assert predictions["Probability"].between(0, 1).all()
     assert predictions["Probability"].is_monotonic_decreasing
 
-def test_checkpoint_loaded_on_startup():
-    """Verify that Gradio loads the CNN automatically at startup."""
 
-    # Find the checkpoint to use.
-    checkpoint = os.getenv("CHECKPOINT_PATH")
+def test_checkpoint_loaded_on_startup(checkpoint_path):
+    """Test 4: Verify that Gradio loads the checkpoint at startup."""
 
-    if checkpoint:
-        path = Path(checkpoint).expanduser()
-        if not path.is_absolute():
-            path = ROOT / path
-    else:
-        checkpoints = list((ROOT / "outputs/models").glob("*.pt"))
-        assert checkpoints, "No trained checkpoint found."
-        path = max(checkpoints, key=lambda p: p.stat().st_mtime)
-
-    assert path.is_file()
-
-    # Simulate the environment configured by run_local.sh.
+    # Use the temporary checkpoint created by pytest.
     env = os.environ.copy()
-    env["CHECKPOINT_PATH"] = str(path.resolve())
+    env["CHECKPOINT_PATH"] = str(checkpoint_path)
 
-    # Start a fresh Python process to test real app initialization.
+    # Start a fresh Python process to test app initialization.
     result = subprocess.run(
         [
             sys.executable,
