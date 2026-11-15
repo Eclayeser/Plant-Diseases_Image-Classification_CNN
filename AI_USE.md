@@ -227,6 +227,34 @@ myself and Claude reviewed at the end.
 - I created the even wider and wider + deeper CNN configurations, ran the three models using ClearML, and compared their validation results. Claude helped me check the results, review my observations, and organise the comparison into a clearer technical report.
 - Approximate share of AI-generated documentation: 40%
 
+## leafapp/early_stopping.py (SGP-22, Illia Putintsev)
+
+- Tool: Claude (Anthropic), used as a tutor and reviewer.
+- `EarlyStopping` class (best loss, patience counter, `step()`) and docstrings: written by me, after Claude explained the patience and `min_delta` rule using the validation losses of the SGP-31 plant_village run.
+- The `min_delta` comparison in `step()`: given by Claude.
+- Approximate share of AI-generated code: less than 25%
+
+## tests/test_early_stopping.py (SGP-22, Illia Putintsev)
+
+- `test_stops_after_patience_epochs_without_improvement`: structure taken from Claude's example; I chose new losses so the test checks that the counter resets after a new best, and wrote the comment and the assert message.
+- `test_small_improvement_does_not_reset_counter`: written by me, following the same pattern.
+- Approximate share of AI-generated code: 50%
+
+## train.py (SGP-22, Illia Putintsev)
+
+- `patience` and `min_delta` defaults recorded in the run config (`setdefault`): written by me; comment wording and named arguments suggested by Claude in review.
+- Creating the `EarlyStopping` from the config and the stopping check at the end of the epoch loop (print, `report_single_value("stopped_epoch", ...)`, `break`): given by Claude.
+- Approximate share of AI-generated code (SGP-22 changes): 75%
+
+## SGP-14: Regularised CNN prototype, Javier
+
+- Tool: Codex
+- Codex provided part of the initial CNN implementation and model tests. I reviewed that code and ran the tests locally.
+- For Illia’s review feedback, Codex helped implement the `make_block()` refactor and added a regression test for blocks with an extra layer.
+- I ran the full suite locally (41 tests passed) and verified that checkpoints from before the refactor still load with identical predictions.
+- Approximate AI-generated share of the initial new code: 50%.
+
+
 ## leafapp/optimizer_constructor.py (SGP-27, Mario Cavicchioli)
 - `choose_optimizer()` and `OPTIMIZERS`: Claude explained the design (factory function like `build_model`, name-to-class dict, default for old configs, `ValueError` for unknown names) and gave a fill-in-the-blank skeleton; I completed it, and Claude corrected my mistakes (including the `.get` line).
 - `.get` → `.setdefault` so the chosen optimiser is recorded in ClearML and the checkpoint: Claude explained the difference and the side effect; I made the change. Docstring update written by Claude.
