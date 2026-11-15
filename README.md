@@ -53,6 +53,7 @@ python train.py --config configs/prototype_small_data_frac.yaml --responsible "<
 - Each epoch prints train and validation loss, accuracy and f1 score.
 - At the end, the model is saved to `outputs/models/<model type>_<timestamp>_<id>.pt`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
 - Set `augment: false` under `data:` to turn off training augmentation (random flips, rotations and colour changes). It is on by default.
+- `optimizer` under `train:` chooses the optimiser: `AdamW` (default) or `Adam`. See `documents/experiments/SGP-27/` for why AdamW is the default.
 
 ### Understanding --run-type
 

@@ -29,10 +29,10 @@ All four runs are logged in ClearML (project `Plant-Disease-Image-Classification
 | `cnn_wider_lr0003.yaml` | 0.810 | 0.823 | **0.770** | 0.586 | `2f4b2101daf54206b825a9f44f7562d2` |
 | `cnn_wider_lr003.yaml` | 0.788 | 0.790 | 0.736 | 0.708 | `dfc1ab9a531443c9be512b0588a08af7` |
 
-The reference run reproduces Nil's earlier `cnn_wider.yaml` run from SGP-15 (val accuracy 0.824 vs 0.827), so differences of a few tenths of a point between runs are within run-to-run noise.
+The same cnn_wider.yaml config has been run three times across the team: 0.827 (SGP-15), 0.833 (SGP-40) and 0.824 (this run). The SGP-40 run matched other runs exactly on the same setup, so the difference here most likely comes from running on a different machine (GPU calculations are not fully deterministic). Differences of up to about 1 point between runs should therefore be treated as noise.
 
 ## Optimiser: AdamW vs Adam
-- With identical settings, AdamW reached 0.824 validation accuracy and Adam 0.750, a gap of 7.4 points (macro F1: 0.765 vs 0.661). This is far larger than the ~0.3 point difference between two identical runs, so it is a real difference rather than noise.
+- With identical settings, AdamW reached 0.824 validation accuracy and Adam 0.750, a gap of 7.4 points (macro F1: 0.765 vs 0.661). This is far larger than the ~1 point difference between two identical runs, so it is a real difference rather than noise.
 - The two optimisers differ only in how they apply weight decay. Adam adds weight decay to the gradient (L2 regularisation), and that combined gradient is then rescaled separately for every weight by Adam's adaptive learning rates, so the effective amount of decay is different for each weight. AdamW applies weight decay directly to the weights, separately from the gradient step (decoupled weight decay), so every weight is shrunk by the same proportion and `weight_decay: 0.01` means what it says.
 - Adam's training accuracy is also lower (0.721 vs 0.814) with no gap opening between training and validation. Low training and validation accuracy together point to underfitting, which fits the explanation that Adam's distorted weight decay holds the model back, rather than the model overfitting.
 - AdamW was proposed for exactly this reason: L2 regularisation does not behave like weight decay in adaptive optimisers such as Adam (Loshchilov & Hutter, *Decoupled Weight Decay Regularization*, ICLR 2019).
@@ -65,8 +65,8 @@ The reference run reproduces Nil's earlier `cnn_wider.yaml` run from SGP-15 (val
 
 ## Reproducing
 ```bash
-python train.py --config configs/cnn_wider.yaml
-python train.py --config configs/cnn_wider_adam.yaml
-python train.py --config configs/cnn_wider_lr0003.yaml
-python train.py --config configs/cnn_wider_lr003.yaml
+python train.py --config configs/cnn_wider.yaml --responsible "<your name>" --run-type comparison --issue-id SGP-27
+python train.py --config configs/cnn_wider_adam.yaml --responsible "<your name>" --run-type comparison --issue-id SGP-27
+python train.py --config configs/cnn_wider_lr0003.yaml --responsible "<your name>" --run-type comparison --issue-id SGP-27
+python train.py --config configs/cnn_wider_lr003.yaml --responsible "<your name>" --run-type comparison --issue-id SGP-27
 ```
