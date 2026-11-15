@@ -1,23 +1,17 @@
-# Hugging Face Deployment
+# SGP-5 — Local Deployment
 
 ## Objective
-Deploy the plant disease classification model and Gradio interface to Hugging Face Spaces, making the application publicly accessible.
+Deploy the plant disease classification prototype locally using SGP-4's Gradio interface application publicly accessible.
 
-## Tasks
-- Set up Hugging Face Space.
-- Configure application files and dependencies.
-- Integrate trained PyTorch model and Gradio interface.
-- Deploy application to Hugging Face Spaces.
-- Test image uploads and classification predictions.
-- Verify public accessibility and fix deployment issues.
-- Document final deployment URL and instructions.
+## Implementation
+- Train a CNN using `train.py`.
+- Load a selected `.pt` checkpoint through `CHECKPOINT_PATH`.
+- Run the Gradio interface at `http://localhost:8080`.
+- Support macOS/Linux and Windows.
+- Verify checkpoint loading, inference, and Gradio integration through automated tests.
 
-## Requirements
-- Gradio application (`app/app.py`)
-- PyTorch model and trained weights
-- Inference pipeline (`leafapp/predict.py`)
-- Python dependencies (`requirements.txt`)
-- Hugging Face Space configuration
+## Documentation
+See [Local Deployment Guide](../deployment/LOCAL_DEPLOYMENT.md) for setup and launch instructions.
 
-## Deployment URL
-Pending deployment.
+## Status
+Local deployment implemented and tested.
