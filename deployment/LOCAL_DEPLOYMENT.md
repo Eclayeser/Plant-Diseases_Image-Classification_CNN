@@ -5,7 +5,7 @@ Runs Gradio interface with a trained CNN at http://localhost:8080.
 ## Requirements
 
 - Python 3
-- A trained `.pt` checkpoint produced by `train.py`
+- A trained `.pt` checkpoint (a demo model is included at `deployment/demo_model.pt`)
 - Project dependencies from `requirements.txt`
 
 The deployment requires an explicitly selected checkpoint.
@@ -16,7 +16,7 @@ It does not automatically train or select a model.
 From the repository root:
 
 ```bash
-export CHECKPOINT_PATH="outputs/models/your-model.pt"
+export CHECKPOINT_PATH="deployment/demo_model.pt"
 bash deployment/setup_and_run.sh
 ```
 
@@ -33,7 +33,7 @@ bash deployment/run_local.sh
 From the repository root:
 
 ```powershell
-$env:CHECKPOINT_PATH = "outputs/models/your-model.pt"
+$env:CHECKPOINT_PATH = "deployment/demo_model.pt"
 .\deployment\setup_and_run.ps1
 ```
 
@@ -49,7 +49,7 @@ Open http://localhost:8080 in your browser.
 
 ## Notes
 
-- Replace `your-model.pt` with an existing checkpoint filename.
-- `CHECKPOINT_PATH` must be set before launching the application.
+- `deployment/demo_model.pt` is provided for testing the application, not as a final production model.
+- To use another trained model, set `CHECKPOINT_PATH` to its `.pt` file.
 - Stop the server with Ctrl+C.
 - If port 8080 is already occupied, stop the other application first.
