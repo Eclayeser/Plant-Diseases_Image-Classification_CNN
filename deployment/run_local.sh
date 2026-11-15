@@ -7,31 +7,25 @@ cd "$ROOT"
 
 PYTHON="$ROOT/.venv/bin/python"
 
-# Check that the local Python environment exists.
+# Verify Python environment.
 if [[ ! -x "$PYTHON" ]]; then
     echo "Error: Python environment not found."
     echo "Create .venv and install requirements.txt first."
     exit 1
 fi
 
-# Use an explicitly provided checkpoint, or select the newest.
-if [[ -n "${CHECKPOINT_PATH:-}" ]]; then
-    if [[ "$CHECKPOINT_PATH" != /* ]]; then
-        CHECKPOINT_PATH="$ROOT/$CHECKPOINT_PATH"
-    fi
-else
-    shopt -s nullglob
-    checkpoints=("$ROOT"/outputs/models/*.pt)
-
-    if [[ ${#checkpoints[@]} -eq 0 ]]; then
-        echo "Error: No trained checkpoint found in outputs/models/"
-        echo "Train a model using train.py first."
-        exit 1
-    fi
-
-    CHECKPOINT_PATH="$(ls -t "${checkpoints[@]}" | head -n 1)"
+# Require an explicitly selected checkpoint.
+if [[ -z "${CHECKPOINT_PATH:-}" ]]; then
+    echo "Error: CHECKPOINT_PATH is required."
+    exit 1
 fi
 
+# Resolve relative checkpoint paths.
+if [[ "$CHECKPOINT_PATH" != /* ]]; then
+    CHECKPOINT_PATH="$ROOT/$CHECKPOINT_PATH"
+fi
+
+# Verify checkpoint exists.
 if [[ ! -f "$CHECKPOINT_PATH" ]]; then
     echo "Error: Checkpoint not found: $CHECKPOINT_PATH"
     exit 1
