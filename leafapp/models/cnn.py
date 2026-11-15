@@ -1,11 +1,19 @@
 from torch import nn
 
-def conv_block(in_ch, out_ch):
-    return nn.Sequential(
-        nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1),
-        nn.ReLU(),
-        nn.MaxPool2d(2)
-    )
+def conv_block(in_ch, out_ch, *, regularisation=None, dropout_p=0.2):
+    if regularisation not in (None, "dropout", "batchnorm"):
+        raise ValueError("regularisation must be None, 'dropout' or 'batchnorm'")
+
+    layers = [nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1)]
+    if regularisation == "batchnorm":
+        layers.append(nn.BatchNorm2d(out_ch))
+
+    layers.append(nn.ReLU())
+    if regularisation == "dropout":
+        layers.append(nn.Dropout2d(p=dropout_p))
+
+    layers.append(nn.MaxPool2d(2))
+    return nn.Sequential(*layers)
 
 class BasicCNN(nn.Module):
     """
@@ -25,7 +33,7 @@ class BasicCNN(nn.Module):
         blocks = []
         in_ch = 3
         for out_ch in channels:
-            blocks.append(conv_block(in_ch, out_ch))
+            blocks.append(self.make_block(in_ch, out_ch))
             in_ch = out_ch
         self.features = nn.Sequential(*blocks)
         
@@ -37,6 +45,10 @@ class BasicCNN(nn.Module):
             #        channels * height * width
             nn.Linear(channels[-1] * final_size**2, num_classes)
         )
+
+    def make_block(self, in_ch, out_ch):
+        """Build one block with the baseline's default layers."""
+        return conv_block(in_ch, out_ch)
 
     def forward(self, x):
         x = self.features(x)

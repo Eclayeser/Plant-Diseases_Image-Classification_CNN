@@ -243,3 +243,11 @@ myself and Claude reviewed at the end.
 - `patience` and `min_delta` defaults recorded in the run config (`setdefault`): written by me; comment wording and named arguments suggested by Claude in review.
 - Creating the `EarlyStopping` from the config and the stopping check at the end of the epoch loop (print, `report_single_value("stopped_epoch", ...)`, `break`): given by Claude.
 - Approximate share of AI-generated code (SGP-22 changes): 75%
+
+## SGP-14: Regularised CNN prototype, Javier
+
+- Tool: Codex
+- Codex provided part of the initial CNN implementation and model tests. I reviewed that code and ran the tests locally.
+- For Illia’s review feedback, Codex helped implement the `make_block()` refactor and added a regression test for blocks with an extra layer.
+- I ran the full suite locally (41 tests passed) and verified that checkpoints from before the refactor still load with identical predictions.
+- Approximate AI-generated share of the initial new code: 50%.
