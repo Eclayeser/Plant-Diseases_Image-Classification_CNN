@@ -224,3 +224,22 @@ myself and Claude reviewed at the end.
 
 - I created the even wider and wider + deeper CNN configurations, ran the three models using ClearML, and compared their validation results. Claude helped me check the results, review my observations, and organise the comparison into a clearer technical report.
 - Approximate share of AI-generated documentation: 40%
+
+## leafapp/early_stopping.py (SGP-22, Illia Putintsev)
+
+- Tool: Claude (Anthropic), used as a tutor and reviewer.
+- `EarlyStopping` class (best loss, patience counter, `step()`) and docstrings: written by me, after Claude explained the patience and `min_delta` rule using the validation losses of the SGP-31 plant_village run.
+- The `min_delta` comparison in `step()`: given by Claude.
+- Approximate share of AI-generated code: less than 25%
+
+## tests/test_early_stopping.py (SGP-22, Illia Putintsev)
+
+- `test_stops_after_patience_epochs_without_improvement`: structure taken from Claude's example; I chose new losses so the test checks that the counter resets after a new best, and wrote the comment and the assert message.
+- `test_small_improvement_does_not_reset_counter`: written by me, following the same pattern.
+- Approximate share of AI-generated code: 50%
+
+## train.py (SGP-22, Illia Putintsev)
+
+- `patience` and `min_delta` defaults recorded in the run config (`setdefault`): written by me; comment wording and named arguments suggested by Claude in review.
+- Creating the `EarlyStopping` from the config and the stopping check at the end of the epoch loop (print, `report_single_value("stopped_epoch", ...)`, `break`): given by Claude.
+- Approximate share of AI-generated code (SGP-22 changes): 75%
