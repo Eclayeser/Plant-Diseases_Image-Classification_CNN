@@ -1,7 +1,7 @@
 # SGP-5 — Local Deployment
 
 ## Objective
-Deploy the plant disease classification prototype locally using SGP-4's Gradio interface application publicly accessible.
+Deploy the plant disease classification prototype locally using SGP-4's Gradio interface.
 
 ## Implementation
 - Train a CNN using `train.py`.
