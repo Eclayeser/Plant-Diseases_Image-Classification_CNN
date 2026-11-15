@@ -32,7 +32,7 @@ All four runs are logged in ClearML (project `Plant-Disease-Image-Classification
 The same cnn_wider.yaml config has been run three times across the team: 0.827 (SGP-15), 0.833 (SGP-40) and 0.824 (this run). The SGP-40 run matched other runs exactly on the same setup, so the difference here most likely comes from running on a different machine (GPU calculations are not fully deterministic). Differences of up to about 1 point between runs should therefore be treated as noise.
 
 ## Optimiser: AdamW vs Adam
-- With identical settings, AdamW reached 0.824 validation accuracy and Adam 0.750, a gap of 7.4 points (macro F1: 0.765 vs 0.661). This is far larger than the ~1 point difference between two identical runs, so it is a real difference rather than noise.
+- With identical settings, AdamW reached 0.824 validation accuracy and Adam 0.750, a gap of 7.4 points (macro F1: 0.765 vs 0.661). This is far larger than the ~1 point variation seen between repeated same-seed runs. Each optimiser was only run once with a single seed, so whether the gap holds across seeds is not yet known, but its direction matches what the decoupled weight decay explanation below predicts.
 - The two optimisers differ only in how they apply weight decay. Adam adds weight decay to the gradient (L2 regularisation), and that combined gradient is then rescaled separately for every weight by Adam's adaptive learning rates, so the effective amount of decay is different for each weight. AdamW applies weight decay directly to the weights, separately from the gradient step (decoupled weight decay), so every weight is shrunk by the same proportion and `weight_decay: 0.01` means what it says.
 - Adam's training accuracy is also lower (0.721 vs 0.814) with no gap opening between training and validation. Low training and validation accuracy together point to underfitting, which fits the explanation that Adam's distorted weight decay holds the model back, rather than the model overfitting.
 - AdamW was proposed for exactly this reason: L2 regularisation does not behave like weight decay in adaptive optimisers such as Adam (Loshchilov & Hutter, *Decoupled Weight Decay Regularization*, ICLR 2019).
@@ -57,6 +57,7 @@ The same cnn_wider.yaml config has been run three times across the team: 0.827 (
 - Each result comes from a single run with one seed, on 20% of the data and for 5 epochs.
 - The comparison changes one setting at a time from the reference run. It assumes the best learning rate is similar for Adam and AdamW, which is reasonable as the two optimisers are very similar, but Adam was only tested at lr 0.001.
 - SGD was not compared, because it needs its own tuning (a larger learning rate and a momentum setting) to be a fair comparison.
+- The ~1 point noise estimate comes from repeating the same config with the same seed on different machines, so it reflects hardware differences rather than variation between seeds. Seed variation was not measured, and while ClearML’s `Task.init` resets the seed to 1337, changing `seed:` in the config would only partly change a run.
 
 ## Possible further work
 - Run Adam with `weight_decay: 0`. If the gap to AdamW mostly closes, that would confirm weight decay as the cause.
