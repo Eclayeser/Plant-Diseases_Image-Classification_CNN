@@ -181,3 +181,12 @@ myself and Claude reviewed at the end.
 - Code to import functions from `leafapp/tracking.py` were hand-written.
 - Code to log epoch metrics and upload checkpoints were debugged by GPT-6.
 - Approximate share of AI-generated code: 5%
+
+## SGP-5 — Deployment (Pranay Singh)
+
+- Local deployment: AI-assisted debugging of Bash scripts, checkpoint selection and Gradio integration.
+- ONNX export: AI-assisted implementation of model exporting and `argparse` configuration.
+- Integration tests: AI-assisted development and debugging of CNN inference, checkpoint loading and pytest fixtures.
+- Documentation: AI-assisted structuring of local deployment instructions.
+
+Approximate share of AI-generated code: 60%.
