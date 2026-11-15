@@ -1,31 +1,55 @@
 # SGP-5 — Local Deployment
 
-This deployment runs the Gradio interface locally at http://localhost:8080.
+Runs Gradio interface with a trained CNN at http://localhost:8080.
 
-## Quick Start
+## Requirements
 
-From the repository root, run:
+- Python 3
+- A trained `.pt` checkpoint produced by `train.py`
+- Project dependencies from `requirements.txt`
+
+The deployment requires an explicitly selected checkpoint.
+It does not automatically train or select a model.
+
+## macOS / Linux
+
+From the repository root:
 
 ```bash
+export CHECKPOINT_PATH="outputs/models/your-model.pt"
 bash deployment/setup_and_run.sh
 ```
 
-The script automatically:
+The script creates `.venv` if necessary.
 
-1. Creates a Python virtual environment (`.venv`) if needed.
-2. Installs dependencies from `requirements.txt`.
-3. Trains a baseline CNN using `train.py` and ClearML offline mode if no checkpoint exists.
-4. Loads the latest trained checkpoint and launches Gradio on port `8080`.
-5. Opens the interface automatically on macOS.
-
-Press `Ctrl + C` in the terminal to stop the server.
-
-## Subsequent Runs
-
-If the environment and trained checkpoint already exist, you can launch the interface directly:
+For subsequent runs:
 
 ```bash
 bash deployment/run_local.sh
 ```
 
-This skips dependency installation and training.
+## Windows (PowerShell)
+
+From the repository root:
+
+```powershell
+$env:CHECKPOINT_PATH = "outputs/models/your-model.pt"
+.\deployment\setup_and_run.ps1
+```
+
+The script creates a Windows virtual environment if necessary.
+
+For subsequent runs:
+
+```powershell
+.\deployment\run_local.ps1
+```
+
+Open http://localhost:8080 in your browser.
+
+## Notes
+
+- Replace `your-model.pt` with an existing checkpoint filename.
+- `CHECKPOINT_PATH` must be set before launching the application.
+- Stop the server with Ctrl+C.
+- If port 8080 is already occupied, stop the other application first.
