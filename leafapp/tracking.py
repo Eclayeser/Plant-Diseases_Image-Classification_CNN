@@ -13,6 +13,8 @@ def initialise_task(
     """Create a ClearML task and connect the complete run configuration."""
     from clearml import Task
 
+    Task.set_random_seed(None)
+
     task = Task.init(
         project_name=project_name,
         task_name=task_name,
