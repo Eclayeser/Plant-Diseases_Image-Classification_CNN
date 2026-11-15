@@ -5,3 +5,9 @@ __pycache__/
 outputs/
 .pytest_cache/
 *.pt
+.DS_Store
+.gradio/
+deployment/model.onnx
+deployment/labels.json
+deployment/model_config.json
+!deployment/demo_model.pt
