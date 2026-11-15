@@ -45,12 +45,26 @@ python -m pip install -r requirements.txt
 
 ### Run training
 ```bash
-python train.py                                                     # uses configs/prototype.yaml
-python train.py --config configs/prototype_small_data_frac.yaml     # or any other config file
+python train.py --responsible "<your name>"                                                                                  # uses configs/prototype.yaml and the default run type
+python train.py --config configs/prototype_small_data_frac.yaml --responsible "<your name>" --run-type comparison --issue-id SGP-30  # or any other config file and run type; --issue-id is optional
 ```
 - Settings (data fraction, image size, batch size, model channels, learning rate, epochs, seed) are read from the chosen config file.
+- `normalize` under `data:` sets how image colours are normalised: `false` (default), `imagenet` (ImageNet's mean and std, needed for ResNet18; older configs write this as `true`), or `plant_village` (our training split's own mean and std, computed by `compute_norm_stats.py`).
+- `patience` and `min_delta` under `train:` turn on early stopping: training stops once the validation loss fails to beat its best by more than `min_delta` (default `0.0`) for `patience` epochs in a row, so `epochs` becomes the maximum. Leave `patience` out to train all epochs. The stop epoch is printed and logged to ClearML as `stopped_epoch`, and the best checkpoint is still the epoch with the lowest validation loss. Example: `configs/cnn_wider_normalize_plant_village_early_stopping.yaml`.
 - Each epoch prints train and validation loss, accuracy and f1 score.
 - At the end, the model is saved to `outputs/models/<model type>_<timestamp>_<id>.pt`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
+- Set `augment: false` under `data:` to turn off training augmentation (random flips, rotations and colour changes). It is on by default.
+
+### Understanding --run-type
+
+`--run-type` is optional (default: `debugging`). It describes the purpose of the run and is recorded as the `@run-type:<type>` tag on the ClearML task.
+
+| Run type | When to use it |
+|---|---|
+| `debugging` | Making the code or pipeline work. The metrics don't matter, only that nothing crashes. |
+| `exploring` | Trying something new (a model, loss or augmentation) and looking at the metrics for a rough idea of whether it works. |
+| `comparison` | Measuring performance in a controlled way: tuning hyperparameters, or comparing models with the same seed, data fraction and epochs. |
+| `production` | The final run with the chosen model and settings. |
 
 ### Load a trained model
 ```python
@@ -117,7 +131,7 @@ After running the training a new task should appear to the left inside the `Plan
 
 The default configuration will run 5 iterations, saves a best and final checkpoint, and exits after successfully completing a task.
 
-Tags can be added to tasks (e.g. `prototype_small_data_frac`, `resnet18`) to facilitate filtering tasks and comparing relevant experiments.
+Each task is tagged automatically with `@run-type:<type>`, `@model:<model type>` and `@responsible:<name>` and `@config-name:<config file name without extension>`, plus `@issue:<id>` when `--issue-id` is given. Use these tags to filter the "Tasks List", e.g. filter by `@run-type:production` to see only the official runs.
 
 Every logged task in "Tasks List" has the following tabs: "Exection", "Configuration", "Artifacts", "Info", "Console", "Scalars", "Plots" and "Debug samples".
 

@@ -10,6 +10,7 @@ from leafapp.config import load_config
 from leafapp.model_constructor import build_model
 from leafapp.data import get_loaders
 from leafapp.checkpoints import save_checkpoint
+from leafapp.early_stopping import EarlyStopping
 from leafapp.eval_functions import (
     calculate_metrics_per_loader,
     calculate_f1_score,
@@ -23,17 +24,40 @@ from leafapp.tracking import (
 )
 
 ROOT = Path(__file__).resolve().parent
+RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
+NAMES = ("Mark Tarnavskyi", "Pranay Singh", "Illia Putintsev", "Javier Fimia", "Reon Carroll-Ito", "Nil Kayalioglu", "Mario Westphalen Cavicchioli")
 
 def parse_args(argv=None):
     """
-    Read the command-line arguments and return them (currently just --config).
+    Read the command-line arguments and return them.
     
     If argv is None, the real command line is used.
     """
 
     parser = argparse.ArgumentParser(description="Train a CNN model and save a checkpoint.")
     parser.add_argument("--config", default="configs/prototype.yaml", help="Path to the YAML config file for this run.")
+    parser.add_argument("--responsible", required=True, choices=NAMES, help="Name who is responsible for / triggered the run.")
+    parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
+    parser.add_argument("--issue-id", default="", help="Pin issue identifier in format 'SGP-XXX'", type=validate_issue_id)
     return parser.parse_args(argv)
+
+
+def sanitise_name(value):
+    """
+    Sanitises name into lowercase kebab format.
+    """
+    slug = "-".join(value.lower().split())
+    return slug
+
+
+def validate_issue_id(value):
+    """
+    Ensures issue is in the right format. Raises otherwise
+    """
+    if value and not value.startswith("SGP-"):
+        raise argparse.ArgumentTypeError("--issue-id must be in 'SGP-XXX' format.")
+    return value
+
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
     """
@@ -79,7 +103,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
     return epoch_metrics
 
-def main(config_path):
+def main(config_path, responsible, run_type, issue_id):
     """
     Train a model using the config at config_path and save a checkpoint.
 
@@ -88,6 +112,9 @@ def main(config_path):
     uniquely named file (timestamp + short id) in checkpoint_dir.
     """
     cfg = load_config(ROOT / config_path) 
+    cfg["data"].setdefault("normalize", False)  # record the default for ClearML visibility
+    cfg["train"].setdefault("patience", None) # None = early stopping off
+    cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
     torch.manual_seed(cfg["seed"])
     train_loader, val_loader, _, class_names = get_loaders(
         fraction=cfg["data"]["fraction"],
@@ -95,6 +122,7 @@ def main(config_path):
         batch_size=cfg["data"]["batch_size"],
         seed=cfg["seed"],
         normalize=cfg["data"].get("normalize", False),
+        augment=cfg["data"].setdefault("augment", True),
     )
 
     model = build_model(cfg["model"], cfg["data"], class_names)
@@ -103,11 +131,23 @@ def main(config_path):
     model.to(device)
 
     config_name = Path(config_path).stem
+
+    tags=[
+        f"@run-type:{run_type}",
+        f"@model:{cfg['model']['type']}",
+        f"@responsible:{sanitise_name(responsible)}",
+        "@task-type:train.py",
+        f"@config-name:{config_name}"
+    ]
+    if issue_id:
+        tags.append(f"@issue:{issue_id}")
+
     task = initialise_task(
         config=cfg,
         project_name="Plant-Disease-Image-Classification",
         task_name=f"{cfg['model']['type']} - {config_name}",
-        tags=["training", config_name],
+        tags=tags,
+        
     )
     logger = task.get_logger()
 
@@ -139,6 +179,11 @@ def main(config_path):
         f"{checkpoint_path.stem}_best.pt"
     )
     best_validation_loss = float("inf")
+    patience = cfg["train"]["patience"]
+    if patience is not None:
+        early_stopping = EarlyStopping(patience=patience, min_delta=cfg["train"]["min_delta"])
+    else:
+        early_stopping = None
 
     for epoch in range(cfg["train"]["epochs"]):
         train_epoch_metrics = train_one_epoch(model, train_loader, criterion, optimizer, device)
@@ -180,6 +225,11 @@ def main(config_path):
                 f"train loss {train_epoch_metrics['loss']:.3f}, train acc {train_epoch_metrics['accuracy']:.3f}, train f1 {train_epoch_metrics['f1']:.3f} | "
                 f"val loss {val_epoch_metrics['loss']:.3f}, val acc {val_epoch_metrics['accuracy']:.3f}, val f1 {val_epoch_metrics['f1']:.3f}"
             )
+        
+        if early_stopping is not None and early_stopping.step(val_epoch_metrics["loss"]):
+            print(f"Stopped early after epoch {epoch + 1}: no improvement for {patience} epochs")
+            logger.report_single_value("stopped_epoch", epoch + 1)
+            break
 
     save_checkpoint(
         path=checkpoint_path,
@@ -195,4 +245,4 @@ def main(config_path):
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args.config)
+    main(args.config, args.responsible, args.run_type, args.issue_id)
