@@ -6,3 +6,4 @@ __pycache__/
 deployment/model.onnx
 deployment/labels.json
 deployment/model_config.json
+.DS_Store
