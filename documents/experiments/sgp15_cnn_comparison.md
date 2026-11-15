@@ -8,21 +8,21 @@ Within each run, all models use the same training settings so that only the arch
 
 ## Results (validation set, last epoch)
 ### Run 1: 5% of the data
-| Model | Config | Channels | Parameters | Val accuracy | Val F1 | Checkpoint |
-|---|---|---|---|---|---|---|
-| Baseline | `prototype_small_data_frac.yaml` | [16, 32, 64] | 662,599 | 0.630 | 0.534 | `prototype_small_data_frac_20261106-101034_9934d5.pt` |
-| Wider | `cnn_wider.yaml` | [32, 64, 128] | 1,371,239 | 0.668 | 0.566 | `cnn_wider_20261106-102850_dceb83.pt` |
-| Deeper | `cnn_deeper.yaml` | [16, 32, 64, 128] | 416,967 | 0.572 | 0.454 | `cnn_deeper_20261106-103407_af0549.pt` |
+| Model | Config | Channels | Parameters | Val accuracy | Val F1 |
+|---|---|---|---|---|---|
+| Baseline | `prototype_small_data_frac.yaml` | [16, 32, 64] | 662,599 | 0.630 | 0.534 |
+| Wider | `cnn_wider.yaml` | [32, 64, 128] | 1,371,239 | 0.668 | 0.566 |
+| Deeper | `cnn_deeper.yaml` | [16, 32, 64, 128] | 416,967 | 0.572 | 0.454 |
 
 Run 1 used the same wider and deeper configs with `fraction: 0.05`; they were later changed to `0.2` for Run 2. To reproduce Run 1, set `data.fraction` to `0.05` in the config.
 
 ### Run 2: 20% of the data
 
-| Model | Config | Channels | Parameters | Val accuracy | Val F1 | Checkpoint |
-|---|---|---|---|---|---|---|
-| Baseline | `prototype.yaml` | [16, 32, 64] | 662,599 | 0.782 | 0.701 | `basiccnn_20261108-190231_d45e16.pt` |
-| Wider | `cnn_wider.yaml` | [32, 64, 128] | 1,371,239 | 0.827 | 0.773 | `basiccnn_20261108-190708_c89b97.pt` |
-| Deeper | `cnn_deeper.yaml` | [16, 32, 64, 128] | 416,967 | 0.776 | 0.698 | `basiccnn_20261108-191112_e0aa84.pt` |
+| Model | Config | Channels | Parameters | Val accuracy | Val F1 |
+|---|---|---|---|---|---|
+| Baseline | `prototype.yaml` | [16, 32, 64] | 662,599 | 0.782 | 0.701 |
+| Wider | `cnn_wider.yaml` | [32, 64, 128] | 1,371,239 | 0.827 | 0.773 |
+| Deeper | `cnn_deeper.yaml` | [16, 32, 64, 128] | 416,967 | 0.776 | 0.698 |
 
 ## Observations
 - About 96% of the baseline's parameters are in the final linear layer.
@@ -47,7 +47,6 @@ Run 1 used the same wider and deeper configs with `fraction: 0.05`; they were la
 - All models use the same training settings (5 epochs, lr 0.001). This keeps the
   comparison controlled, but it may not be the best setting for each architecture.
 - Each result comes from a single run with one seed, so small differences (e.g. baseline vs deeper in Run 2) may not be significant.
-- Run 2 checkpoints are named after the model type, so all three start with `basiccnn_`; the table records which file belongs to which config.
 
 
 ## Evaluation details (Run 2, validation set)
@@ -78,7 +77,7 @@ Each Run 2 checkpoint was evaluated with `evaluate.py` on the validation split. 
 
 - Validation accuracy and F1 were still increasing at epoch 5, and the training and validation curves stay close, so there is no sign of overfitting. The wider model is probably undertrained, so training it for more epochs is a reasonable next step.
 
-The confusion matrices, training curves and model checkpoints for all three models are in `documents/experiments/SGP-15/`.
+The confusion matrices and training curves for all three models are in `documents/experiments/SGP-15/`.
 
 ### Deeper model: confusion matrix and training curves
 ![Deeper model confusion matrix](SGP-15/deeper_confusion_matrix.png)
