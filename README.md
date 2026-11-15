@@ -159,6 +159,12 @@ CHECKPOINT_PATH=outputs/models/<model type>_<timestamp>_<id>.pt python -m app.ap
 - If `CHECKPOINT_PATH` is not set, the app still starts but shows an error when an image is uploaded.
 - Uploads are limited to 10 MB.
 
+### Local Deployment
+
+For automated setup and deployment on `localhost:8080`, including
+macOS/Linux and Windows launch scripts, see the
+[Local Deployment Guide](deployment/LOCAL_DEPLOYMENT.md).
+
 ## Running the tests
 
 ```bash
