@@ -1,7 +1,28 @@
 """Reusable ClearML helpers for experiment tracking."""
+import argparse
 
 from pathlib import Path
 from typing import Any, Mapping
+
+
+RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
+NAMES = ("Mark Tarnavskyi", "Pranay Singh", "Illia Putintsev", "Javier Fimia", "Reon Carroll-Ito", "Nil Kayalioglu", "Mario Westphalen Cavicchioli")
+
+def sanitise_name(value):
+    """
+    Sanitises name into lowercase kebab format.
+    """
+    slug = "-".join(value.lower().split())
+    return slug
+
+
+def validate_issue_id(value):
+    """
+    Ensures issue is in the right format. Raises otherwise
+    """
+    if value and not value.startswith("SGP-"):
+        raise argparse.ArgumentTypeError("--issue-id must be in 'SGP-XXX' format.")
+    return value
 
 
 def initialise_task(
