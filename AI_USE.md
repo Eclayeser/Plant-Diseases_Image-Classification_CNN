@@ -72,6 +72,7 @@
 - Moved the `choose_optimizer()` call before `initialise_task()` so the optimiser is in the config when it's uploaded: done by me after Claude explained why the order matters. (SGP-27, Mario Cavicchioli)
 - Code to import functions from `leafapp/tracking.py` were hand-written.
 - Code to log epoch metrics and upload checkpoints were debugged by GPT-6. (SGP-3, Reon Carroll-Ito)
+- Code to save current model as final checkpoint and uploading any existing best checkpoint on failed runs were debugged by GPT-6 (SGP-29 Reon Carroll-Ito)
 - Approximate share of AI-generated code: 30%
 
 - **SGP-12, Mark Tarnavskyi** hand-written edits
