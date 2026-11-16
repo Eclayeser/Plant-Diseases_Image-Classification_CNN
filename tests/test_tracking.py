@@ -1,6 +1,6 @@
 import pytest
 
-from leafapp.tracking import log_epoch_metrics, upload_checkpoint
+from leafapp.tracking import close_task, log_epoch_metrics, upload_checkpoint
 
 
 class FakeLogger:
@@ -14,10 +14,18 @@ class FakeLogger:
 class FakeTask:
     def __init__(self):
         self.artifacts = []
+        self.tags = []
+        self.closed = False
+        self.failed = False
 
     def upload_artifact(self, **kwargs):
         self.artifacts.append(kwargs)
 
+    def set_tags(self, tags):
+        self.tags = tags
+
+    def close(self):
+        self.closed = True
 
 def test_log_epoch_metrics_reports_each_split_and_metric():
     logger = FakeLogger()
@@ -70,3 +78,11 @@ def test_upload_raises_when_path_is_a_directory(tmp_path):
         upload_checkpoint(task, tmp_path, "best_checkpoint")
 
     assert task.artifacts == []
+
+def test_close_task_marks_task_as_closed_and_failed():
+    task = FakeTask()
+
+    close_task(task, failed=True, message="some error")
+
+    assert task.closed is True
+    assert task.failed is True
