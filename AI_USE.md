@@ -175,6 +175,7 @@ myself and Claude reviewed at the end.
 ## leafapp/tracking.py (SGP-3, Reon Carroll-Ito)
 
 - `log_epoch_metrics()` and `upload_checkpoint()` were reviewed and debugged by GPT-6.
+- `close_task()` was extended for failed runs. Reviewed by GPT-6. (SGP-29 Reon Carroll-Ito)
 - Approximate share of AI-generated code: 40%
 
 ## tests/test_tracking.py (SGP-3, Reon Carroll-Ito)
