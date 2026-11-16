@@ -12,12 +12,11 @@ from leafapp.eval_functions import (
 )
 from leafapp.data import get_loaders
 from leafapp.checkpoints import load_checkpoint
-from leafapp.tracking import RUN_TYPES
+from leafapp.tracking import NAMES, RUN_TYPES, validate_issue_id
 
 REPORTS_DIR = Path("outputs") / "eval_reports"
 DIAGRAMS_DIR = Path("outputs") / "diagrams"
 ACCEPTED_DATA_TYPES = ("validation", "test")
-# TODO: as part of SGP-33, implement same tagging logic as in train.py
 # RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
 
 
@@ -27,8 +26,9 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Evaluate a saved checkpoint on the validation or test set.")
     parser.add_argument("--checkpoint", required=True, help="Path to the .pt checkpoint to evaluate.")
     parser.add_argument("--split", choices=ACCEPTED_DATA_TYPES, default="validation", help="Which split to evaluate on (default: validation).")
-    parser.add_argument("--responsible", required=True, help="Name who is responsible for / triggered the run.")
+    parser.add_argument("--responsible", required=True, choice=NAMES, help="Name who is responsible for / triggered the run.")
     parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
+    parser.add_argument("--issue-id", default="", help="Pin issue identifier in format 'SGP-XXX'", type=validate_issue_id)
     return parser.parse_args(argv)
 
 
