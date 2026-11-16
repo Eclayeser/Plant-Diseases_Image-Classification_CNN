@@ -1,14 +1,18 @@
 import pytest
 
-from leafapp.tracking import log_epoch_metrics, upload_checkpoint
+from leafapp.tracking import log_epoch_metrics, upload_checkpoint, log_final_metrics
 
 
 class FakeLogger:
     def __init__(self):
         self.scalars = []
+        self.single_values = []
 
     def report_scalar(self, **kwargs):
         self.scalars.append(kwargs)
+
+    def report_single_value(self, **kwargs):
+        self.single_values.append(kwargs)
 
 
 class FakeTask:
@@ -35,6 +39,20 @@ def test_log_epoch_metrics_reports_each_split_and_metric():
         {"title": "loss", "series": "validation", "value": 0.5, "iteration": 3},
         {"title": "accuracy", "series": "validation", "value": 0.7, "iteration": 3},
     ]
+
+
+def test_log_final_metrics_reports_numbers_and_skips_others():
+    logger = FakeLogger()
+
+    log_final_metrics(
+        logger,
+        {"accuracy": 0.8, "f1": 0.7, "confusion-matrix": [[1, 0], [0, 1]]},
+    )
+
+    assert logger.single_values == [
+        {"name": "accuracy", "value": 0.8},
+        {"name": "f1", "value": 0.7},
+    ], "Should report each number and skip the confusion matrix"
 
 
 def test_upload_checkpoint_registers_artifact_path(tmp_path):

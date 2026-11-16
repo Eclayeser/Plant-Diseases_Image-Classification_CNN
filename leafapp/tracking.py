@@ -66,6 +66,14 @@ def log_epoch_metrics(
             )
 
 
+def log_final_metrics(logger: Any, metrics: Mapping[str, Any]) -> None:
+    """Report each single-number metric (e.g. accuracy, f1) as a ClearML single value."""
+    for name, value in metrics.items():
+        if not isinstance(value, (int, float)):
+             continue
+        logger.report_single_value(name=name, value=value)
+
+
 def upload_checkpoint(task: Any, checkpoint_path: str | Path, name: str) -> None:
     """Upload a saved checkpoint as a ClearML task artifact."""
     artifact_path = Path(checkpoint_path)

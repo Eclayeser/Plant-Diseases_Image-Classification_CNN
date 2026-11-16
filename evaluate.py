@@ -12,7 +12,7 @@ from leafapp.eval_functions import (
 )
 from leafapp.data import get_loaders
 from leafapp.checkpoints import load_checkpoint
-from leafapp.tracking import NAMES, RUN_TYPES, validate_issue_id, sanitise_name, initialise_task, close_task
+from leafapp.tracking import NAMES, RUN_TYPES, validate_issue_id, sanitise_name, initialise_task, close_task, log_final_metrics
 
 REPORTS_DIR = Path("outputs") / "eval_reports"
 DIAGRAMS_DIR = Path("outputs") / "diagrams"
@@ -103,6 +103,8 @@ def main(checkpoint_path: str|Path, data_type: str, responsible, run_type, issue
                 "per-class-metrics"
             ]
         )
+
+    log_final_metrics(logger, overall_metrics)
 
     # plot and save diagrams
     run_name = f"{checkpoint_name}_{data_type}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
