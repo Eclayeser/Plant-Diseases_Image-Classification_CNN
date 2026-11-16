@@ -58,6 +58,46 @@ def upload_checkpoint(task: Any, checkpoint_path: str | Path, name: str) -> None
     )
 
 
-def close_task(task: Any) -> None:
-    """Close the ClearML task after all metrics and artifacts are logged."""
+def close_task(task: Any, *, failed: bool = False, message: str | None = None) -> None:
+    """Close the ClearML task and mark it as failed when the run errors out."""
     task.close()
+    if task is None:
+        return
+
+    if failed:
+        try:
+            current_tags = list(getattr(task, "get_tags", lambda: [])())
+        except Exception:
+            current_tags = []
+
+        merged_tags = list(dict.fromkeys([*current_tags, "failed"]))
+        for setter_name in ("set_tags", "add_tags"):
+            setter = getattr(task, setter_name, None)
+            if setter is None:
+                continue
+            try:
+                if setter_name == "set_tags":
+                    setter(merged_tags)
+                else:
+                    setter("failed")
+                break
+            except Exception:
+                continue
+
+        for status_name in ("mark_failed", "set_status"):
+            status_method = getattr(task, status_name, None)
+            if status_method is None:
+                continue
+            try:
+                if status_name == "mark_failed":
+                    status_method(message or "Task failed")
+                else:
+                    status_method("Failed")
+                break
+            except Exception:
+                continue
+
+    try:
+        task.close()
+    except Exception:
+        pass
