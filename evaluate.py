@@ -12,6 +12,7 @@ from leafapp.eval_functions import (
 )
 from leafapp.data import get_loaders
 from leafapp.checkpoints import load_checkpoint
+from leafapp.tracking import RUN_TYPES
 
 REPORTS_DIR = Path("outputs") / "eval_reports"
 DIAGRAMS_DIR = Path("outputs") / "diagrams"
@@ -26,8 +27,8 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Evaluate a saved checkpoint on the validation or test set.")
     parser.add_argument("--checkpoint", required=True, help="Path to the .pt checkpoint to evaluate.")
     parser.add_argument("--split", choices=ACCEPTED_DATA_TYPES, default="validation", help="Which split to evaluate on (default: validation).")
-    # parser.add_argument("--responsible", required=True, help="Name who is responsible for / triggered the run.")
-    # parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
+    parser.add_argument("--responsible", required=True, help="Name who is responsible for / triggered the run.")
+    parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
     return parser.parse_args(argv)
 
 
