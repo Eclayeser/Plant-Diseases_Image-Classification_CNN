@@ -20,6 +20,7 @@ def initialise_task(
         task_name=task_name,
         tags=tags or [],
         auto_connect_frameworks=False,
+        reuse_last_task_id=False,
     )
     task.connect(dict(config))
     return task
