@@ -1,5 +1,6 @@
 # Runs model training and validation, records results and saves checkpoints.
 import argparse
+import logging
 from pathlib import Path
 from datetime import datetime
 import uuid
@@ -25,6 +26,7 @@ from leafapp.tracking import (
 )
 
 ROOT = Path(__file__).resolve().parent
+LOGGER = logging.getLogger(__name__)
 RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
 NAMES = ("Mark Tarnavskyi", "Pranay Singh", "Illia Putintsev", "Javier Fimia", "Reon Carroll-Ito", "Nil Kayalioglu", "Mario Westphalen Cavicchioli")
 
@@ -113,6 +115,13 @@ def main(config_path, responsible, run_type, issue_id):
     uniquely named file (timestamp + short id) in checkpoint_dir.
     """
     task = None
+    model = None
+    class_names = None
+    history_metrics = None
+    checkpoint_path = None
+    best_checkpoint_path = None
+    final_checkpoint_uploaded = False
+    best_checkpoint_uploaded = False
     try:
         cfg = load_config(ROOT / config_path) 
         cfg["data"].setdefault("normalize", False)  # record the default for ClearML visibility
@@ -242,10 +251,62 @@ def main(config_path, responsible, run_type, issue_id):
         )
         print(f"Saved checkpoint to {checkpoint_path}")
         upload_checkpoint(task, checkpoint_path, "final_checkpoint")
+        final_checkpoint_uploaded = True
         upload_checkpoint(task, best_checkpoint_path, "best_checkpoint")
+        best_checkpoint_uploaded = True
         close_task(task)
     except BaseException as exc:
         if task is not None:
+            if (
+                not final_checkpoint_uploaded
+                and checkpoint_path is not None
+                and model is not None
+                and class_names is not None
+                and history_metrics is not None):
+                try:
+                    save_checkpoint(
+                        path=checkpoint_path,
+                        model=model,
+                        cfg=cfg,
+                        class_names=class_names,
+                        history_metrics=history_metrics,
+                    )
+                except Exception:
+                    LOGGER.exception("Could not save the final checkpoint while handling a failed run")
+
+            if (
+                not best_checkpoint_uploaded
+                and best_checkpoint_path is not None
+                and not best_checkpoint_path.is_file()
+                and checkpoint_path is not None
+                and checkpoint_path.is_file()
+                and model is not None
+                and class_names is not None
+                and history_metrics is not None):
+
+                LOGGER.warning("No validation-best checkpoint exists; using the failure snapshot "
+                    "as the best-checkpoint fallback")
+                try:
+                    save_checkpoint(
+                        path=best_checkpoint_path,
+                        model=model,
+                        cfg=cfg,
+                        class_names=class_names,
+                        history_metrics=history_metrics,
+                    )
+                except Exception:
+                    LOGGER.exception("Could not save the best checkpoint fallback")
+
+            for path, name, already_uploaded in (
+                (checkpoint_path, "final_checkpoint", final_checkpoint_uploaded),
+                (best_checkpoint_path, "best_checkpoint", best_checkpoint_uploaded)):
+                if path is None or already_uploaded or not path.is_file():
+                    continue
+                try:
+                    upload_checkpoint(task, path, name)
+                except Exception:
+                    LOGGER.exception(f"Could not upload the {name} checkpoint while handling a failed run")
+            
             close_task(task, failed=True, message=str(exc))
         raise
 
