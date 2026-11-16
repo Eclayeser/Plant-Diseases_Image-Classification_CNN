@@ -60,7 +60,6 @@ def upload_checkpoint(task: Any, checkpoint_path: str | Path, name: str) -> None
 
 def close_task(task: Any, *, failed: bool = False, message: str | None = None) -> None:
     """Close the ClearML task and mark it as failed when the run errors out."""
-    task.close()
     if task is None:
         return
 
