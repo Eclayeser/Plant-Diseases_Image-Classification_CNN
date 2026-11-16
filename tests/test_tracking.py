@@ -24,6 +24,18 @@ class FakeTask:
     def set_tags(self, tags):
         self.tags = tags
 
+    def add_tags(self, tags):
+        self.tags.extend(tags)
+
+    def get_tags(self):
+        return list(self.tags)
+
+    def set_status(self, status):
+        self.failed = status == "failed"
+
+    def mark_failed(self, message=None):
+        self.failed = True
+
     def close(self):
         self.closed = True
 
@@ -84,5 +96,6 @@ def test_close_task_marks_task_as_closed_and_failed():
 
     close_task(task, failed=True, message="some error")
 
+    assert "failed" in task.tags
     assert task.closed is True
     assert task.failed is True
