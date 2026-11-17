@@ -6,7 +6,7 @@ import uuid
 
 import torch
 from torch import nn
-from leafapp.config import load_config
+from leafapp.config import load_config, ROOT
 from leafapp.model_constructor import build_model
 from leafapp.optimizer_constructor import choose_optimizer
 from leafapp.data import get_loaders
@@ -24,7 +24,6 @@ from leafapp.tracking import (
     upload_checkpoint,
 )
 
-ROOT = Path(__file__).resolve().parent
 RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
 NAMES = ("Mark Tarnavskyi", "Pranay Singh", "Illia Putintsev", "Javier Fimia", "Reon Carroll-Ito", "Nil Kayalioglu", "Mario Westphalen Cavicchioli")
 

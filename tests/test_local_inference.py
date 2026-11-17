@@ -7,7 +7,6 @@ Test 4: Proves whether Gradio automatically loads the specified checkpoint
 
 import importlib
 import os
-from pathlib import Path
 import pandas as pd
 import pytest
 import torch
@@ -17,9 +16,7 @@ from leafapp.models.cnn import BasicCNN
 from leafapp.data import make_transforms
 import subprocess
 import sys
-
-
-ROOT = Path(__file__).resolve().parents[1]
+from leafapp.config import ROOT
 
 
 @pytest.fixture(scope="module")
