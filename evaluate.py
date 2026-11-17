@@ -61,7 +61,7 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
     if task_id is not None:
         training_task = get_task(task_id)
         checkpoint_path = download_checkpoint(training_task, artifact)
-        checkpoint_name = f"{sanitise_name(training_task.name)}_{artifact}"
+        checkpoint_name = f"{sanitise_name(training_task.name)}_{task_id[:6]}_{artifact}"
     else:
         checkpoint_name = Path(checkpoint_path).stem
 
@@ -164,7 +164,8 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
     print(f"Saved evaluation report to {report_path.relative_to(ROOT)}")
 
     log_image(logger, "evaluation", "confusion_matrix", matrix_path)
-    log_image(logger, "evaluation", "training_curve", curve_path)
+    if curve_path.is_file():
+        log_image(logger, "evaluation", "training_curve", curve_path)
     upload_file(task, report_path, "evaluation_report")
 
     close_task(task)
