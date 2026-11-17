@@ -280,3 +280,10 @@ myself and Claude reviewed at the end.
 ## tests/test_predict.py (SGP-17, Gul Nil Kayalioglu)
 - I used Claude to help with the test structure, then added and ran the tests myself.
 - Approximate share of AI-generated code: 30%
+## SGP-5 — Deployment (Pranay Singh)
+
+- Local deployment: AI-assisted debugging of Bash scripts, checkpoint selection and Gradio integration.
+- Integration tests: AI-assisted development and debugging of CNN inference, checkpoint loading and pytest fixtures.
+- Documentation: AI-assisted structuring of local deployment instructions.
+
+Approximate share of AI-generated code: 60%.
