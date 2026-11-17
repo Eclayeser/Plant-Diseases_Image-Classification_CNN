@@ -19,3 +19,7 @@ def test_load_model(tmp_path):
     assert transform is not None
 
 
+def test_load_model_without_checkpoint():
+    """No model is loaded when there is no checkpoint path."""
+    assert load_model(None) == (None, None, None)
+
