@@ -1,10 +1,7 @@
 import os
-
 import gradio as gr
-
-
 from PIL import Image
-from leafapp.predict import load_model, get_cnn_predictions
+from leafapp.predict import load_model, get_cnn_predictions, preprocess_image
 
 
 Image.MAX_IMAGE_PIXELS = 20_000_000
@@ -18,7 +15,6 @@ else:
     MODEL, CLASS_NAMES, TRANSFORM = None, None, None
 
 
-
 def predict(image):
     
     if image is None:
@@ -28,13 +24,10 @@ def predict(image):
         raise gr.Error("No trained model loaded. Set CHECKPOINT_PATH to a trained checkpoint.")
 
     # Prepare the uploaded image
-    image = image.convert("RGB")
-    processed_image = TRANSFORM(image)
+    processed_image = preprocess_image(image, TRANSFORM)
 
     return get_cnn_predictions(processed_image, MODEL, CLASS_NAMES)
-
-
-
+    
 
 # Create the Gradio interface
 demo = gr.Interface(

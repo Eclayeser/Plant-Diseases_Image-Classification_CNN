@@ -20,7 +20,10 @@ def load_model(checkpoint_path):
     )
 
     return model, class_names, transform
-
+def preprocess_image(image, transform):
+    # Prepare the uploaded image in the same way as during evaluation
+    image = image.convert("RGB")
+    return transform(image)
 
 def get_cnn_predictions(image, model, class_names):
     model.eval()
