@@ -44,7 +44,7 @@ class LeafClassifier:
         model_dir = Path(model_dir)
         model_path = model_dir / MODEL_FILE
         if not model_path.exists():
-            raise FileNotFoundError(f"No model at {model_path}. Run: python -m scripts.fetch_model")
+            raise FileNotFoundError(f"No model at {model_path}. Run: python -m scripts.fetch_model_from_hf")
 
         options = onnxruntime.SessionOptions()
         options.intra_op_num_threads = 1  # Render free tier has 0.1 CPU
