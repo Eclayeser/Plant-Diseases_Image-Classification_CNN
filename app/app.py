@@ -1,6 +1,8 @@
 import os
+
 import gradio as gr
 from PIL import Image
+
 from leafapp.predict import load_model, get_cnn_predictions, preprocess_image
 
 
@@ -11,8 +13,8 @@ CHECKPOINT_PATH = os.getenv("CHECKPOINT_PATH")
 
 MODEL, CLASS_NAMES, TRANSFORM = load_model(CHECKPOINT_PATH)
 
+
 def predict(image):
-    
     if image is None:
         return None
 
@@ -23,7 +25,7 @@ def predict(image):
     processed_image = preprocess_image(image, TRANSFORM)
 
     return get_cnn_predictions(processed_image, MODEL, CLASS_NAMES)
-    
+
 
 # Create the Gradio interface
 demo = gr.Interface(

@@ -8,6 +8,7 @@ from leafapp.data import make_transforms
 from leafapp.models.cnn import BasicCNN
 from leafapp.predict import get_cnn_predictions, load_model, preprocess_image
 
+
 def test_load_model(tmp_path):
     """The model, class names and transform are loaded from a checkpoint."""
     cfg = {"model": {"type": "BasicCNN", "channels": [8]}, "data": {"image_size": 32}}
@@ -27,6 +28,7 @@ def test_load_model_without_checkpoint():
     """No model is loaded when there is no checkpoint path."""
     assert load_model(None) == (None, None, None)
 
+
 def test_preprocess_image():
     """A grayscale image becomes a [3, 32, 32] tensor."""
     _, transform = make_transforms(32, augment=False)
@@ -35,6 +37,7 @@ def test_preprocess_image():
     x = preprocess_image(image, transform)
 
     assert x.shape == (3, 32, 32)
+
 
 def test_get_cnn_predictions():
     """The top 5 classes are returned in order with readable names."""
