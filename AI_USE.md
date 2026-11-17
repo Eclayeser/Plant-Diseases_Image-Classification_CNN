@@ -276,7 +276,6 @@ myself and Claude reviewed at the end.
 ## SGP-5 — Deployment (Pranay Singh)
 
 - Local deployment: AI-assisted debugging of Bash scripts, checkpoint selection and Gradio integration.
-- ONNX export: AI-assisted implementation of model exporting and `argparse` configuration.
 - Integration tests: AI-assisted development and debugging of CNN inference, checkpoint loading and pytest fixtures.
 - Documentation: AI-assisted structuring of local deployment instructions.
 
