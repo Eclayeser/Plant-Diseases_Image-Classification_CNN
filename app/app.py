@@ -5,7 +5,7 @@ import pandas as pd
 
 
 from PIL import Image
-from leafapp.predict import load_predictor, predict_top_k
+from leafapp.predict import load_model, predict_top_k
 
 
 Image.MAX_IMAGE_PIXELS = 20_000_000
@@ -14,7 +14,7 @@ Image.MAX_IMAGE_PIXELS = 20_000_000
 CHECKPOINT_PATH = os.getenv("CHECKPOINT_PATH")
 
 if CHECKPOINT_PATH:
-    MODEL, CLASS_NAMES, TRANSFORM = load_predictor(CHECKPOINT_PATH)
+    MODEL, CLASS_NAMES, TRANSFORM = load_model(CHECKPOINT_PATH)
 else:
     MODEL, CLASS_NAMES, TRANSFORM = None, None, None
 
