@@ -1,6 +1,7 @@
 import pytest
 
-from leafapp.tracking import log_epoch_metrics, upload_checkpoint, log_final_metrics, upload_file, log_image
+from pathlib import Path
+from leafapp.tracking import log_epoch_metrics, upload_checkpoint, log_final_metrics, upload_file, log_image, download_checkpoint
 
 
 class FakeLogger:
@@ -25,6 +26,22 @@ class FakeTask:
 
     def upload_artifact(self, **kwargs):
         self.artifacts.append(kwargs)
+
+
+class FakeArtifact:
+    def __init__(self, local_path):
+        self.local_path = local_path
+        self.calls = []
+
+    def get_local_copy(self, **kwargs):
+        self.calls.append(kwargs)
+        return str(self.local_path)
+
+
+class FakeTrainingTask:
+    def __init__(self, artifacts):
+        self.id = "train-task-42"
+        self.artifacts = artifacts
 
 
 def test_log_epoch_metrics_reports_each_split_and_metric():
@@ -145,3 +162,30 @@ def test_log_image_raises_and_logs_nothing_when_file_missing(tmp_path):
         log_image(logger, "evaluation", "confusion_matrix", missing)
 
     assert logger.images == []
+
+
+def test_download_checkpoint_returns_local_path(tmp_path):
+    checkpoint = tmp_path / "best.pt"
+    checkpoint.write_bytes(b"fake checkpoint")
+    task = FakeTrainingTask({"best_checkpoint": FakeArtifact(checkpoint)})
+
+    result = download_checkpoint(task, "best_checkpoint")
+
+    assert isinstance(result, Path)
+    assert result == checkpoint
+
+
+def test_download_checkpoint_asks_clearml_to_fail_loudly(tmp_path):
+    artifact = FakeArtifact(tmp_path / "best.pt")
+    task = FakeTrainingTask({"best_checkpoint": artifact})
+
+    download_checkpoint(task, "best_checkpoint")
+
+    assert artifact.calls == [{"raise_on_error": True}]
+
+
+def test_download_checkpoint_lists_available_when_missing(tmp_path):
+    task = FakeTrainingTask({"best_checkpoint": FakeArtifact(tmp_path / "best.pt")})
+
+    with pytest.raises(KeyError, match="best_checkpoint"):
+        download_checkpoint(task, "final_checkpoint")

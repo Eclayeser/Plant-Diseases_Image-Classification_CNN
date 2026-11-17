@@ -3,6 +3,7 @@ import argparse
 
 from pathlib import Path
 from typing import Any, Mapping
+from clearml import Task
 
 
 RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
@@ -97,6 +98,19 @@ def upload_file(task: Any, path: str | Path, name: str) -> None:
 def upload_checkpoint(task: Any, checkpoint_path: str | Path, name: str) -> None:
     """Upload a saved checkpoint as a ClearML task artifact."""
     upload_file(task, checkpoint_path, name)
+
+
+def download_checkpoint(task: Any, artifact_name: str) -> Path:
+    """Download a checkpoint artifact from a ClearML task and return its local path."""
+
+    if artifact_name not in task.artifacts:
+        raise KeyError(
+            f"Task {task.id} has no artifact '{artifact_name}'. "
+            f"Available: {list(task.artifacts)}"
+        )
+
+    local_path = task.artifacts[artifact_name].get_local_copy(raise_on_error=True)
+    return Path(local_path)
 
 
 def close_task(task: Any) -> None:
