@@ -5,7 +5,7 @@
 
 The deployed app does not use `.pt` checkpoints and does not install torch. It
 runs an ONNX model downloaded from the public Hugging Face repo
-[`Eclayeser/plant-disease-cnn-demo`](https://huggingface.co/Eclayeser/plant-disease-cnn-demo).
+[`Eclayeser/plant-disease-cnn-to-deploy`](https://huggingface.co/Eclayeser/plant-disease-cnn-to-deploy).
 `deployment/model.lock.json` names the exact Hugging Face commit the app uses.
 
 ```
@@ -63,7 +63,7 @@ If the model is different (architecture, data, image size), update
 the folder has no README, the one already on Hugging Face stays as it is.
 
 ```
-hf upload Eclayeser/plant-disease-cnn-demo deployment/model . --commit-message "<what this model is>"
+hf upload Eclayeser/plant-disease-cnn-to-deploy deployment/model . --commit-message "<what this model is>"
 ```
 
 Always upload to the same repo. Older versions stay available under their own
@@ -72,7 +72,7 @@ commit ids.
 ## 5. Get the new revision id
 
 ```
-python -c "from huggingface_hub import HfApi; print(HfApi().model_info('Eclayeser/plant-disease-cnn-demo').sha)"
+python -c "from huggingface_hub import HfApi; print(HfApi().model_info('Eclayeser/plant-disease-cnn-to-deploy').sha)"
 ```
 
 Copy the 40-character id it prints.
@@ -83,7 +83,7 @@ On a new branch, set `revision` in `deployment/model.lock.json` to that id:
 
 ```json
 {
-  "repo_id": "Eclayeser/plant-disease-cnn-demo",
+  "repo_id": "Eclayeser/plant-disease-cnn-to-deploy",
   "revision": "<new 40-character id>"
 }
 ```
