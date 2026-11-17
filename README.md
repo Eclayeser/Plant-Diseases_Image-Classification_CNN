@@ -164,3 +164,10 @@ CHECKPOINT_PATH=outputs/models/<model type>_<timestamp>_<id>.pt python -m app.ap
 ```bash
 python -m pytest tests/
 ```
+
+To also see which lines of `leafapp` and `app` are covered by the tests:
+
+```bash
+python -m pytest tests/ --cov --cov-report=term-missing
+```
+The coverage settings are in `pyproject.toml`.
