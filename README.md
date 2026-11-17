@@ -77,19 +77,27 @@ The checkpoint stores the weights, metrics recorded during the training, the ful
 
 ## Evaluate a trained model
 
+### From a local checkpoint
 ```bash
-python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt
+python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt --responsible "<your name>"
+python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt --responsible "<your name>" --split test --run-type comparison --issue-id SGP-33
 ```
+Replace the filename with your own checkpoint from `outputs/models/`. `--responsible`, `--run-type` and `--issue-id` work the same as for training (see [Understanding --run-type](#understanding---run-type)).
 
-Replace the filename with your own checkpoint from `outputs/models/`. This evaluates on the validation set by default. To evaluate on the test set instead:
-
+### From a ClearML training task
 ```bash
-python evaluate.py --checkpoint outputs/models/basiccnn_20261105-184800_a3f9c1.pt --split test
+python evaluate.py --task-id <training task ID> --responsible "<your name>"
+python evaluate.py --task-id <training task ID> --artifact final_checkpoint --responsible "<your name>"
 ```
+- The checkpoint is downloaded from the training task's artifacts. Copy the task ID from the task's info panel in the ClearML WebUI.
+- `--artifact` chooses which checkpoint to download: `best_checkpoint` (default, lowest validation loss) or `final_checkpoint`. It only works together with `--task-id`.
+- Give either `--checkpoint` or `--task-id`, not both.
+- Needs ClearML online, so it won't work in offline mode.
 
-- The evaluation report is saved to `outputs/eval_reports/` and the diagrams to `outputs/diagrams/`.
-
-The default is validation so the test set isn't used by accident while you're still choosing between models.
+### What it produces
+- Each evaluation is its own ClearML task, tagged `@task-type:evaluate.py` and `@split:<split>`. It logs the final metrics (Scalars → Summary), the confusion matrix and training curve (Debug Samples), and the report (Artifacts).
+- The report and diagrams are also saved locally to `outputs/eval_reports/` and `outputs/diagrams/`.
+- `--split` is `validation` by default, so the test set isn't used by accident while you're still choosing between models.
 
 ## Running ClearML
 
@@ -132,7 +140,7 @@ After running the training a new task should appear to the left inside the `Plan
 
 The default configuration will run 5 iterations, saves a best and final checkpoint, and exits after successfully completing a task.
 
-Each task is tagged automatically with `@run-type:<type>`, `@model:<model type>` and `@responsible:<name>` and `@config-name:<config file name without extension>`, plus `@issue:<id>` when `--issue-id` is given. Use these tags to filter the "Tasks List", e.g. filter by `@run-type:production` to see only the official runs.
+Each task is tagged automatically with `@run-type:<type>`, `@model:<model type>` and `@responsible:<name>`, plus `@issue:<id>` when `--issue-id` is given. Training tasks also get `@config-name:<config file name without extension>`, and evaluation tasks get `@task-type:evaluate.py` and `@split:<split>`. Use these tags to filter the "Tasks List", e.g. filter by `@run-type:production` to see only the official runs.
 
 Every logged task in "Tasks List" has the following tabs: "Exection", "Configuration", "Artifacts", "Info", "Console", "Scalars", "Plots" and "Debug samples".
 
