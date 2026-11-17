@@ -7,7 +7,5 @@ outputs/
 *.pt
 .DS_Store
 .gradio/
-deployment/model.onnx
-deployment/labels.json
-deployment/model_config.json
+deployment/model/
 !deployment/demo_model.pt
