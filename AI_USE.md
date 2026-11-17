@@ -272,3 +272,7 @@ myself and Claude reviewed at the end.
 ## documents/experiments/SGP-27/sgp27_optimiser_comparison.md (SGP-27, Mario Cavicchioli)
 - I ran the experiments and exported the charts from ClearML; Claude helped me interpret the results and wrote the report text, which I reviewed and edited.
 - Approximate share of AI-generated documentation: 75%
+
+## SGP-25: Pytest Coverage
+- I used Claude to help me understand the coverage settings and GitHub Actions workflow. I made the changes myself, ran the tests locally, and checked the coverage report in GitHub Actions.
+- Approximate share of AI-generated code: 10%
