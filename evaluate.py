@@ -18,18 +18,32 @@ from leafapp.tracking import NAMES, RUN_TYPES, validate_issue_id, sanitise_name,
 REPORTS_DIR = ROOT / "outputs" / "eval_reports"
 DIAGRAMS_DIR = ROOT / "outputs" / "diagrams"
 ACCEPTED_DATA_TYPES = ("validation", "test")
+ARTIFACTS = ("best_checkpoint", "final_checkpoint")
+DEFAULT_ARTIFACT = "best_checkpoint"
 
 
 def parse_args(argv=None):
-    """Read the command-line arguments (--checkpoint, --split, --responsible, --run-type, --issue-id) and return them."""
+    """Read the command-line arguments (--checkpoint, --task-id, --split, --responsible, --run-type, --issue-id, --artifact) and return them."""
 
     parser = argparse.ArgumentParser(description="Evaluate a saved checkpoint on the validation or test set.")
-    parser.add_argument("--checkpoint", required=True, help="Path to the .pt checkpoint to evaluate.")
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--checkpoint", help="Path to a local .pt checkpoint to evaluate.")
+    source.add_argument("--task-id", help="ClearML training task ID to download the checkpoint from.")
     parser.add_argument("--split", choices=ACCEPTED_DATA_TYPES, default="validation", help="Which split to evaluate on (default: validation).")
     parser.add_argument("--responsible", required=True, choices=NAMES, help="Name who is responsible for / triggered the run.")
     parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
     parser.add_argument("--issue-id", default="", help="Pin issue identifier in format 'SGP-XXX'", type=validate_issue_id)
-    return parser.parse_args(argv)
+    parser.add_argument("--artifact", choices=ARTIFACTS, default=None, help=f"Which checkpoint artifact to download with --task-id (default: {DEFAULT_ARTIFACT}).")
+
+    args = parser.parse_args(argv)
+
+    if args.artifact is not None and args.task_id is None:
+        parser.error("--artifact can only be used with --task-id")
+
+    if args.artifact is None and args.task_id is not None:
+        args.artifact = DEFAULT_ARTIFACT
+
+    return args
 
 
 def main(checkpoint_path: str|Path, data_type: str, responsible, run_type, issue_id):
