@@ -55,4 +55,3 @@ def get_cnn_predictions(image, model, class_names):
         "Disease": diseases,
         "Probability": top5.values.tolist()
     })
-
