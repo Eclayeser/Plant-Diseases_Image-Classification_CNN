@@ -272,3 +272,7 @@ myself and Claude reviewed at the end.
 ## documents/experiments/SGP-27/sgp27_optimiser_comparison.md (SGP-27, Mario Cavicchioli)
 - I ran the experiments and exported the charts from ClearML; Claude helped me interpret the results and wrote the report text, which I reviewed and edited.
 - Approximate share of AI-generated documentation: 75%
+
+## app/app.py, leafapp/predict.py (SGP-17, Gul Nil Kayalıoğlu)
+- I moved the existing prediction code from `app.py` to `leafapp/predict.py` and updated `app.py` myself. I only used Claude to review my changes and check that the two files worked together correctly.
+- Approximate share of AI-generated code: 5%
