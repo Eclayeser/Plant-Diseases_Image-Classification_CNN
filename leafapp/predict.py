@@ -5,8 +5,12 @@ import torch
 from leafapp.checkpoints import load_checkpoint
 from leafapp.data import make_transforms
 
+
 def load_model(checkpoint_path):
-    # Load the trained CNN model
+    """Load a trained model, its class names and the evaluation transform.
+
+    Returns (None, None, None) when no checkpoint path is given.
+    """
     if not checkpoint_path:
         return None, None, None
 
@@ -20,12 +24,16 @@ def load_model(checkpoint_path):
     )
 
     return model, class_names, transform
+
+
 def preprocess_image(image, transform):
-    # Prepare the uploaded image in the same way as during evaluation
+    """Prepare the uploaded image in the same way as during evaluation."""
     image = image.convert("RGB")
     return transform(image)
 
+
 def get_cnn_predictions(image, model, class_names):
+    """Return the 5 most likely diseases and their probabilities as a DataFrame."""
     model.eval()
 
     # Get predictions from the CNN
