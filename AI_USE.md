@@ -279,3 +279,19 @@ myself and Claude reviewed at the end.
 ## documents/experiments/SGP-27/sgp27_optimiser_comparison.md (SGP-27, Mario Cavicchioli)
 - I ran the experiments and exported the charts from ClearML; Claude helped me interpret the results and wrote the report text, which I reviewed and edited.
 - Approximate share of AI-generated documentation: 75%
+
+## app/app.py, leafapp/predict.py (SGP-17, Gul Nil Kayalioglu)
+- I moved the existing prediction code from `app.py` to `leafapp/predict.py` and updated `app.py` myself. I only used Claude to review my changes and check that the two files worked together correctly.
+- Approximate share of AI-generated code: 5%
+
+## tests/test_predict.py (SGP-17, Gul Nil Kayalioglu)
+- I used Claude to help with the test structure, then added and ran the tests myself.
+- Approximate share of AI-generated code: 30%
+
+## SGP-5 — Deployment (Pranay Singh)
+
+- Local deployment: AI-assisted debugging of Bash scripts, checkpoint selection and Gradio integration.
+- Integration tests: AI-assisted development and debugging of CNN inference, checkpoint loading and pytest fixtures.
+- Documentation: AI-assisted structuring of local deployment instructions.
+
+Approximate share of AI-generated code: 60%.
