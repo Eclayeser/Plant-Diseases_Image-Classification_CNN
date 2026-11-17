@@ -81,8 +81,9 @@ def log_image(logger: Any, title: str, series: str, image_path: str | Path) -> N
         raise FileNotFoundError(f"Image not found at {image_path}")
     logger.report_image(iteration=0, local_path=str(picture_path), title=title, series=series)
 
+
 def upload_file(task: Any, path: str | Path, name: str) -> None:
-    """Upload file as a ClearML task artifact"""
+    """Upload file as a ClearML task artifact."""
     artifact_path = Path(path)
     if not artifact_path.is_file():
         raise FileNotFoundError(f"File with name {name} not found at {path}")
