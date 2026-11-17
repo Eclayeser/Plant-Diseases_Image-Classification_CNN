@@ -2,11 +2,10 @@ import os
 
 import gradio as gr
 import pandas as pd
-import torch
 
-from leafapp.checkpoints import load_checkpoint
-from leafapp.data import make_transforms
+
 from PIL import Image
+from leafapp.predict import load_predictor, predict_top_k
 
 
 Image.MAX_IMAGE_PIXELS = 20_000_000
@@ -14,46 +13,11 @@ Image.MAX_IMAGE_PIXELS = 20_000_000
 
 CHECKPOINT_PATH = os.getenv("CHECKPOINT_PATH")
 
+if CHECKPOINT_PATH:
+    MODEL, CLASS_NAMES, TRANSFORM = load_predictor(CHECKPOINT_PATH)
+else:
+    MODEL, CLASS_NAMES, TRANSFORM = None, None, None
 
-def load_model():
-    # Load the trained CNN model
-    if not CHECKPOINT_PATH:
-        return None, None, None
-
-    model, class_names, _, config = load_checkpoint(CHECKPOINT_PATH)
-
-    # Use the same image preprocessing as evaluation
-    _, transform = make_transforms(
-        config["data"]["image_size"],
-        augment=False,
-        normalize=config["data"].get("normalize", False),
-    )
-
-    return model, class_names, transform
-
-
-def get_cnn_predictions(image, model, class_names):
-    model.eval()
-
-    # Get predictions from the CNN
-    with torch.no_grad():
-        output = model(image.unsqueeze(0))
-
-    # Convert the output into probabilities
-    probabilities = torch.softmax(output, dim=1)[0]
-
-    # Find the 5 most likely diseases
-    top5 = torch.topk(probabilities, min(5, len(class_names)))
-
-    diseases = []
-    for i in top5.indices:
-        name = class_names[int(i)].replace("___", " - ").replace("_", " ")
-        diseases.append(name)
-
-    return pd.DataFrame({
-        "Disease": diseases,
-        "Probability": top5.values.tolist()
-    })
 
 
 def predict(image):
@@ -64,14 +28,12 @@ def predict(image):
     if MODEL is None:
         raise gr.Error("No trained model loaded. Set CHECKPOINT_PATH to a trained checkpoint.")
 
-    # Prepare the uploaded image
-    image = image.convert("RGB")
-    processed_image = TRANSFORM(image)
+    predictions = predict_top_k(image, MODEL, CLASS_NAMES, TRANSFORM)
 
-    return get_cnn_predictions(processed_image, MODEL, CLASS_NAMES)
+    # Gradio's bar plot expects a DataFrame
+    return pd.DataFrame(predictions, columns=["Disease", "Probability"])
 
 
-MODEL, CLASS_NAMES, TRANSFORM = load_model()
 
 
 # Create the Gradio interface
