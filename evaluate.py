@@ -13,7 +13,7 @@ from leafapp.eval_functions import (
 )
 from leafapp.data import get_loaders
 from leafapp.checkpoints import load_checkpoint
-from leafapp.tracking import NAMES, RUN_TYPES, validate_issue_id, sanitise_name, initialise_task, close_task, log_final_metrics, log_image, upload_file
+from leafapp.tracking import NAMES, RUN_TYPES, validate_issue_id, sanitise_name, initialise_task, close_task, log_final_metrics, log_image, upload_file, get_task, download_checkpoint
 
 REPORTS_DIR = ROOT / "outputs" / "eval_reports"
 DIAGRAMS_DIR = ROOT / "outputs" / "diagrams"
@@ -46,7 +46,7 @@ def parse_args(argv=None):
     return args
 
 
-def main(checkpoint_path: str|Path, data_type: str, responsible, run_type, issue_id):
+def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_type, issue_id, task_id, artifact):
     """
     Evaluate a saved checkpoint on the validation or test set.
 
@@ -56,13 +56,25 @@ def main(checkpoint_path: str|Path, data_type: str, responsible, run_type, issue
     if data_type not in ACCEPTED_DATA_TYPES:
         raise ValueError(f"data_type should be one of {ACCEPTED_DATA_TYPES}")
 
+    requested_checkpoint = checkpoint_path
+
+    if task_id is not None:
+        training_task = get_task(task_id)
+        checkpoint_path = download_checkpoint(training_task, artifact)
+        checkpoint_name = f"{sanitise_name(training_task.name)}_{artifact}"
+    else:
+        checkpoint_name = Path(checkpoint_path).stem
+
     # load checkpoint info
     model, _, history_metrics, config = load_checkpoint(checkpoint_path)
     
-    checkpoint_name = Path(checkpoint_path).stem
-
     run_config = {
-        "evaluation": {"checkpoint": str(checkpoint_path), "split": data_type},
+        "evaluation": {
+            "checkpoint": str(requested_checkpoint) if requested_checkpoint is not None else None,
+            "task_id": task_id,
+            "artifact": artifact,
+            "split": data_type
+        },
         "training": config,
     }
 
@@ -160,4 +172,4 @@ def main(checkpoint_path: str|Path, data_type: str, responsible, run_type, issue
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args.checkpoint, args.split, args.responsible, args.run_type, args.issue_id)
+    main(args.checkpoint, args.split, args.responsible, args.run_type, args.issue_id, args.task_id, args.artifact)

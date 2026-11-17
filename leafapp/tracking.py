@@ -47,6 +47,12 @@ def initialise_task(
     return task
 
 
+def get_task(task_id: str) -> Any:
+    """Fetch an existing ClearML task by its ID."""
+    from clearml import Task
+    return Task.get_task(task_id=task_id)
+
+
 def log_epoch_metrics(
     logger: Any,
     epoch: int,
