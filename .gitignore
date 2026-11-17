@@ -8,3 +8,8 @@ outputs/
 .coverage
 htmlcov/
 coverage.xml
+.DS_Store
+.gradio/
+deployment/model.onnx
+deployment/labels.json
+deployment/model_config.json
