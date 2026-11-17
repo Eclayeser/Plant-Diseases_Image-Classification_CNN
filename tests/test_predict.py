@@ -50,3 +50,11 @@ def test_get_cnn_predictions():
     assert predictions["Probability"].is_monotonic_decreasing
 
 
+def test_predictions_with_three_classes():
+    """All classes are returned when there are fewer than 5."""
+    logits = torch.tensor([0.1, 0.5, 0.2])
+    class_names = ["a", "b", "c"]
+
+    result = get_cnn_predictions(logits, nn.Identity(), class_names)
+
+    assert len(result) == 3
