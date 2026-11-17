@@ -74,17 +74,21 @@ def log_final_metrics(logger: Any, metrics: Mapping[str, Any]) -> None:
         logger.report_single_value(name=name, value=value)
 
 
-def upload_checkpoint(task: Any, checkpoint_path: str | Path, name: str) -> None:
-    """Upload a saved checkpoint as a ClearML task artifact."""
-    artifact_path = Path(checkpoint_path)
+def upload_file(task: Any, path: str | Path, name: str) -> None:
+    """Upload file as a ClearML task artifact"""
+    artifact_path = Path(path)
     if not artifact_path.is_file():
-        raise FileNotFoundError(f"Checkpoint with name {name} not found at {checkpoint_path}")
-    
+        raise FileNotFoundError(f"File with name {name} not found at {path}")
     task.upload_artifact(
         name=name,
         artifact_object=artifact_path,
         wait_on_upload=True,
     )
+
+
+def upload_checkpoint(task: Any, checkpoint_path: str | Path, name: str) -> None:
+    """Upload a saved checkpoint as a ClearML task artifact."""
+    upload_file(task, checkpoint_path, name)
 
 
 def close_task(task: Any) -> None:

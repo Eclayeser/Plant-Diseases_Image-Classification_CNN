@@ -1,6 +1,6 @@
 import pytest
 
-from leafapp.tracking import log_epoch_metrics, upload_checkpoint, log_final_metrics
+from leafapp.tracking import log_epoch_metrics, upload_checkpoint, log_final_metrics, upload_file
 
 
 class FakeLogger:
@@ -86,5 +86,31 @@ def test_upload_raises_when_path_is_a_directory(tmp_path):
 
     with pytest.raises(FileNotFoundError, match="best_checkpoint"):
         upload_checkpoint(task, tmp_path, "best_checkpoint")
+
+    assert task.artifacts == []
+
+
+def test_upload_file_registers_report_artifact(tmp_path):
+    task = FakeTask()
+    report = tmp_path / "eval_report.md"
+    report.write_text("# Evaluation report")
+
+    upload_file(task, report, "evaluation_report")
+
+    assert task.artifacts == [
+        {
+            "name": "evaluation_report",
+            "artifact_object": report,
+            "wait_on_upload": True,
+        }
+    ]
+
+
+def test_upload_file_raises_and_uploads_nothing_when_file_missing(tmp_path):
+    task = FakeTask()
+    missing = tmp_path / "no_such_report.md"
+
+    with pytest.raises(FileNotFoundError):
+        upload_file(task, missing, "evaluation_report")
 
     assert task.artifacts == []
