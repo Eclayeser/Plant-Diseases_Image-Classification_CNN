@@ -1,11 +1,10 @@
 import os
 
 import gradio as gr
-import pandas as pd
 
 
 from PIL import Image
-from leafapp.predict import load_model, predict_top_k
+from leafapp.predict import load_model, get_cnn_predictions
 
 
 Image.MAX_IMAGE_PIXELS = 20_000_000
@@ -28,10 +27,11 @@ def predict(image):
     if MODEL is None:
         raise gr.Error("No trained model loaded. Set CHECKPOINT_PATH to a trained checkpoint.")
 
-    predictions = predict_top_k(image, MODEL, CLASS_NAMES, TRANSFORM)
+    # Prepare the uploaded image
+    image = image.convert("RGB")
+    processed_image = TRANSFORM(image)
 
-    # Gradio's bar plot expects a DataFrame
-    return pd.DataFrame(predictions, columns=["Disease", "Probability"])
+    return get_cnn_predictions(processed_image, MODEL, CLASS_NAMES)
 
 
 

@@ -1,4 +1,6 @@
 # Loads a trained model and returns predictions for an uploaded image.
+import pandas as pd
+import torch
 
 from leafapp.checkpoints import load_checkpoint
 from leafapp.data import make_transforms
@@ -19,4 +21,27 @@ def load_model(checkpoint_path):
 
     return model, class_names, transform
 
+
+def get_cnn_predictions(image, model, class_names):
+    model.eval()
+
+    # Get predictions from the CNN
+    with torch.no_grad():
+        output = model(image.unsqueeze(0))
+
+    # Convert the output into probabilities
+    probabilities = torch.softmax(output, dim=1)[0]
+
+    # Find the 5 most likely diseases
+    top5 = torch.topk(probabilities, min(5, len(class_names)))
+
+    diseases = []
+    for i in top5.indices:
+        name = class_names[int(i)].replace("___", " - ").replace("_", " ")
+        diseases.append(name)
+
+    return pd.DataFrame({
+        "Disease": diseases,
+        "Probability": top5.values.tolist()
+    })
 
