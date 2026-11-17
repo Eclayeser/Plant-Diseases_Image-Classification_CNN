@@ -5,3 +5,6 @@ __pycache__/
 outputs/
 .pytest_cache/
 *.pt
+.coverage
+htmlcov/
+coverage.xml
