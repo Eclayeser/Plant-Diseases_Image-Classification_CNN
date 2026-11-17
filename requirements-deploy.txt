@@ -1,0 +1,6 @@
+gradio==6.30.0
+pillow==12.3.0 # gradio 6.30.0 requires pillow<13, so pillow is pinned to 12.3.0
+numpy==2.3.5
+pandas==3.1.0
+onnxruntime==1.32.0
+huggingface_hub==2.4.0
