@@ -9,13 +9,14 @@ from leafapp.eval_functions import (
     plot_and_save_training_curve,
     plot_and_save_confusion_matrix,
     save_evaluation_report,
+    ROOT,
 )
 from leafapp.data import get_loaders
 from leafapp.checkpoints import load_checkpoint
-from leafapp.tracking import NAMES, RUN_TYPES, validate_issue_id, sanitise_name, initialise_task, close_task, log_final_metrics
+from leafapp.tracking import NAMES, RUN_TYPES, validate_issue_id, sanitise_name, initialise_task, close_task, log_final_metrics, log_image, upload_file
 
-REPORTS_DIR = Path("outputs") / "eval_reports"
-DIAGRAMS_DIR = Path("outputs") / "diagrams"
+REPORTS_DIR = ROOT / "outputs" / "eval_reports"
+DIAGRAMS_DIR = ROOT / "outputs" / "diagrams"
 ACCEPTED_DATA_TYPES = ("validation", "test")
 
 
@@ -129,12 +130,16 @@ def main(checkpoint_path: str|Path, data_type: str, responsible, run_type, issue
             f"{overall_metrics['per-class-metrics'][1]}"    # [1] is to_print version / [0] is a dict
             f"\n"
             f"==============================   Diagrams   ==============================\n"
-            f" - Training Curve (Historical Metrics): {curve_path}\n"
-            f" - Confusion Matrix: {matrix_path}"
+            f" - Training Curve (Historical Metrics): {curve_path.relative_to(ROOT)}\n"
+            f" - Confusion Matrix: {matrix_path.relative_to(ROOT)}"
         )
 
     save_evaluation_report(report, report_path)
-    print(f"Saved evaluation report to {report_path}")
+    print(f"Saved evaluation report to {report_path.relative_to(ROOT)}")
+
+    log_image(logger, "evaluation", "confusion_matrix", matrix_path)
+    log_image(logger, "evaluation", "training_curve", curve_path)
+    upload_file(task, report_path, "evaluation_report")
 
     close_task(task)
 
