@@ -272,3 +272,11 @@ myself and Claude reviewed at the end.
 ## documents/experiments/SGP-27/sgp27_optimiser_comparison.md (SGP-27, Mario Cavicchioli)
 - I ran the experiments and exported the charts from ClearML; Claude helped me interpret the results and wrote the report text, which I reviewed and edited.
 - Approximate share of AI-generated documentation: 75%
+
+## SGP-5 — Deployment (Pranay Singh)
+
+- Local deployment: AI-assisted debugging of Bash scripts, checkpoint selection and Gradio integration.
+- Integration tests: AI-assisted development and debugging of CNN inference, checkpoint loading and pytest fixtures.
+- Documentation: AI-assisted structuring of local deployment instructions.
+
+Approximate share of AI-generated code: 60%.
