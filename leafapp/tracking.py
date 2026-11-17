@@ -74,6 +74,13 @@ def log_final_metrics(logger: Any, metrics: Mapping[str, Any]) -> None:
         logger.report_single_value(name=name, value=value)
 
 
+def log_image(logger: Any, title: str, series: str, image_path: str | Path) -> None:
+    """Log an image file to ClearML as a single evaluation image."""
+    picture_path = Path(image_path)
+    if not picture_path.is_file():
+        raise FileNotFoundError(f"Image not found at {image_path}")
+    logger.report_image(iteration=0, local_path=str(picture_path), title=title, series=series)
+
 def upload_file(task: Any, path: str | Path, name: str) -> None:
     """Upload file as a ClearML task artifact"""
     artifact_path = Path(path)

@@ -1,18 +1,22 @@
 import pytest
 
-from leafapp.tracking import log_epoch_metrics, upload_checkpoint, log_final_metrics, upload_file
+from leafapp.tracking import log_epoch_metrics, upload_checkpoint, log_final_metrics, upload_file, log_image
 
 
 class FakeLogger:
     def __init__(self):
         self.scalars = []
         self.single_values = []
+        self.images = []
 
     def report_scalar(self, **kwargs):
         self.scalars.append(kwargs)
 
     def report_single_value(self, **kwargs):
         self.single_values.append(kwargs)
+
+    def report_image(self, **kwargs):
+        self.images.append(kwargs)
 
 
 class FakeTask:
@@ -114,3 +118,30 @@ def test_upload_file_raises_and_uploads_nothing_when_file_missing(tmp_path):
         upload_file(task, missing, "evaluation_report")
 
     assert task.artifacts == []
+
+
+def test_log_image_reports_image_at_iteration_zero(tmp_path):
+    logger = FakeLogger()
+    image = tmp_path / "fake_image.png"
+    image.write_bytes(b"fake png")
+
+    log_image(logger, "evaluation", "confusion_matrix", image)
+
+    assert logger.images == [
+        {
+            "title": "evaluation",
+            "series": "confusion_matrix",
+            "iteration": 0,
+            "local_path": str(image),
+        }
+    ]
+
+
+def test_log_image_raises_and_logs_nothing_when_file_missing(tmp_path):
+    logger = FakeLogger()
+    missing = tmp_path / "fake_image.png"
+
+    with pytest.raises(FileNotFoundError):
+        log_image(logger, "evaluation", "confusion_matrix", missing)
+
+    assert logger.images == []
