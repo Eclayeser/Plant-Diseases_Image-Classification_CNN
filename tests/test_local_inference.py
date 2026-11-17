@@ -87,6 +87,7 @@ def test_cnn_inference(inference_setup):
     assert torch.isclose(probabilities.sum(), torch.tensor(1.0), atol=1e-5)
 
 
+@pytest.mark.skip(reason="App moved to ONNX in SGP-49")
 def test_gradio_cnn_integration(inference_setup, monkeypatch):
     """Test 3: Confirm that Gradio uses the CNN for predictions."""
     model, class_names, transform = inference_setup
@@ -110,6 +111,7 @@ def test_gradio_cnn_integration(inference_setup, monkeypatch):
     assert predictions["Probability"].is_monotonic_decreasing
 
 
+@pytest.mark.skip(reason="App moved to ONNX in SGP-49")
 def test_checkpoint_loaded_on_startup(checkpoint_path):
     """Test 4: Verify that Gradio loads the checkpoint at startup."""
 
