@@ -10,4 +10,3 @@ outputs/
 deployment/model.onnx
 deployment/labels.json
 deployment/model_config.json
-!deployment/demo_model.pt

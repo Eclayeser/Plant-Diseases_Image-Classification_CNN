@@ -5,11 +5,12 @@ Runs Gradio interface with a trained CNN at http://localhost:8080.
 ## Requirements
 
 - Python 3
-- A trained `.pt` checkpoint (a demo model is included at `deployment/demo_model.pt`)
+- A trained `.pt` checkpoint, produced by `train.py` or downloaded from ClearML
 - Project dependencies from `requirements.txt`
 
-The deployment requires an explicitly selected checkpoint.
-It does not automatically train or select a model.
+Model checkpoints are not included in the repository.
+Download `best_checkpoint` from the relevant ClearML task's
+Artifacts section, or train a model locally.
 
 ## macOS / Linux
 
