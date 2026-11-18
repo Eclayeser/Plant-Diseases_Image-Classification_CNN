@@ -96,7 +96,7 @@ def close_task(task: Any, *, failed: bool = False, message: str | None = None) -
                 continue
             try:
                 if status_name == "mark_failed":
-                    status_method(message or "Task failed")
+                    status_method(status_message=message or "Task failed")
                 else:
                     status_method("Failed")
                 break

@@ -7,6 +7,7 @@ class FakeLogger:
     def __init__(self):
         self.scalars = []
         self.confusion_matrices = []
+        self.failure_message = None
 
     def report_scalar(self, **kwargs):
         self.scalars.append(kwargs)
@@ -39,8 +40,9 @@ class FakeTask:
     def set_status(self, status):
         self.failed = status == "failed"
 
-    def mark_failed(self, message=None):
+    def mark_failed(self, ignore_errors=True, status_reason=None, status_message=None, force=False):
         self.failed = True
+        self.failure_message = status_message
 
     def close(self):
         self.closed = True
@@ -125,3 +127,4 @@ def test_close_task_marks_task_as_closed_and_failed():
     assert "failed" in task.tags
     assert task.closed is True
     assert task.failed is True
+    assert task.failure_message == "some error"
