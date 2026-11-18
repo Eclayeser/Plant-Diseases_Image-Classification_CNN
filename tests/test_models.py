@@ -177,3 +177,13 @@ def test_avg_pooling_output_shape():
     x = torch.randn(2, 3, 128, 128)
 
     assert model(x).shape == (2, 39), "Avg pooling CNN should output [2, 39] logits"
+
+
+def test_avg_pooling_has_fewer_parameters():
+    flatten_model = BasicCNN()
+    avg_model = BasicCNN(pooling="avg")
+
+    flatten_params = sum(p.numel() for p in flatten_model.parameters())
+    avg_params = sum(p.numel() for p in avg_model.parameters())
+
+    assert avg_params < flatten_params, "Avg pooling should have fewer parameters than flatten"
