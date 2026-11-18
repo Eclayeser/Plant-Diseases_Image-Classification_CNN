@@ -1,9 +1,10 @@
 """Reusable ClearML helpers for experiment tracking."""
 
+import logging
 from pathlib import Path
 from typing import Any, Mapping
 
-from train import LOGGER
+LOGGER = logging.getLogger(__name__)
 
 
 def initialise_task(
