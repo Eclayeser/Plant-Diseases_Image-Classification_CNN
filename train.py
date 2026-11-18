@@ -150,6 +150,10 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
         model = build_model(cfg["model"], cfg["data"], class_names)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if device.type == "cuda":
+            print(f"Training device: GPU ({torch.cuda.get_device_name(device)})")
+        else:
+            print("Training device: CPU (CUDA unavailable; falling back to CPU)")
         model.to(device)
         optimizer = choose_optimizer(model.parameters(), cfg["train"])
         config_name = Path(config_path).stem
