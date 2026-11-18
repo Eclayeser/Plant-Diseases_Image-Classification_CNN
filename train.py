@@ -115,7 +115,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
     return epoch_metrics
 
-def main(config_path, responsible, run_type, issue_id, checkpoint_interval):
+def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
     """
     Train a model using the config at config_path and save a checkpoint.
 
