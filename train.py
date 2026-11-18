@@ -130,6 +130,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
     history_metrics = None
     checkpoint_path = None
     best_checkpoint_path = None
+    best_checkpoint_pending = False
     final_checkpoint_uploaded = False
     best_checkpoint_uploaded = False
     try:
@@ -247,6 +248,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
 
             if val_epoch_metrics["loss"] < best_validation_loss:
                 best_validation_loss = val_epoch_metrics["loss"]
+                best_checkpoint_pending = True
                 save_checkpoint(
                     path=best_checkpoint_path,
                     model=model,
@@ -254,6 +256,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
                     class_names=class_names,
                     history_metrics=history_metrics,
                 )
+                best_checkpoint_pending = False
 
             if (epoch + 1) % checkpoint_interval == 0:
                 epoch_checkpoint_path = checkpoint_path.with_name(
@@ -323,6 +326,27 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
                     )
                 except Exception:
                     LOGGER.exception("Could not save the final checkpoint while handling a failed run")
+
+            if (
+                best_checkpoint_pending
+                and best_checkpoint_path is not None
+                and model is not None
+                and class_names is not None
+                and history_metrics is not None):
+                try:
+                    save_checkpoint(
+                        path=best_checkpoint_path,
+                        model=model,
+                        cfg=cfg,
+                        class_names=class_names,
+                        history_metrics=history_metrics,
+                    )
+                except Exception:
+                    LOGGER.exception(
+                        "Could not retry saving the pending best checkpoint while handling a failed run"
+                    )
+                else:
+                    best_checkpoint_pending = False
 
             if (
                 not best_checkpoint_uploaded
