@@ -22,6 +22,7 @@ from leafapp.tracking import (
     close_task,
     initialise_task,
     log_epoch_metrics,
+    log_confusion_matrix,
     upload_checkpoint,
 )
 
@@ -213,7 +214,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
                 device=device,
                 class_names=class_names,
                 criterion=criterion,                # triggers loss calculation
-                metrics_list=["accuracy", "f1"]     # + the indicated metrics
+                metrics_list=["accuracy", "f1", "confusion-matrix"]     # + the indicated metrics
             )
             
             history_metrics["losses"]["training"].append(train_epoch_metrics["loss"]) 
@@ -227,7 +228,17 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
                 logger=logger,
                 epoch=epoch + 1,
                 training_metrics=train_epoch_metrics,
-                validation_metrics=val_epoch_metrics,
+                validation_metrics={
+                    name: value
+                    for name, value in val_epoch_metrics.items()
+                    if name != "confusion-matrix"
+                }, 
+            )
+            log_confusion_matrix(
+                logger=logger,
+                epoch=epoch + 1,
+                matrix=val_epoch_metrics["confusion-matrix"],
+                class_names=class_names,
             )
 
             if val_epoch_metrics["loss"] < best_validation_loss:
