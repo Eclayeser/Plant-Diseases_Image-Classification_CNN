@@ -45,6 +45,24 @@ def log_epoch_metrics(
                 iteration=epoch,
             )
 
+def log_confusion_matrix(
+    logger: Any,
+    epoch: int,
+    matrix: Any,
+    class_names: list[str],
+) -> None:
+    """Report a validation confusion matrix with true labels on rows and predicted labels on columns."""
+    logger.report_confusion_matrix(
+        title="Confusion Matrix",
+        series="validation",
+        matrix=matrix,
+        iteration=epoch,
+        xaxis="Predicted label",
+        yaxis="True label",
+        xlabels=class_names,
+        ylabels=class_names,
+        yaxis_reversed=True,
+    )
 
 def upload_checkpoint(task: Any, checkpoint_path: str | Path, name: str) -> None:
     """Upload a saved checkpoint as a ClearML task artifact."""
