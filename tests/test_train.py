@@ -102,7 +102,7 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path):
     monkeypatch.setattr(train, "initialise_task", fake_initialise_task)
     monkeypatch.setattr(
         train, "calculate_metrics_per_loader",
-        lambda **kwargs: {"loss": 1.0, "accuracy": 0.5, "f1": 0.5},
+        lambda **kwargs: {"loss": 1.0, "accuracy": 0.5, "f1": 0.5, "confusion-matrix": [[0] * 5 for _ in range(5)]},
     )
     for name in ("log_epoch_metrics", "save_checkpoint", "upload_checkpoint", "close_task"):
         monkeypatch.setattr(train, name, MagicMock())
@@ -158,12 +158,12 @@ def test_main_saves_and_uploads_checkpoints_at_requested_interval(
     monkeypatch.setattr(
         train,
         "train_one_epoch",
-        lambda *args, **kwargs: {"loss": 0.5, "accuracy": 0.8, "f1": 0.7},
+        lambda *args, **kwargs: {"loss": 0.5, "accuracy": 0.8, "f1": 0.7, "confusion-matrix": [[0] * 5 for _ in range(5)]},
     )
     monkeypatch.setattr(
         train,
         "calculate_metrics_per_loader",
-        lambda **kwargs: {"loss": 0.4, "accuracy": 0.8, "f1": 0.7},
+        lambda **kwargs: {"loss": 0.4, "accuracy": 0.8, "f1": 0.7, "confusion-matrix": [[0] * 5 for _ in range(5)]},
     )
     monkeypatch.setattr(train, "log_epoch_metrics", MagicMock())
     monkeypatch.setattr(
@@ -249,7 +249,7 @@ def test_main_uploads_checkpoints_when_training_fails(
     monkeypatch.setattr(
         train,
         "calculate_metrics_per_loader",
-        lambda **kwargs: {"loss": 0.4, "accuracy": 0.8, "f1": 0.7},
+        lambda **kwargs: {"loss": 0.4, "accuracy": 0.8, "f1": 0.7, "confusion-matrix": [[0] * 5 for _ in range(5)]},
     )
     monkeypatch.setattr(train, "save_checkpoint", save_checkpoint)
     monkeypatch.setattr(
