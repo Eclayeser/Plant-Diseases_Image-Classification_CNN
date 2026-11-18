@@ -133,7 +133,7 @@ def test_close_task_marks_task_as_closed_and_failed():
 
     close_task(task, failed=True, message="some error")
 
-    assert "failed" in task.tags
+    assert "@status:failed" in task.tags
     assert task.closed is True
     assert task.failed is True
     assert task.failure_message == "some error"
@@ -153,6 +153,6 @@ def test_close_task_logs_close_error_when_preserving_failure(caplog):
     close_task(task, failed=True, message="training failed")
 
     assert "Could not close the ClearML task after marking it as failed" in caplog.text
-    assert "failed" in task.tags
+    assert "@status:failed" in task.tags
     assert task.failed is True
     assert task.failure_message == "training failed"

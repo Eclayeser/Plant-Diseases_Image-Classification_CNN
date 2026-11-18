@@ -87,9 +87,9 @@ def close_task(task: Any, *, failed: bool = False, message: str | None = None) -
 
     if failed:
         try:
-            task.add_tags("failed")
+            task.add_tags("@status:failed")
         except Exception:
-            LOGGER.exception("Could not add the failed tag to the ClearML task")
+            LOGGER.exception("Could not add the @status:failed tag to the ClearML task")
 
         for status_name in ("mark_failed", "set_status"):
             status_method = getattr(task, status_name, None)
