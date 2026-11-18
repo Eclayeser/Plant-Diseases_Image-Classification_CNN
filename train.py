@@ -324,6 +324,13 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
                 except Exception:
                     LOGGER.exception("Could not save the best checkpoint fallback")
 
+            for path, checkpoint_name in (
+                (checkpoint_path, "Final"),
+                (best_checkpoint_path, "Best"),
+            ):
+                if path is not None and path.is_file():
+                    print(f"{checkpoint_name} checkpoint saved to {path}")
+            
             for path, name, already_uploaded in (
                 (checkpoint_path, "final_checkpoint", final_checkpoint_uploaded),
                 (best_checkpoint_path, "best_checkpoint", best_checkpoint_uploaded)):
