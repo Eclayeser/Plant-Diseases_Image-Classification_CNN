@@ -24,12 +24,14 @@ from leafapp.tracking import (
     log_epoch_metrics,
     log_confusion_matrix,
     upload_checkpoint,
+    RUN_TYPES,
+    NAMES,
+    sanitise_name,
+    validate_issue_id,
 )
 
 ROOT = Path(__file__).resolve().parent
 LOGGER = logging.getLogger(__name__)
-RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
-NAMES = ("Mark Tarnavskyi", "Pranay Singh", "Illia Putintsev", "Javier Fimia", "Reon Carroll-Ito", "Nil Kayalioglu", "Mario Westphalen Cavicchioli")
 
 def parse_args(argv=None):
     """
@@ -45,23 +47,6 @@ def parse_args(argv=None):
     parser.add_argument("--issue-id", default="", help="Pin issue identifier in format 'SGP-XXX'", type=validate_issue_id)
     parser.add_argument("--save-interval", default=5, metavar="SAVE_INTERVAL", help="Saves a checkpoint every N epoch(s) (default: 5).", type=validate_checkpoint_interval)
     return parser.parse_args(argv)
-
-
-def sanitise_name(value):
-    """
-    Sanitises name into lowercase kebab format.
-    """
-    slug = "-".join(value.lower().split())
-    return slug
-
-
-def validate_issue_id(value):
-    """
-    Ensures issue is in the right format. Raises otherwise
-    """
-    if value and not value.startswith("SGP-"):
-        raise argparse.ArgumentTypeError("--issue-id must be in 'SGP-XXX' format.")
-    return value
 
 def validate_checkpoint_interval(value):
     """
