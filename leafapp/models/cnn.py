@@ -24,10 +24,12 @@ class BasicCNN(nn.Module):
         channels: output channels of each conv block; one block per entry,
             e.g. (16, 32, 64) builds 3 blocks.
         image_size: height/width of the (square) input images.
+        pooling: "flatten" (default) flattens the final feature maps, while
+            "avg" uses global average pooling for a much smaller final layer.
         
     Input [B, 3, image_size, image_size] -> output [B, num_classes] logits.
     """
-    def __init__(self, num_classes=39, channels=(16, 32, 64), image_size=128):
+    def __init__(self, num_classes=39, channels=(16, 32, 64), image_size=128, pooling="flatten"):
         super().__init__()
         # Chain the blocks: each block's input channels = the previous block's output
         blocks = []
@@ -39,12 +41,21 @@ class BasicCNN(nn.Module):
         
         # Each block halves height and width, so the final maps are
         # image_size // 2**num_blocks on each side
-        final_size = image_size // 2**len(blocks)
-        self.head = nn.Sequential(
-            nn.Flatten(),
-            #        channels * height * width
-            nn.Linear(channels[-1] * final_size**2, num_classes)
-        )
+        if pooling == "flatten":
+            final_size = image_size // 2**len(blocks)
+            self.head = nn.Sequential(
+                nn.Flatten(),
+                nn.Linear(channels[-1] * final_size**2, num_classes)
+            )
+        elif pooling == "avg":
+            # Average each feature map to one value, so the final layer gets one number per channel
+            self.head = nn.Sequential(
+                nn.AdaptiveAvgPool2d(1),
+                nn.Flatten(),
+                nn.Linear(channels[-1], num_classes)
+            )
+        else:
+            raise ValueError("pooling must be 'flatten' or 'avg'")
 
     def make_block(self, in_ch, out_ch):
         """Build one block with the baseline's default layers."""
