@@ -118,6 +118,82 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path):
     ]
     assert captured["task_name"] == "BasicCNN - prototype"
 
+def test_main_saves_and_uploads_checkpoints_at_requested_interval(
+    monkeypatch, tmp_path
+):
+    cfg = {
+        "seed": 0,
+        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4},
+        "model": {"type": "BasicCNN"},
+        "train": {
+            "lr": 1e-3,
+            "weight_decay": 0.0,
+            "epochs": 5,
+            "checkpoint_dir": str(tmp_path),
+        },
+    }
+    saved_paths = []
+    uploaded_artifacts = []
+    task = MagicMock()
+
+    monkeypatch.setattr(train, "load_config", lambda path: cfg)
+    monkeypatch.setattr(
+        train,
+        "get_loaders",
+        lambda **kwargs: (
+            make_fake_loader(),
+            make_fake_loader(),
+            None,
+            ["a", "b", "c", "d", "e"],
+        ),
+    )
+    monkeypatch.setattr(
+        train,
+        "build_model",
+        lambda model_cfg, data_cfg, class_names: BasicCNN(
+            num_classes=5, channels=(8,), image_size=32
+        ),
+    )
+    monkeypatch.setattr(train, "initialise_task", lambda **kwargs: task)
+    monkeypatch.setattr(
+        train,
+        "train_one_epoch",
+        lambda *args, **kwargs: {"loss": 0.5, "accuracy": 0.8, "f1": 0.7},
+    )
+    monkeypatch.setattr(
+        train,
+        "calculate_metrics_per_loader",
+        lambda **kwargs: {"loss": 0.4, "accuracy": 0.8, "f1": 0.7},
+    )
+    monkeypatch.setattr(train, "log_epoch_metrics", MagicMock())
+    monkeypatch.setattr(
+        train, "save_checkpoint", lambda path, **kwargs: saved_paths.append(path)
+    )
+    monkeypatch.setattr(
+        train,
+        "upload_checkpoint",
+        lambda task, path, name: uploaded_artifacts.append((path, name)),
+    )
+    monkeypatch.setattr(train, "close_task", MagicMock())
+
+    train.main(
+        "configs/prototype.yaml",
+        VALID_NAME,
+        "production",
+        "",
+        checkpoint_interval=2,
+    )
+
+    periodic_paths = [path for path in saved_paths if "_epoch_" in path.name]
+    assert [path.name.rsplit("_epoch_", 1)[1] for path in periodic_paths] == [
+        "2.pt",
+        "4.pt",
+    ]
+    assert [name for _, name in uploaded_artifacts if name.startswith("checkpoint_epoch_")] == [
+        "checkpoint_epoch_2",
+        "checkpoint_epoch_4",
+    ]
+
 @pytest.mark.parametrize("failure_epoch", [1, 2])
 def test_main_uploads_checkpoints_when_training_fails(
     monkeypatch, tmp_path, failure_epoch
