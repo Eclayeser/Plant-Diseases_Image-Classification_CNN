@@ -102,8 +102,10 @@ def close_task(task: Any, *, failed: bool = False, message: str | None = None) -
                 break
             except Exception:
                 continue
-
     try:
         task.close()
     except Exception:
-        pass
+        if failed:
+            LOGGER.exception("Could not close the ClearML task after marking it as failed")
+        else:
+            raise

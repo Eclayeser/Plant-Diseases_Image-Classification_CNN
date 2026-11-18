@@ -22,6 +22,9 @@ class FakeTask:
         self.tags = []
         self.closed = False
         self.failed = False
+        self.failure_message = None
+        self.close_error = None
+        self.events = []
 
     def upload_artifact(self, **kwargs):
         self.artifacts.append(kwargs)
@@ -33,6 +36,7 @@ class FakeTask:
         if isinstance(tags, str):
             tags = [tags]
         self.tags.extend(tags)
+        self.events.append("add_tags")
 
     def get_tags(self):
         return list(self.tags)
@@ -43,8 +47,13 @@ class FakeTask:
     def mark_failed(self, ignore_errors=True, status_reason=None, status_message=None, force=False):
         self.failed = True
         self.failure_message = status_message
+        self.events.append("mark_failed")
 
     def close(self):
+        self.closed = True
+        self.events.append("close")
+        if self.close_error is not None:
+            raise self.close_error
         self.closed = True
 
 def test_log_epoch_metrics_reports_each_split_and_metric():
@@ -128,3 +137,22 @@ def test_close_task_marks_task_as_closed_and_failed():
     assert task.closed is True
     assert task.failed is True
     assert task.failure_message == "some error"
+    assert task.events == ["add_tags", "mark_failed", "close"]
+
+def test_close_task_propagates_close_error_when_not_already_failed():
+    task = FakeTask()
+    task.close_error = RuntimeError("close failed")
+
+    with pytest.raises(RuntimeError, match="close failed"):
+        close_task(task)
+
+def test_close_task_logs_close_error_when_preserving_failure(caplog):
+    task = FakeTask()
+    task.close_error = RuntimeError("close failed")
+
+    close_task(task, failed=True, message="training failed")
+
+    assert "Could not close the ClearML task after marking it as failed" in caplog.text
+    assert "failed" in task.tags
+    assert task.failed is True
+    assert task.failure_message == "training failed"
