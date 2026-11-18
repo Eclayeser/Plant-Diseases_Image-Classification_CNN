@@ -196,7 +196,7 @@ def test_main_saves_and_uploads_checkpoints_at_requested_interval(
 
 @pytest.mark.parametrize("failure_epoch", [1, 2])
 def test_main_uploads_checkpoints_when_training_fails(
-    monkeypatch, tmp_path, failure_epoch
+    monkeypatch, tmp_path, failure_epoch, capsys
 ):
     cfg = {
         "seed": 0,
@@ -242,7 +242,9 @@ def test_main_uploads_checkpoints_when_training_fails(
 
     def save_checkpoint(path, **kwargs):
         path.write_bytes(b"checkpoint")
+        saved_paths.append(path)
 
+    saved_paths = []
     monkeypatch.setattr(train, "train_one_epoch", fail_on_second_epoch)
     monkeypatch.setattr(
         train,
@@ -261,6 +263,11 @@ def test_main_uploads_checkpoints_when_training_fails(
     with pytest.raises(RuntimeError, match="training failed"):
         train.main("configs/prototype.yaml", VALID_NAME, "production", "")
 
+    output = capsys.readouterr().out
+    final_checkpoint_path = next(path for path in saved_paths if not path.stem.endswith("_best"))
+    best_checkpoint_path = next(path for path in saved_paths if path.stem.endswith("_best"))
+    assert f"Final checkpoint saved to {final_checkpoint_path}" in output
+    assert f"Best checkpoint saved to {best_checkpoint_path}" in output
     assert {name for _, name in uploaded_artifacts} == {
         "final_checkpoint",
         "best_checkpoint",
