@@ -170,3 +170,10 @@ def test_invalid_dropout_probability_is_rejected(dropout_p):
             regularisation="dropout",
             dropout_p=dropout_p,
         )
+
+
+def test_avg_pooling_output_shape():
+    model = BasicCNN(pooling="avg")
+    x = torch.randn(2, 3, 128, 128)
+
+    assert model(x).shape == (2, 39), "Avg pooling CNN should output [2, 39] logits"
