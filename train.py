@@ -267,11 +267,19 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
                     history_metrics=history_metrics,
                 )
                 print(f"Saved checkpoint to {epoch_checkpoint_path}")
-                upload_checkpoint(
-                    task,
-                    epoch_checkpoint_path,
-                    f"checkpoint_epoch_{epoch + 1}",
-                )
+                try:
+                    upload_checkpoint(
+                        task,
+                        epoch_checkpoint_path,
+                        f"checkpoint_epoch_{epoch + 1}",
+                    )
+                except Exception:
+                    LOGGER.exception(
+                        "Could not upload periodic checkpoint for epoch %s; "
+                        "local checkpoint saved to %s",
+                        epoch + 1,
+                        epoch_checkpoint_path,
+                    )
 
             print(
                     f"Epoch {epoch + 1}: "

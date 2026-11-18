@@ -196,6 +196,95 @@ def test_main_saves_and_uploads_checkpoints_at_requested_interval(
         "checkpoint_epoch_4",
     ]
 
+def test_main_continues_when_periodic_checkpoint_upload_fails(
+    monkeypatch, tmp_path, caplog
+):
+    cfg = {
+        "seed": 0,
+        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4},
+        "model": {"type": "BasicCNN"},
+        "train": {
+            "lr": 1e-3,
+            "weight_decay": 0.0,
+            "epochs": 5,
+            "checkpoint_dir": str(tmp_path),
+        },
+    }
+    task = MagicMock()
+    saved_paths = []
+    uploaded_artifacts = []
+    trained_epochs = []
+
+    monkeypatch.setattr(train, "load_config", lambda path: cfg)
+    monkeypatch.setattr(
+        train,
+        "get_loaders",
+        lambda **kwargs: (
+            make_fake_loader(),
+            make_fake_loader(),
+            None,
+            ["a", "b", "c", "d", "e"],
+        ),
+    )
+    monkeypatch.setattr(
+        train,
+        "build_model",
+        lambda model_cfg, data_cfg, class_names: BasicCNN(
+            num_classes=5, channels=(8,), image_size=32
+        ),
+    )
+    monkeypatch.setattr(train, "initialise_task", lambda **kwargs: task)
+
+    def train_epoch(*args, **kwargs):
+        trained_epochs.append(len(trained_epochs) + 1)
+        return {"loss": 0.5, "accuracy": 0.8, "f1": 0.7}
+
+    def save_checkpoint(path, **kwargs):
+        path.write_bytes(b"checkpoint")
+        saved_paths.append(path)
+
+    def upload(task, path, name):
+        if name == "checkpoint_epoch_2":
+            raise OSError("storage unavailable")
+        uploaded_artifacts.append((path, name))
+
+    monkeypatch.setattr(train, "train_one_epoch", train_epoch)
+    monkeypatch.setattr(
+        train,
+        "calculate_metrics_per_loader",
+        lambda **kwargs: {
+            "loss": 0.4,
+            "accuracy": 0.8,
+            "f1": 0.7,
+            "confusion-matrix": [[0] * 5 for _ in range(5)],
+        },
+    )
+    monkeypatch.setattr(train, "save_checkpoint", save_checkpoint)
+    monkeypatch.setattr(train, "upload_checkpoint", upload)
+    monkeypatch.setattr(train, "log_epoch_metrics", MagicMock())
+    monkeypatch.setattr(train, "close_task", MagicMock())
+
+    train.main(
+        "configs/prototype.yaml",
+        VALID_NAME,
+        "production",
+        "",
+        checkpoint_interval=2,
+    )
+
+    failed_periodic_checkpoint = next(
+        path for path in saved_paths if path.name.endswith("_epoch_2.pt")
+    )
+    assert failed_periodic_checkpoint.is_file()
+    assert trained_epochs == [1, 2, 3, 4, 5]
+    assert {name for _, name in uploaded_artifacts} == {
+        "checkpoint_epoch_4",
+        "final_checkpoint",
+        "best_checkpoint",
+    }
+    assert "Could not upload periodic checkpoint for epoch 2" in caplog.text
+    assert "storage unavailable" in caplog.text
+
 @pytest.mark.parametrize("failure_epoch", [1, 2])
 def test_main_uploads_checkpoints_when_training_fails(
     monkeypatch, tmp_path, failure_epoch, capsys
