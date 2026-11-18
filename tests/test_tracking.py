@@ -10,7 +10,6 @@ class FakeLogger:
         self.single_values = []
         self.images = []
         self.confusion_matrices = []
-        self.failure_message = None
 
     def report_scalar(self, **kwargs):
         self.scalars.append(kwargs)
@@ -38,17 +37,11 @@ class FakeTask:
     def upload_artifact(self, **kwargs):
         self.artifacts.append(kwargs)
 
-    def set_tags(self, tags):
-        self.tags = tags
-
     def add_tags(self, tags):
         if isinstance(tags, str):
             tags = [tags]
         self.tags.extend(tags)
         self.events.append("add_tags")
-
-    def get_tags(self):
-        return list(self.tags)
 
     def mark_failed(self, ignore_errors=True, status_reason=None, status_message=None, force=False):
         self.failed = True
@@ -60,7 +53,6 @@ class FakeTask:
         self.events.append("close")
         if self.close_error is not None:
             raise self.close_error
-        self.closed = True
 
 class FakeArtifact:
     def __init__(self, local_path):
