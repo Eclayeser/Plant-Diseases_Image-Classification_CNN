@@ -47,7 +47,7 @@ python -m pip install -r requirements.txt
 ```bash
 python train.py --responsible "<your name>"                                                                                  # uses configs/prototype.yaml, the default run type and a checkpoint interval of 5 epochs
 python train.py --config configs/prototype_small_data_frac.yaml --responsible "<your name>" --run-type comparison --issue-id SGP-30  # or any other config file and run type; --issue-id is optional
-python train.py --responsible "<your name>" --checkpoint 1                                                                    # save a snapshot every epoch
+python train.py --responsible "<your name>" --save-interval 1                                                                 # save a snapshot every epoch
 ```
 - Settings (data fraction, image size, batch size, model channels, learning rate, epochs, seed) are read from the chosen config file.
 - `normalize` under `data:` sets how image colours are normalised: `false` (default), `imagenet` (ImageNet's mean and std, needed for ResNet18; older configs write this as `true`), or `plant_village` (our training split's own mean and std, computed by `compute_norm_stats.py`).
@@ -58,10 +58,10 @@ python train.py --responsible "<your name>" --checkpoint 1                      
 - Set `augment: false` under `data:` to turn off training augmentation (random flips, rotations and colour changes). It is on by default.
 - `optimizer` under `train:` chooses the optimiser: `AdamW` (default) or `Adam`. See `documents/experiments/SGP-27/` for why AdamW is the default.
 
-### Understanding --checkpoint
+### Understanding --save-interval
 
-`--checkpoint` is optional (default: 5). It configures the frequency of saving checkpoints during training.
-`--checkpoint 1` saves one after every epoch. The best-validation and final checkpoints are still saved as before.
+`--save-interval` is optional (default: 5). It configures the frequency of saving checkpoints during training.
+`--save-interval 1` saves one after every epoch. The best-validation and final checkpoints are still saved as before.
 
 ### Understanding --run-type
 

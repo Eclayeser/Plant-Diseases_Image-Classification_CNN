@@ -43,7 +43,7 @@ def parse_args(argv=None):
     parser.add_argument("--responsible", required=True, choices=NAMES, help="Name who is responsible for / triggered the run.")
     parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
     parser.add_argument("--issue-id", default="", help="Pin issue identifier in format 'SGP-XXX'", type=validate_issue_id)
-    parser.add_argument("--checkpoint", default=5, metavar="CHECKPOINT_INTERVAL", help="Saves a checkpoint every N epoch(s) (default: 5).", type=validate_checkpoint_interval)
+    parser.add_argument("--save-interval", default=5, metavar="SAVE_INTERVAL", help="Saves a checkpoint every N epoch(s) (default: 5).", type=validate_checkpoint_interval)
     return parser.parse_args(argv)
 
 
@@ -69,7 +69,7 @@ def validate_checkpoint_interval(value):
     """
     ivalue = int(value)
     if ivalue <= 0:
-        raise argparse.ArgumentTypeError("--checkpoint must be a positive integer.")
+        raise argparse.ArgumentTypeError("--save-interval must be a positive integer.")
     return ivalue
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
@@ -370,4 +370,4 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args.config, args.responsible, args.run_type, args.issue_id, args.checkpoint)
+    main(args.config, args.responsible, args.run_type, args.issue_id, args.save_interval)

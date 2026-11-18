@@ -41,7 +41,7 @@ def test_train_one_epoch_rejects_empty_loader():
 def test_parse_args_gives_default_path():
     args = parse_args(["--responsible", VALID_NAME])
     assert args.config == "configs/prototype.yaml", "Did not return default path"
-    assert args.checkpoint == 5, "Did not return default checkpoint interval"
+    assert args.save_interval == 5, "Did not return default checkpoint interval"
 
 def test_parse_args_reads_custom_config():
     args = parse_args(["--config", "configs/resnet18.yaml", "--responsible", VALID_NAME])
@@ -64,9 +64,9 @@ def test_parse_args_run_type_default():
     assert args.run_type == "debugging", "Did not return the default run type"
     assert args.run_type in RUN_TYPES
 
-def test_parse_args_reads_checkpoint_interval():
-    args = parse_args(["--responsible", VALID_NAME, "--checkpoint", "1"])
-    assert args.checkpoint == 1, "Did not read the --checkpoint value"
+def test_parse_args_reads_save_interval():
+    args = parse_args(["--responsible", VALID_NAME, "--save-interval", "1"])
+    assert args.save_interval == 1, "Did not read the --save-interval value"
 
 @pytest.mark.parametrize("run_type", RUN_TYPES)
 def test_parse_args_accepts_every_run_type(run_type):
