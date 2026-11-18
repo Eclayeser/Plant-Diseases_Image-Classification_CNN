@@ -41,9 +41,6 @@ class FakeTask:
     def get_tags(self):
         return list(self.tags)
 
-    def set_status(self, status):
-        self.failed = status == "failed"
-
     def mark_failed(self, ignore_errors=True, status_reason=None, status_message=None, force=False):
         self.failed = True
         self.failure_message = status_message
@@ -138,6 +135,20 @@ def test_close_task_marks_task_as_closed_and_failed():
     assert task.failed is True
     assert task.failure_message == "some error"
     assert task.events == ["add_tags", "mark_failed", "close"]
+
+def test_close_task_logs_mark_failed_error_and_still_closes(caplog):
+    task = FakeTask()
+
+    def fail_marking_task_failed(**kwargs):
+        raise RuntimeError("ClearML unavailable")
+
+    task.mark_failed = fail_marking_task_failed
+
+    close_task(task, failed=True, message="training failed")
+
+    assert "Could not mark the ClearML task as failed" in caplog.text
+    assert "ClearML unavailable" in caplog.text
+    assert task.closed is True
 
 def test_close_task_propagates_close_error_when_not_already_failed():
     task = FakeTask()
