@@ -187,3 +187,8 @@ def test_avg_pooling_has_fewer_parameters():
     avg_params = sum(p.numel() for p in avg_model.parameters())
 
     assert avg_params < flatten_params, "Avg pooling should have fewer parameters than flatten"
+
+
+def test_unknown_pooling_is_rejected():
+    with pytest.raises(ValueError, match="pooling"):
+        BasicCNN(pooling="max")
