@@ -42,7 +42,7 @@ def parse_args(argv=None):
     parser.add_argument("--responsible", required=True, choices=NAMES, help="Name who is responsible for / triggered the run.")
     parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
     parser.add_argument("--issue-id", default="", help="Pin issue identifier in format 'SGP-XXX'", type=validate_issue_id)
-    parser.add_argument("--checkpoint", default=5, help="Save checkpoint every N epochs (default: 5).", type=validate_checkpoint_interval)
+    parser.add_argument("--checkpoint", default=5, metavar="CHECKPOINT_INTERVAL", help="Save checkpoint every N epochs (default: 5).", type=validate_checkpoint_interval)
     return parser.parse_args(argv)
 
 
