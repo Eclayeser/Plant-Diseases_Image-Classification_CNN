@@ -103,7 +103,6 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
 
 def save_and_upload_failure_artifacts(
-        
     task,
     exc,
     cfg,
