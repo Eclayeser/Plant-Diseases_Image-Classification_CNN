@@ -77,7 +77,7 @@ def test_parse_args_rejects_invalid_run_type():
     with pytest.raises(SystemExit):
         parse_args(["--responsible", VALID_NAME, "--run-type", "not-a-run-type"])
 
-def test_main_tags_task_with_run_details(monkeypatch, tmp_path):
+def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
     cfg = {
         "seed": 0,
         "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4},
@@ -91,6 +91,7 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path):
         return MagicMock()
 
     monkeypatch.setattr(train, "load_config", lambda path: cfg)
+    monkeypatch.setattr(train.torch.cuda, "is_available", lambda: False)
     monkeypatch.setattr(
         train, "get_loaders",
         lambda **kwargs: (make_fake_loader(), make_fake_loader(), None, ["a", "b", "c", "d", "e"]),
@@ -109,6 +110,7 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path):
 
     train.main("configs/prototype.yaml", "Mark Tarnavskyi", "production", "")
 
+    assert "Training device: CPU (CUDA unavailable; falling back to CPU)" in capsys.readouterr().out
     assert captured["tags"] == [
         "@run-type:production",
         "@model:BasicCNN",
