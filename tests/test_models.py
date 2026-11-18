@@ -192,3 +192,11 @@ def test_avg_pooling_has_fewer_parameters():
 def test_unknown_pooling_is_rejected():
     with pytest.raises(ValueError, match="pooling"):
         BasicCNN(pooling="max")
+
+
+def test_regularised_cnn_supports_avg_pooling():
+    model = RegularisedCNN(regularisation="dropout", pooling="avg")
+    x = torch.randn(2, 3, 128, 128)
+
+    assert model(x).shape == (2, 39), "RegularisedCNN with avg pooling should output [2, 39] logits"
+    assert model.head[-1].in_features == 64, "RegularisedCNN should pass pooling to BasicCNN"
