@@ -116,6 +116,84 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
     return epoch_metrics
 
+
+def save_and_upload_failure_artifacts(
+    task,
+    exc,
+    cfg,
+    model,
+    class_names,
+    history_metrics,
+    checkpoint_path,
+    best_checkpoint_path,
+    best_checkpoint_pending,
+    final_checkpoint_uploaded,
+    best_checkpoint_uploaded,
+):
+    if task is None:
+        return
+
+    checkpoint_kwargs = None
+    if (
+        cfg is not None
+        and model is not None
+        and class_names is not None
+        and history_metrics is not None
+    ):
+        checkpoint_kwargs = {
+            "model": model,
+            "cfg": cfg,
+            "class_names": class_names,
+            "history_metrics": history_metrics,
+        }
+
+    if (
+        not final_checkpoint_uploaded
+        and checkpoint_path is not None
+        and checkpoint_kwargs is not None
+    ):
+        try:
+            save_checkpoint(path=checkpoint_path, **checkpoint_kwargs)
+        except Exception:
+            LOGGER.exception(
+                "Could not save the final checkpoint while handling a failed run"
+            )
+
+    if (
+        best_checkpoint_pending
+        and best_checkpoint_path is not None
+        and checkpoint_kwargs is not None
+    ):
+        try:
+            save_checkpoint(path=best_checkpoint_path, **checkpoint_kwargs)
+        except Exception:
+            LOGGER.exception(
+                "Could not retry saving the pending best checkpoint while handling a failed run"
+            )
+
+    for path, checkpoint_name in (
+        (checkpoint_path, "Final"),
+        (best_checkpoint_path, "Best"),
+    ):
+        if path is not None and path.is_file():
+            print(f"{checkpoint_name} checkpoint saved to {path}")
+
+    for path, name, already_uploaded in (
+        (checkpoint_path, "final_checkpoint", final_checkpoint_uploaded),
+        (best_checkpoint_path, "best_checkpoint", best_checkpoint_uploaded),
+    ):
+        if path is None or already_uploaded or not path.is_file():
+            continue
+        try:
+            upload_checkpoint(task, path, name)
+        except Exception:
+            LOGGER.exception(
+                f"Could not upload the {name} checkpoint while handling a failed run"
+            )
+
+    close_task(task, failed=True, message=str(exc))
+
+
 def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
     """
     Train a model using the config at config_path and save a checkpoint.
@@ -125,6 +203,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
     uniquely named file (timestamp + short id) in checkpoint_dir.
     """
     task = None
+    cfg = None
     model = None
     class_names = None
     history_metrics = None
@@ -309,63 +388,19 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
         best_checkpoint_uploaded = True
         close_task(task)
     except BaseException as exc:
-        if task is not None:
-            if (
-                not final_checkpoint_uploaded
-                and checkpoint_path is not None
-                and model is not None
-                and class_names is not None
-                and history_metrics is not None):
-                try:
-                    save_checkpoint(
-                        path=checkpoint_path,
-                        model=model,
-                        cfg=cfg,
-                        class_names=class_names,
-                        history_metrics=history_metrics,
-                    )
-                except Exception:
-                    LOGGER.exception("Could not save the final checkpoint while handling a failed run")
-
-            if (
-                best_checkpoint_pending
-                and best_checkpoint_path is not None
-                and model is not None
-                and class_names is not None
-                and history_metrics is not None):
-                try:
-                    save_checkpoint(
-                        path=best_checkpoint_path,
-                        model=model,
-                        cfg=cfg,
-                        class_names=class_names,
-                        history_metrics=history_metrics,
-                    )
-                except Exception:
-                    LOGGER.exception(
-                        "Could not retry saving the pending best checkpoint while handling a failed run"
-                    )
-                else:
-                    best_checkpoint_pending = False
-
-            for path, checkpoint_name in (
-                (checkpoint_path, "Final"),
-                (best_checkpoint_path, "Best"),
-            ):
-                if path is not None and path.is_file():
-                    print(f"{checkpoint_name} checkpoint saved to {path}")
-            
-            for path, name, already_uploaded in (
-                (checkpoint_path, "final_checkpoint", final_checkpoint_uploaded),
-                (best_checkpoint_path, "best_checkpoint", best_checkpoint_uploaded)):
-                if path is None or already_uploaded or not path.is_file():
-                    continue
-                try:
-                    upload_checkpoint(task, path, name)
-                except Exception:
-                    LOGGER.exception(f"Could not upload the {name} checkpoint while handling a failed run")
-            
-            close_task(task, failed=True, message=str(exc))
+        save_and_upload_failure_artifacts(
+            task=task,
+            exc=exc,
+            cfg=cfg,
+            model=model,
+            class_names=class_names,
+            history_metrics=history_metrics,
+            checkpoint_path=checkpoint_path,
+            best_checkpoint_path=best_checkpoint_path,
+            best_checkpoint_pending=best_checkpoint_pending,
+            final_checkpoint_uploaded=final_checkpoint_uploaded,
+            best_checkpoint_uploaded=best_checkpoint_uploaded,
+        )
         raise
 
 if __name__ == "__main__":
