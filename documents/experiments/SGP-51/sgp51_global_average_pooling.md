@@ -27,3 +27,15 @@ The checkpoints are not committed to the repository. They are stored as artifact
 ![Validation loss](loss_validation.png)
 
 ![Validation F1](f1_validation.png)
+
+## Observations
+
+- **Accuracy.** Flatten performed better at its best epoch: 6.3 percentage points higher validation accuracy (0.895 vs 0.832), 9.2 points higher macro F1 (0.875 vs 0.783), and lower validation loss (0.392 vs 0.521).
+
+- **Overfitting.** Flatten shows signs of overfitting: at its best epoch, training accuracy is 4.2 points above validation accuracy (0.937 vs 0.895), and by epoch 12 the gap grows to 8.7 points (0.954 vs 0.867), while validation loss rises from 0.392 to 0.467. GAP shows no clear signs of overfitting in this run: at its best epoch, training and validation accuracy are almost the same (0.831 vs 0.832).
+
+- **Underfitting.** GAP shows less overfitting, but its lower training accuracy suggests possible underfitting. Its training loss stays around 0.5, close to its validation loss, while Flatten's training loss drops to 0.14. With only 128 values going into the final layer, the model has much less capacity. Averaging each feature map also removes information about where the disease patterns are in the image, which may explain the lower accuracy.
+
+- **Training time.** GAP is only slightly faster per epoch (~58 s vs ~62 s), because most of the computation is in the convolutional layers. It needed twice as many epochs to reach its best result (18 vs 9), so the whole run took longer (about 20 minutes vs 13 minutes).
+
+- **Model size.** GAP has about 14 times fewer parameters (98,279 vs 1,371,239), so its checkpoint is much smaller.
