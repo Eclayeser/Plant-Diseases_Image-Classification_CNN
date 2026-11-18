@@ -21,3 +21,9 @@ Both runs use the same training settings. The Flatten run uses `cnn_wider_normal
 | GAP | `cnn_wider_avg_pooling_early_stopping.yaml` | 98,279 | 18 | 21 | 0.832 | 0.783 | 0.521 | 0.831 | ~58 s |
 
 The checkpoints are not committed to the repository. They are stored as artifacts (`final_checkpoint` and `best_checkpoint`) in each ClearML task.
+
+![Validation accuracy](accuracy_validation.png)
+
+![Validation loss](loss_validation.png)
+
+![Validation F1](f1_validation.png)
