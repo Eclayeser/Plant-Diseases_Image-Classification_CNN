@@ -10,28 +10,43 @@ from leafapp.eval_functions import (
     plot_and_save_confusion_matrix,
     save_evaluation_report,
 )
+from leafapp.config import ROOT
 from leafapp.data import get_loaders
 from leafapp.checkpoints import load_checkpoint
+from leafapp.tracking import NAMES, RUN_TYPES, validate_issue_id, sanitise_name, initialise_task, close_task, log_final_metrics, log_image, upload_file, get_task, download_checkpoint
 
-REPORTS_DIR = Path("outputs") / "eval_reports"
-DIAGRAMS_DIR = Path("outputs") / "diagrams"
+REPORTS_DIR = ROOT / "outputs" / "eval_reports"
+DIAGRAMS_DIR = ROOT / "outputs" / "diagrams"
 ACCEPTED_DATA_TYPES = ("validation", "test")
-# TODO: as part of SGP-33, implement same tagging logic as in train.py
-# RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
+ARTIFACTS = ("best_checkpoint", "final_checkpoint")
+DEFAULT_ARTIFACT = "best_checkpoint"
 
 
 def parse_args(argv=None):
-    """Read the command-line arguments (--checkpoint, --split) and return them."""
+    """Read the command-line arguments (--checkpoint, --task-id, --split, --responsible, --run-type, --issue-id, --artifact) and return them."""
 
     parser = argparse.ArgumentParser(description="Evaluate a saved checkpoint on the validation or test set.")
-    parser.add_argument("--checkpoint", required=True, help="Path to the .pt checkpoint to evaluate.")
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--checkpoint", help="Path to a local .pt checkpoint to evaluate.")
+    source.add_argument("--task-id", help="ClearML training task ID to download the checkpoint from.")
     parser.add_argument("--split", choices=ACCEPTED_DATA_TYPES, default="validation", help="Which split to evaluate on (default: validation).")
-    # parser.add_argument("--responsible", required=True, help="Name who is responsible for / triggered the run.")
-    # parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
-    return parser.parse_args(argv)
+    parser.add_argument("--responsible", required=True, choices=NAMES, help="Name who is responsible for / triggered the run.")
+    parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
+    parser.add_argument("--issue-id", default="", help="Pin issue identifier in format 'SGP-XXX'", type=validate_issue_id)
+    parser.add_argument("--artifact", choices=ARTIFACTS, default=None, help=f"Which checkpoint artifact to download with --task-id (default: {DEFAULT_ARTIFACT}).")
+
+    args = parser.parse_args(argv)
+
+    if args.artifact is not None and args.task_id is None:
+        parser.error("--artifact can only be used with --task-id")
+
+    if args.artifact is None and args.task_id is not None:
+        args.artifact = DEFAULT_ARTIFACT
+
+    return args
 
 
-def main(checkpoint_path: str|Path, data_type: str):
+def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_type, issue_id, task_id, artifact):
     """
     Evaluate a saved checkpoint on the validation or test set.
 
@@ -41,8 +56,47 @@ def main(checkpoint_path: str|Path, data_type: str):
     if data_type not in ACCEPTED_DATA_TYPES:
         raise ValueError(f"data_type should be one of {ACCEPTED_DATA_TYPES}")
 
+    requested_checkpoint = checkpoint_path
+
+    if task_id is not None:
+        training_task = get_task(task_id)
+        checkpoint_path = download_checkpoint(training_task, artifact)
+        checkpoint_name = f"{sanitise_name(training_task.name)}_{task_id[:6]}_{artifact}"
+    else:
+        checkpoint_name = Path(checkpoint_path).stem
+
     # load checkpoint info
     model, _, history_metrics, config = load_checkpoint(checkpoint_path)
+    
+    run_config = {
+        "evaluation": {
+            "checkpoint": str(requested_checkpoint) if requested_checkpoint is not None else None,
+            "task_id": task_id,
+            "artifact": artifact,
+            "split": data_type
+        },
+        "training": config,
+    }
+
+    tags=[
+        f"@run-type:{run_type}",
+        f"@model:{config['model']['type']}",
+        f"@responsible:{sanitise_name(responsible)}",
+        "@task-type:evaluate.py",
+        f"@split:{data_type}"
+    ]
+
+    if issue_id:
+        tags.append(f"@issue:{issue_id}")
+
+    task = initialise_task(
+        config=run_config, 
+        project_name="Plant-Disease-Image-Classification", 
+        task_name=f"{config['model']['type']} - {checkpoint_name} - {data_type}", 
+        tags=tags,
+    )
+    
+    logger = task.get_logger()
 
     # load data to evaluate against
     _, val_loader, test_loader, class_names = get_loaders(
@@ -77,8 +131,9 @@ def main(checkpoint_path: str|Path, data_type: str):
             ]
         )
 
+    log_final_metrics(logger, overall_metrics)
+
     # plot and save diagrams
-    checkpoint_name = Path(checkpoint_path).stem
     run_name = f"{checkpoint_name}_{data_type}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     curve_path = DIAGRAMS_DIR / f"{run_name}_training_curve.png"
     matrix_path = DIAGRAMS_DIR / f"{run_name}_confusion_matrix.png"
@@ -101,14 +156,21 @@ def main(checkpoint_path: str|Path, data_type: str):
             f"{overall_metrics['per-class-metrics'][1]}"    # [1] is to_print version / [0] is a dict
             f"\n"
             f"==============================   Diagrams   ==============================\n"
-            f" - Training Curve (Historical Metrics): {curve_path}\n"
-            f" - Confusion Matrix: {matrix_path}"
+            f" - Training Curve (Historical Metrics): {curve_path.relative_to(ROOT)}\n"
+            f" - Confusion Matrix: {matrix_path.relative_to(ROOT)}"
         )
 
     save_evaluation_report(report, report_path)
-    print(f"Saved evaluation report to {report_path}")
+    print(f"Saved evaluation report to {report_path.relative_to(ROOT)}")
+
+    log_image(logger, "evaluation", "confusion_matrix", matrix_path)
+    if curve_path.is_file():
+        log_image(logger, "evaluation", "training_curve", curve_path)
+    upload_file(task, report_path, "evaluation_report")
+
+    close_task(task)
 
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args.checkpoint, args.split)
+    main(args.checkpoint, args.split, args.responsible, args.run_type, args.issue_id, args.task_id, args.artifact)

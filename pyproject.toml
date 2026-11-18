@@ -1,1 +1,6 @@
 # Holds shared settings for Python development tools and tests.
+[tool.coverage.run]
+source = ["leafapp", "app"]
+
+[tool.coverage.report]
+show_missing = true
