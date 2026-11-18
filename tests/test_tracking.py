@@ -29,6 +29,8 @@ class FakeTask:
         self.tags = tags
 
     def add_tags(self, tags):
+        if isinstance(tags, str):
+            tags = [tags]
         self.tags.extend(tags)
 
     def get_tags(self):

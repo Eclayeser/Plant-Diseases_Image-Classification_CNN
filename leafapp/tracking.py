@@ -3,6 +3,8 @@
 from pathlib import Path
 from typing import Any, Mapping
 
+from train import LOGGER
+
 
 def initialise_task(
     config: Mapping[str, Any],
@@ -84,23 +86,9 @@ def close_task(task: Any, *, failed: bool = False, message: str | None = None) -
 
     if failed:
         try:
-            current_tags = list(getattr(task, "get_tags", lambda: [])())
+            task.add_tags("failed")
         except Exception:
-            current_tags = []
-
-        merged_tags = list(dict.fromkeys([*current_tags, "failed"]))
-        for setter_name in ("set_tags", "add_tags"):
-            setter = getattr(task, setter_name, None)
-            if setter is None:
-                continue
-            try:
-                if setter_name == "set_tags":
-                    setter(merged_tags)
-                else:
-                    setter("failed")
-                break
-            except Exception:
-                continue
+            LOGGER.exception("Could not add the failed tag to the ClearML task")
 
         for status_name in ("mark_failed", "set_status"):
             status_method = getattr(task, status_name, None)
