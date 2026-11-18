@@ -103,6 +103,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
 
 def save_and_upload_failure_artifacts(
+        
     task,
     exc,
     cfg,
@@ -115,6 +116,12 @@ def save_and_upload_failure_artifacts(
     final_checkpoint_uploaded,
     best_checkpoint_uploaded,
 ):
+    """
+    Preserve available checkpoints and mark the ClearML task as failed.
+
+    Retries saving the final checkpoint and any pending validation-best checkpoint, logs and uploads saved checkpoint files, then closes the task as failed.
+    Does nothing if no ClearML task was created.
+    """
     if task is None:
         return
 
