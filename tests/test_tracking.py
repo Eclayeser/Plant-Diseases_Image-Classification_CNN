@@ -1,14 +1,18 @@
 import pytest
 
-from leafapp.tracking import close_task, log_epoch_metrics, upload_checkpoint
+from leafapp.tracking import close_task, log_epoch_metrics, log_confusion_matrix, upload_checkpoint
 
 
 class FakeLogger:
     def __init__(self):
         self.scalars = []
+        self.confusion_matrices = []
 
     def report_scalar(self, **kwargs):
         self.scalars.append(kwargs)
+
+    def report_confusion_matrix(self, **kwargs):
+        self.confusion_matrices.append(kwargs)
 
 
 class FakeTask:
@@ -56,6 +60,26 @@ def test_log_epoch_metrics_reports_each_split_and_metric():
         {"title": "accuracy", "series": "validation", "value": 0.7, "iteration": 3},
     ]
 
+def test_log_confusion_matrix_reports_matrix_with_labels():
+    logger = FakeLogger()
+    matrix = [[5, 2], [1, 7]]
+    class_names = ["healthy", "rust"]
+
+    log_confusion_matrix(logger, epoch=3, matrix=matrix, class_names=class_names)
+
+    assert logger.confusion_matrices == [
+        {
+            "title": "Confusion Matrix",
+            "series": "validation",
+            "matrix": matrix,
+            "iteration": 3,
+            "xaxis": "Predicted label",
+            "yaxis": "True label",
+            "xlabels": class_names,
+            "ylabels": class_names,
+            "yaxis_reversed": True,
+        }
+    ]
 
 def test_upload_checkpoint_registers_artifact_path(tmp_path):
     task = FakeTask()
