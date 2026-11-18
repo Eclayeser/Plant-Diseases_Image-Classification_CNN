@@ -17,7 +17,7 @@ def test_basiccnn_output_shape():
 
 
 def test_resnet_output_shape():
-    model = build_resnet18()
+    model = build_resnet18(pretrained=False)
     x = torch.randn(2, 3, 128, 128)
     out = model(x)
     assert out.shape == (2, 39), "ResNet18 should output [2, 39] logits"
