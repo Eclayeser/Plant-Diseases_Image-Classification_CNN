@@ -42,6 +42,7 @@ def parse_args(argv=None):
     parser.add_argument("--responsible", required=True, choices=NAMES, help="Name who is responsible for / triggered the run.")
     parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
     parser.add_argument("--issue-id", default="", help="Pin issue identifier in format 'SGP-XXX'", type=validate_issue_id)
+    parser.add_argument("--checkpoint", default=5, help="Save checkpoint every N epochs (default: 5).", type=validate_checkpoint_interval)
     return parser.parse_args(argv)
 
 
@@ -61,6 +62,14 @@ def validate_issue_id(value):
         raise argparse.ArgumentTypeError("--issue-id must be in 'SGP-XXX' format.")
     return value
 
+def validate_checkpoint_interval(value):
+    """
+    Ensures checkpoint interval is a positive integer. Raises otherwise
+    """
+    ivalue = int(value)
+    if ivalue <= 0:
+        raise argparse.ArgumentTypeError("--checkpoint must be a positive integer.")
+    return ivalue
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
     """
@@ -106,7 +115,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
     return epoch_metrics
 
-def main(config_path, responsible, run_type, issue_id):
+def main(config_path, responsible, run_type, issue_id, checkpoint_interval):
     """
     Train a model using the config at config_path and save a checkpoint.
 
@@ -231,6 +240,24 @@ def main(config_path, responsible, run_type, issue_id):
                     history_metrics=history_metrics,
                 )
 
+            if (epoch + 1) % checkpoint_interval == 0:
+                epoch_checkpoint_path = checkpoint_path.with_name(
+                    f"{checkpoint_path.stem}_epoch_{epoch + 1}.pt"
+                )
+                save_checkpoint(
+                    path=epoch_checkpoint_path,
+                    model=model,
+                    cfg=cfg,
+                    class_names=class_names,
+                    history_metrics=history_metrics,
+                )
+                print(f"Saved checkpoint to {epoch_checkpoint_path}")
+                upload_checkpoint(
+                    task,
+                    epoch_checkpoint_path,
+                    f"checkpoint_epoch_{epoch + 1}",
+                )
+
             print(
                     f"Epoch {epoch + 1}: "
                     f"train loss {train_epoch_metrics['loss']:.3f}, train acc {train_epoch_metrics['accuracy']:.3f}, train f1 {train_epoch_metrics['f1']:.3f} | "
@@ -312,4 +339,4 @@ def main(config_path, responsible, run_type, issue_id):
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args.config, args.responsible, args.run_type, args.issue_id)
+    main(args.config, args.responsible, args.run_type, args.issue_id, args.checkpoint)
