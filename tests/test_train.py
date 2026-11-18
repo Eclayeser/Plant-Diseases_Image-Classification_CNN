@@ -444,15 +444,21 @@ def test_main_uploads_checkpoints_when_training_fails(
 
     output = capsys.readouterr().out
     final_checkpoint_path = next(path for path in saved_paths if not path.stem.endswith("_best"))
-    best_checkpoint_path = next(path for path in saved_paths if path.stem.endswith("_best"))
     assert f"Final checkpoint saved to {final_checkpoint_path}" in output
-    assert f"Best checkpoint saved to {best_checkpoint_path}" in output
-    if failure_epoch == 2:
-        assert sum(path == best_checkpoint_path for path in saved_paths) == 1
-    assert {name for _, name in uploaded_artifacts} == {
-        "final_checkpoint",
-        "best_checkpoint",
-    }
+    best_checkpoint_paths = [
+        path for path in saved_paths if path.stem.endswith("_best")
+    ]
+    if failure_epoch == 1:
+        assert best_checkpoint_paths == []
+        assert "Best checkpoint saved to" not in output
+        assert {name for _, name in uploaded_artifacts} == {"final_checkpoint"}
+    else:
+        assert len(best_checkpoint_paths) == 1
+        assert f"Best checkpoint saved to {best_checkpoint_paths[0]}" in output
+        assert {name for _, name in uploaded_artifacts} == {
+            "final_checkpoint",
+            "best_checkpoint",
+        }
     close_task.assert_called_once_with(
         task, failed=True, message="training failed"
     )

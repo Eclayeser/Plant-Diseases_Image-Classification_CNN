@@ -348,29 +348,6 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
                 else:
                     best_checkpoint_pending = False
 
-            if (
-                not best_checkpoint_uploaded
-                and best_checkpoint_path is not None
-                and not best_checkpoint_path.is_file()
-                and checkpoint_path is not None
-                and checkpoint_path.is_file()
-                and model is not None
-                and class_names is not None
-                and history_metrics is not None):
-
-                LOGGER.warning("No validation-best checkpoint exists; using the failure snapshot "
-                    "as the best-checkpoint fallback")
-                try:
-                    save_checkpoint(
-                        path=best_checkpoint_path,
-                        model=model,
-                        cfg=cfg,
-                        class_names=class_names,
-                        history_metrics=history_metrics,
-                    )
-                except Exception:
-                    LOGGER.exception("Could not save the best checkpoint fallback")
-
             for path, checkpoint_name in (
                 (checkpoint_path, "Final"),
                 (best_checkpoint_path, "Best"),
