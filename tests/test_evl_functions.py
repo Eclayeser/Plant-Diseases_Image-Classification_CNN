@@ -2,7 +2,7 @@ import pytest
 import torch
 from torch import nn
 from torch.nn import functional as F
-from leafapp.eval_functions import calculate_metrics_per_loader
+from leafapp.eval_functions import calculate_metrics_per_loader, calculate_most_confused_pairs
 
 CLASS_NAMES = ["healthy", "rust", "blight"]
 
@@ -82,3 +82,19 @@ def test_structured_metrics_have_expected_shape_and_content():
     report_dict, report_text = metrics["per-class-metrics"]
     assert all(name in report_dict for name in CLASS_NAMES)
     assert all(name in report_text for name in CLASS_NAMES)
+    
+    
+def test_confused_pairs_sorted_biggest_first():
+    cm = [[50, 2, 1], [3, 40, 9], [0, 12, 35]]
+    pairs = calculate_most_confused_pairs(cm, CLASS_NAMES, top_k=2) 
+    expected = [(12, "blight", "rust"), (9, "rust", "blight")]
+    assert pairs == expected, "Should list (count, true, predicted), biggest first"
+    
+    
+def test_confused_pairs_list_true_class_before_predicted():
+    cm = [[40, 10], [0, 50]]
+    names = ["early blight", "late blight"]
+    pairs = calculate_most_confused_pairs(cm, names, top_k=2)
+    expected = [(10, "early blight", "late blight")]
+    assert pairs == expected, "Should name the true class first, then the predicted one"
+    
