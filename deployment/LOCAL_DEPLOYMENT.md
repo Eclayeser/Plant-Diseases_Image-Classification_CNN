@@ -5,6 +5,7 @@ Runs the Gradio interface with the deployed ONNX model at http://localhost:8080.
 ## Requirements
 
 - Python 3
+- On macOS: Apple Silicon and macOS 14 or later (the pinned `onnxruntime` has no wheels for older Macs)
 - ClearML credentials in `clearml.conf` (see [Running ClearML](../README.md#running-clearml))
 
 The model is not stored in the repository. The scripts download the model

@@ -193,8 +193,10 @@ the [Local Deployment Guide](deployment/LOCAL_DEPLOYMENT.md).
 
 Live at: *(URL added once the Render service is created)*
 
-- Every merge to `main` redeploys the app, once the `tests` and `deploy-check`
-  workflows pass.
+- A merge to `main` redeploys the app once the `tests` and `deploy-check`
+  workflows pass, but only if it changes files outside the build filter in
+  `render.yaml`. Merges that only change Markdown files, `documents/`,
+  `notebooks/`, `configs/` or `tests/` don't redeploy.
 - Render installs `requirements-deploy.txt` (no torch), downloads the pinned
   model and runs `python -m app.app`. The configuration is in `render.yaml`.
 - If a build fails, the previous version stays live.
