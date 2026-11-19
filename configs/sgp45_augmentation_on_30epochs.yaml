@@ -3,7 +3,7 @@ data:
   image_size: 128
   fraction: 0.2
   batch_size: 32
-  augment: false
+  augment: true
 model:
   type: BasicCNN
   channels:
@@ -12,6 +12,8 @@ model:
   - 128
 train:
   lr: 0.001
-  epochs: 5
+  epochs: 30
   weight_decay: 0.01
   checkpoint_dir: outputs/models
+  patience: 3
+  min_delta: 0.0
