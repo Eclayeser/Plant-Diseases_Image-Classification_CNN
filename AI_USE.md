@@ -309,3 +309,11 @@ myself and Claude reviewed at the end.
 - Documentation: AI-assisted structuring of local deployment instructions.
 
 Approximate share of AI-generated code: 60%.
+
+## leafapp/models/resnet.py, leafapp/model_constructor.py, leafapp/checkpoints.py (SGP-26, Gul Nil Kayalioglu)
+- I added a `pretrained` option so that loading a checkpoint skips the ImageNet weight download. Claude gave me the idea of using this option, and I implemented it myself.
+- Approximate share of AI-generated code: 10%
+
+## tests/test_models.py, tests/test_checkpoints.py (SGP-26, Gul Nil Kayalioglu)
+- I updated the ResNet shape test to avoid downloading ImageNet weights and wrote a test to check that a ResNet18 checkpoint loads without requesting pretrained weights. I wrote most of the code myself, but Claude suggested using monkeypatch for the test.
+- Approximate share of AI-generated code: 30%
