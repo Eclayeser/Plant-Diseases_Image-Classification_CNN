@@ -27,6 +27,8 @@ from leafapp.tracking import (
     download_checkpoint,
     DEFAULT_ARTIFACT,
     ARTIFACTS,
+    build_tags,
+    PROJECT_NAME,
 )
 
 REPORTS_DIR = ROOT / "outputs" / "eval_reports"
@@ -90,20 +92,18 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
         "training": config,
     }
 
-    tags=[
-        f"@run-type:{run_type}",
-        f"@model:{config['model']['type']}",
-        f"@responsible:{sanitise_name(responsible)}",
-        "@task-type:evaluate.py",
-        f"@split:{data_type}"
-    ]
-
-    if issue_id:
-        tags.append(f"@issue:{issue_id}")
+    tags = build_tags(
+        run_type=run_type,
+        model_type=config["model"]["type"],
+        responsible=responsible,
+        task_type="evaluate.py",
+        issue_id=issue_id,
+        extra=[f"@split:{data_type}"]
+    )
 
     task = initialise_task(
         config=run_config, 
-        project_name="Plant-Disease-Image-Classification", 
+        project_name=PROJECT_NAME, 
         task_name=f"{config['model']['type']} - {checkpoint_name} - {data_type}", 
         tags=tags,
     )

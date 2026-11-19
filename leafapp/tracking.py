@@ -10,6 +10,8 @@ RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see READ
 NAMES = ("Mark Tarnavskyi", "Pranay Singh", "Illia Putintsev", "Javier Fimia", "Reon Carroll-Ito", "Nil Kayalioglu", "Mario Westphalen Cavicchioli")
 DEFAULT_ARTIFACT = "best_checkpoint"
 ARTIFACTS = (DEFAULT_ARTIFACT, "final_checkpoint")
+PROJECT_NAME = "Plant-Disease-Image-Classification"
+
 
 def sanitise_name(value):
     """
@@ -124,3 +126,16 @@ def download_checkpoint(task: Any, artifact_name: str) -> Path:
 def close_task(task: Any) -> None:
     """Close the ClearML task after all metrics and artifacts are logged."""
     task.close()
+
+
+def build_tags(run_type, model_type, responsible, task_type, issue_id="", extra=()):
+    tags = [
+        f"@run-type:{run_type}",
+        f"@model:{model_type}",
+        f"@responsible:{sanitise_name(responsible)}",
+        f"@task-type:{task_type}",
+        *extra,
+    ]
+    if issue_id:
+        tags.append(f"@issue:{issue_id}")
+    return tags
