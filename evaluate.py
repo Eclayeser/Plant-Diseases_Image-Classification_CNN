@@ -9,6 +9,8 @@ from leafapp.eval_functions import (
     plot_and_save_training_curve,
     plot_and_save_confusion_matrix,
     save_evaluation_report,
+    calculate_most_confused_pairs,
+    format_most_confused_pairs,
     ROOT,
 )
 from leafapp.data import get_loaders
@@ -132,6 +134,12 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
         )
 
     log_final_metrics(logger, overall_metrics)
+    
+    confused_pairs = calculate_most_confused_pairs(
+        cm=overall_metrics["confusion-matrix"],
+        class_names=class_names,
+    )
+    
 
     # plot and save diagrams
     run_name = f"{checkpoint_name}_{data_type}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
@@ -154,6 +162,9 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
             f"\n"
             f" Per-Class Metrics:\n"
             f"{overall_metrics['per-class-metrics'][1]}"    # [1] is to_print version / [0] is a dict
+            f"\n"
+            f" Most Confused Pairs (true -> predicted):\n"
+            f"{format_most_confused_pairs(confused_pairs)}\n"
             f"\n"
             f"==============================   Diagrams   ==============================\n"
             f" - Training Curve (Historical Metrics): {curve_path.relative_to(ROOT)}\n"

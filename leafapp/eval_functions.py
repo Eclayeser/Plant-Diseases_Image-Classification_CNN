@@ -71,7 +71,14 @@ def calculate_most_confused_pairs(cm, class_names, top_k=5) -> list[tuple[int, s
                 out.append((num, class_names[row], class_names[col]))
     
     return sorted(out, reverse=True)[:top_k]
-            
+
+
+def format_most_confused_pairs(pairs) -> str:
+    confused_pair_lines = []
+    for count, true_name, predicted_name in pairs:
+        confused_pair_lines.append(f" - {true_name} -> {predicted_name}: {count}")
+    return "\n".join(confused_pair_lines)
+
     
 def calculate_top_k_accuracy(true_labels, logits, k: int) -> float:
     """
