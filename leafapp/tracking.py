@@ -35,6 +35,7 @@ def initialise_task(
     project_name: str,
     task_name: str,
     tags: list[str] | None = None,
+    output_uri: str | bool | None = None,
 ) -> Any:
     """Create a ClearML task and connect the complete run configuration."""
     from clearml import Task
@@ -46,6 +47,7 @@ def initialise_task(
         task_name=task_name,
         tags=tags or [],
         auto_connect_frameworks=False,
+        output_uri=output_uri,
     )
     task.connect(dict(config))
     return task
@@ -139,3 +141,32 @@ def build_tags(run_type, model_type, responsible, task_type, issue_id="", extra=
     if issue_id:
         tags.append(f"@issue:{issue_id}")
     return tags
+
+
+def upload_onnx_model_to_clearml(
+        task: Any,
+        files: list[Path],
+        name: str,
+        tags: list[str],
+        comment: str,
+        config: dict
+    ) -> str:
+    """Upload files as one published ONNX model in the ClearML Models tab and return its ID."""
+    from clearml import OutputModel
+
+    model = OutputModel(
+        task=task,
+        name=name,
+        tags=tags,
+        framework="ONNX",
+        config_dict=config
+    )
+    model.update_weights_package(
+        weights_filenames=[str(path) for path in files],
+        auto_delete_file=False,
+        async_enable=False,
+    )
+    model.comment = comment
+    model.publish()
+    return model.id
+
