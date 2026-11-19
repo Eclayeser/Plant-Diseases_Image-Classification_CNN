@@ -53,6 +53,18 @@ def calculate_confusion_matrix(true_labels, predicted_labels, labels_pool: list[
     return cm
 
 
+def calculate_most_confused_pairs(cm, class_names, top_k=5) -> list[tuple[int, str, str]]:
+    out = []
+    n = len(cm)
+    for row in range(n):
+        for col in range(n):
+            num = int(cm[row][col])
+            if col != row and num > 0:
+                out.append((num, class_names[row], class_names[col]))
+    
+    return sorted(out, reverse=True)[:top_k]
+            
+    
 def calculate_top_k_accuracy(true_labels, logits, k: int) -> float:
     """
     Fraction of samples whose true class is among the k highest logits.
