@@ -299,3 +299,22 @@ myself and Claude reviewed at the end.
 - Documentation: AI-assisted structuring of local deployment instructions.
 
 Approximate share of AI-generated code: 60%.
+
+## leafapp/models/cnn.py, leafapp/models/regularised_cnn.py, leafapp/model_constructor.py (SGP-51, Gul Nil Kayalioglu)
+
+- I added a `pooling` option (`flatten` or `avg`) to BasicCNN and passed it through RegularisedCNN and `build_model`.
+- I used Claude to review and check the code I added.
+- Approximate share of AI-generated code: 10%
+
+## tests/test_models.py, tests/test_model_constructor.py, configs/cnn_wider_avg_pooling_early_stopping.yaml (SGP-51, Gul Nil Kayalioglu)
+
+- I wrote tests for the output shape, smaller parameter count, invalid pooling values, and reading the pooling option from the config.
+- Claude helped me decide what to test and with the structure of the tests.
+- The config is a copy of the existing early stopping config with `pooling: avg` added.
+- Approximate share of AI-generated code: 20%
+
+## documents/experiments/SGP-51/sgp51_global_average_pooling.md (SGP-51, Gul Nil Kayalioglu)
+
+- I ran all six training experiments and exported the charts from ClearML.
+- I analysed the results myself, and Claude helped me organise my findings and write them in a report format.
+- Approximate share of AI-generated documentation: 50%
