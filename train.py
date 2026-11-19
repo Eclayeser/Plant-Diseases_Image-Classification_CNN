@@ -293,7 +293,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
         best_checkpoint_path = checkpoint_path.with_name(
             f"{checkpoint_path.stem}_best.pt"
         )
-        best_validation_loss = float("inf")
+        best_checkpoint_metrics = None
         patience = cfg["train"]["patience"]
         if patience is not None:
             early_stopping = EarlyStopping(patience=patience, min_delta=cfg["train"]["min_delta"])
@@ -335,8 +335,12 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
                 class_names=class_names,
             )
 
-            if val_epoch_metrics["loss"] < best_validation_loss:
-                best_validation_loss = val_epoch_metrics["loss"]
+            if is_better_checkpoint(val_epoch_metrics, best_checkpoint_metrics):
+                best_checkpoint_metrics = {
+                    key: val_epoch_metrics[key]
+                    for key in ("accuracy", "f1", "loss")
+                }
+
                 best_checkpoint_pending = True
                 save_checkpoint(
                     path=best_checkpoint_path,
