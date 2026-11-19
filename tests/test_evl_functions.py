@@ -2,7 +2,15 @@ import pytest
 import torch
 from torch import nn
 from torch.nn import functional as F
-from leafapp.eval_functions import calculate_metrics_per_loader, calculate_most_confused_pairs
+from torchvision import transforms
+from leafapp.data import PLANT_VILLAGE_MEAN, PLANT_VILLAGE_STD
+from leafapp.eval_functions import (
+    calculate_metrics_per_loader,
+    calculate_most_confused_pairs,
+    collect_misclassified_images,
+    prepare_image_for_plotting,
+    plot_and_save_misclassified_grid,
+)
 
 CLASS_NAMES = ["healthy", "rust", "blight"]
 
@@ -97,4 +105,55 @@ def test_confused_pairs_list_true_class_before_predicted():
     pairs = calculate_most_confused_pairs(cm, names, top_k=2)
     expected = [(10, "early blight", "late blight")]
     assert pairs == expected, "Should name the true class first, then the predicted one"
+
+
+def test_misclassified_keeps_only_mistakes_from_wanted_pairs():
+    # make_logits_loader's mistakes, in loader order: (0, 1), then (0, 2) and (1, 2)
+    found = collect_misclassified_images(
+        nn.Identity(), make_logits_loader(), "cpu", wanted_pairs={(0, 1), (1, 2)}
+    )
+
+    pairs = [(true_class, guessed_class) for _, true_class, guessed_class in found]
+    assert pairs == [(0, 1), (1, 2)], (
+        "Should keep only the wanted mistakes, in loader order"
+    )
+    # each photo's pixels are its logits here, so (0, 1) is the photo scored [0, 3, 0]
+    assert torch.equal(found[0][0], torch.tensor([0.0, 3.0, 0.0])), (
+        "Should store each mistake with its own photo"
+    )
+
+
+def test_misclassified_stops_reading_once_it_has_max_images():
+    def loader():
+        yield make_logits_loader()[0]  # its only mistake is (0, 1)
+        raise AssertionError("asked for another batch after max_images was reached")
+
+    found = collect_misclassified_images(
+        nn.Identity(), loader(), "cpu", wanted_pairs={(0, 1), (1, 2)}, max_images=1
+    )
+
+    pairs = [(true_class, guessed_class) for _, true_class, guessed_class in found]
+    assert pairs == [(0, 1)], "Should stop as soon as it has max_images mistakes"
+
+
+def test_prepare_image_for_plotting_undoes_normalisation():
+    photo = torch.rand(3, 8, 8)
+    normalised = transforms.Normalize(PLANT_VILLAGE_MEAN, PLANT_VILLAGE_STD)(photo)
+
+    picture = prepare_image_for_plotting(
+        normalised, PLANT_VILLAGE_MEAN, PLANT_VILLAGE_STD
+    )
+
+    assert picture.shape == (8, 8, 3), "Should put the colours last for matplotlib"
+    assert torch.allclose(picture, photo.permute(1, 2, 0), atol=1e-6), (
+        "Should give back the photo as it was before normalising"
+    )
+
+
+def test_misclassified_grid_saves_a_picture_even_with_no_mistakes(tmp_path):
+    plot_path = tmp_path / "grid.png"
+
+    plot_and_save_misclassified_grid([], CLASS_NAMES, plot_path)
+
+    assert plot_path.is_file(), "Should save an empty grid instead of crashing"
     
