@@ -170,3 +170,10 @@ def upload_onnx_model_to_clearml(
     model.publish()
     return model.id
 
+
+def download_onnx_model_from_clearml(model_id: str) -> Path:
+    """Download a published ClearML model package and return the folder it was extracted to."""
+    from clearml import Model
+
+    model = Model(model_id=model_id)
+    return Path(model.get_weights_package(return_path=True, raise_on_error=True))
