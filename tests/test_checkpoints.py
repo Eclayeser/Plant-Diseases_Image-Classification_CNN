@@ -15,6 +15,7 @@ def test_checkpoint_round_trip_gives_same_outputs(tmp_path):
     path = tmp_path / "model.pt"
     save_checkpoint(path, model, cfg, class_names, history_metrics={})
     loaded_model, _, _, _ = load_checkpoint(path)
+    assert not loaded_model.training, "Loaded model should be in eval mode"
 
     x = torch.randn(2, 3, 32, 32)
     with torch.no_grad():
