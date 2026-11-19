@@ -12,9 +12,10 @@ from leafapp.eval_functions import (
     calculate_most_confused_pairs,
     format_most_confused_pairs,
     collect_misclassified_images,
+    plot_and_save_misclassified_grid,
     ROOT,
 )
-from leafapp.data import get_loaders
+from leafapp.data import get_loaders, NORMALIZATION_STATS
 from leafapp.checkpoints import load_checkpoint
 from leafapp.tracking import NAMES, RUN_TYPES, validate_issue_id, sanitise_name, initialise_task, close_task, log_final_metrics, log_image, upload_file, get_task, download_checkpoint
 
@@ -142,7 +143,7 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
     )
     
     wanted_pairs = set()
-    for count, true_name, predicted_name in confused_pairs:
+    for _, true_name, predicted_name in confused_pairs:
         true_class = class_names.index(true_name)
         guessed_class = class_names.index(predicted_name)
         wanted_pairs.add((true_class, guessed_class))
@@ -154,14 +155,29 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
         wanted_pairs=wanted_pairs,
     )
 
+    normalize = config["data"].get("normalize", False)
+    mean, std = None, None
+    if normalize is not False:
+        stats = "imagenet" if normalize is True else normalize
+        mean, std = NORMALIZATION_STATS[stats]
 
     # plot and save diagrams
     run_name = f"{checkpoint_name}_{data_type}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     curve_path = DIAGRAMS_DIR / f"{run_name}_training_curve.png"
     matrix_path = DIAGRAMS_DIR / f"{run_name}_confusion_matrix.png"
+    grid_path = DIAGRAMS_DIR / f"{run_name}_misclassified_grid.png"
+
 
     plot_and_save_training_curve(history_metrics, curve_path)
     plot_and_save_confusion_matrix(overall_metrics["confusion-matrix"], class_names, matrix_path)
+    plot_and_save_misclassified_grid(
+        misclassified=misclassified,
+        class_names=class_names,
+        plot_path=grid_path,
+        mean=mean,
+        std=std,
+    )
+
 
     # save written report
     report_path = REPORTS_DIR / f"{run_name}_report.txt"
@@ -182,13 +198,16 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
             f"\n"
             f"==============================   Diagrams   ==============================\n"
             f" - Training Curve (Historical Metrics): {curve_path.relative_to(ROOT)}\n"
-            f" - Confusion Matrix: {matrix_path.relative_to(ROOT)}"
+            f" - Confusion Matrix: {matrix_path.relative_to(ROOT)}\n"
+            f" - Misclassified Images: {grid_path.relative_to(ROOT)}\n"
         )
 
     save_evaluation_report(report, report_path)
     print(f"Saved evaluation report to {report_path.relative_to(ROOT)}")
 
     log_image(logger, "evaluation", "confusion_matrix", matrix_path)
+    log_image(logger, "evaluation", "misclassified_grid", grid_path)
+
     if curve_path.is_file():
         log_image(logger, "evaluation", "training_curve", curve_path)
     upload_file(task, report_path, "evaluation_report")
