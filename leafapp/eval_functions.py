@@ -209,7 +209,29 @@ def calculate_metrics_per_loader(
 
     return final_metrics
 
+def collect_misclassified_images(model, loader, device, wanted_pairs, max_images=16):
+    model.eval()
+    misclassified = []
+    with torch.no_grad():
+        for batch in loader:
+            images, labels = batch["pixels"], batch["label"]
+            images, labels = images.to(device), labels.to(device)
+            logits = model(images)
+            predictions = logits.argmax(dim=1)
+            wrong = predictions != labels
+            
+            for image, true_label, predicted_label in zip(
+                images[wrong], labels[wrong], predictions[wrong]
+            ):
+                true_class, guessed_class = int(true_label), int(predicted_label)
+                if (true_class, guessed_class) in wanted_pairs:
+                    misclassified.append((image.cpu(), true_class, guessed_class))
+                    if len(misclassified) == max_images:
+                        return misclassified
+                
+    return misclassified
 
+    
 # --- Plotting Functions ----
 
 def plot_and_save_training_curve(
