@@ -53,9 +53,8 @@ The charts below show the seed 42 runs.
 
 ## Recommendation
 
-- Keep `flatten` as the default for the wider CNN. It was more accurate on average and much more consistent across seeds. Its overfitting is already limited by early stopping, and dropout is also being investigated in SGP-44.
-- GAP is not recommended as a replacement for now, but it should not be ruled out. It showed fewer signs of overfitting, and with seed 44 it almost matched Flatten. Different training settings, such as more patience or a different learning rate, could be explored to see whether GAP performs better.
-- The `pooling: avg` option stays in the code, since it does not change existing configs. It could also be useful if a much smaller model is needed for deployment.
+- Keep `flatten` as the default for the wider CNN. It was more accurate on average and much more consistent across seeds, although it showed more signs of overfitting than GAP.
+- The pooling: avg option stays in the code, since it does not change existing configs. GAP could be tried again with different training settings or if a smaller model is needed for deployment.
 
 ## Limitations
 
