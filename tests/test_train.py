@@ -462,3 +462,23 @@ def test_main_uploads_checkpoints_when_training_fails(
     close_task.assert_called_once_with(
         task, failed=True, message="training failed"
     )
+
+def test_best_checkpoint_prefers_accuracy_and_f1():
+    best = {"accuracy": 0.80, "f1": 0.75, "loss": 0.40}
+    current = {"accuracy": 0.85, "f1": 0.82, "loss": 0.45}
+
+    assert train.is_better_checkpoint(current, best)
+
+
+def test_best_checkpoint_rejects_worse_score():
+    best = {"accuracy": 0.85, "f1": 0.82, "loss": 0.45}
+    current = {"accuracy": 0.80, "f1": 0.75, "loss": 0.40}
+
+    assert not train.is_better_checkpoint(current, best)
+
+
+def test_best_checkpoint_uses_loss_as_tiebreaker():
+    best = {"accuracy": 0.85, "f1": 0.80, "loss": 0.50}
+    current = {"accuracy": 0.85, "f1": 0.80, "loss": 0.40}
+
+    assert train.is_better_checkpoint(current, best)

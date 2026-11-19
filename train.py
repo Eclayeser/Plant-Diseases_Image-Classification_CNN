@@ -185,6 +185,25 @@ def save_and_upload_failure_artifacts(
     close_task(task, failed=True, message=str(exc))
 
 
+def is_better_checkpoint(current, best):
+    """
+    Compare checkpoints using validation accuracy, macro-F1 and loss.
+    Higher accuracy/F1 is preferred; lower loss breaks ties.
+    """
+    if best is None:
+        return True
+
+    current_score = (current["accuracy"] + current["f1"]) / 2
+    best_score = (best["accuracy"] + best["f1"]) / 2
+
+    if current_score > best_score:
+        return True
+
+    if current_score == best_score:
+        return current["loss"] < best["loss"]
+
+    return False
+
 def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
     """
     Train a model using the config at config_path and save a checkpoint.
