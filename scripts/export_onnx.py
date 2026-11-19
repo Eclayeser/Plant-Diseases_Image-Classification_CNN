@@ -17,14 +17,19 @@ from leafapp.config import (
     LABELS_FILE,
 )
 from leafapp.data import get_normalization_stats
+from leafapp.tracking import (
+    DEFAULT_ARTIFACT,
+    get_task,
+    download_checkpoint
+)
 
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Export a trained CNN to ONNX.")
     parser.add_argument(
-        "--checkpoint",
+        "--task-id",
         required=True,
-        help="Path to the trained .pt checkpoint.",
+        help=f"ClearML training task ID whose {DEFAULT_ARTIFACT} is exported.",
     )
     parser.add_argument(
         "--out",
@@ -55,7 +60,10 @@ def check_parity(torch_model, onnx_path, sample, atol=1e-4):
         raise ValueError(f"ONNX output differs from PyTorch by {np.abs(expected - actual).max():.2e}")
 
 
-def main(checkpoint_path, out_dir=MODEL_DIR):
+def main(task_id, out_dir=MODEL_DIR):
+    training_task = get_task(task_id)
+    checkpoint_path = download_checkpoint(training_task, DEFAULT_ARTIFACT)
+
     model, class_names, _, config = load_checkpoint(checkpoint_path)
     image_size = config["data"]["image_size"]
     normalize = config["data"].get("normalize", False)
@@ -86,13 +94,14 @@ def main(checkpoint_path, out_dir=MODEL_DIR):
         json.dump({
             "image_size": image_size,
             "normalization_in_graph": normalize,
-            "source_checkpoint": Path(checkpoint_path).name,
+            "source_task_id": task_id,
+            "source_artifact": DEFAULT_ARTIFACT,
         }, f, indent=2)
 
-    print(f"ONNX export completed from {checkpoint_path} to {out_dir}")
+    print(f"ONNX export completed from task {task_id} ({DEFAULT_ARTIFACT}) to {out_dir}")
 
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args.checkpoint, args.out)
+    main(args.task_id, args.out)
     

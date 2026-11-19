@@ -13,13 +13,25 @@ from leafapp.eval_functions import (
 from leafapp.config import ROOT
 from leafapp.data import get_loaders
 from leafapp.checkpoints import load_checkpoint
-from leafapp.tracking import NAMES, RUN_TYPES, validate_issue_id, sanitise_name, initialise_task, close_task, log_final_metrics, log_image, upload_file, get_task, download_checkpoint
+from leafapp.tracking import (
+    NAMES,
+    RUN_TYPES,
+    validate_issue_id,
+    sanitise_name,
+    initialise_task,
+    close_task,
+    log_final_metrics,
+    log_image,
+    upload_file,
+    get_task,
+    download_checkpoint,
+    DEFAULT_ARTIFACT,
+    ARTIFACTS,
+)
 
 REPORTS_DIR = ROOT / "outputs" / "eval_reports"
 DIAGRAMS_DIR = ROOT / "outputs" / "diagrams"
 ACCEPTED_DATA_TYPES = ("validation", "test")
-ARTIFACTS = ("best_checkpoint", "final_checkpoint")
-DEFAULT_ARTIFACT = "best_checkpoint"
 
 
 def parse_args(argv=None):
