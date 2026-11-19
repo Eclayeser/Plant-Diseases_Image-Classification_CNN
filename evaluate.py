@@ -11,6 +11,7 @@ from leafapp.eval_functions import (
     save_evaluation_report,
     calculate_most_confused_pairs,
     format_most_confused_pairs,
+    collect_misclassified_images,
     ROOT,
 )
 from leafapp.data import get_loaders
@@ -140,6 +141,19 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
         class_names=class_names,
     )
     
+    wanted_pairs = set()
+    for count, true_name, predicted_name in confused_pairs:
+        true_class = class_names.index(true_name)
+        guessed_class = class_names.index(predicted_name)
+        wanted_pairs.add((true_class, guessed_class))
+    
+    misclassified = collect_misclassified_images(
+        model=model,
+        loader=target_data,
+        device=device,
+        wanted_pairs=wanted_pairs,
+    )
+
 
     # plot and save diagrams
     run_name = f"{checkpoint_name}_{data_type}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
