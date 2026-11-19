@@ -482,3 +482,69 @@ def test_best_checkpoint_uses_loss_as_tiebreaker():
     current = {"accuracy": 0.85, "f1": 0.80, "loss": 0.40}
 
     assert train.is_better_checkpoint(current, best)
+
+def test_main_saves_best_checkpoint_using_multiple_metrics(monkeypatch, tmp_path):
+    cfg = {
+        "seed": 42,
+        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4},
+        "model": {"type": "BasicCNN"},
+        "train": {
+            "lr": 0.001,
+            "weight_decay": 0.0,
+            "epochs": 3,
+            "checkpoint_dir": str(tmp_path),
+        },
+    }
+
+    validation_results = iter([
+        {"loss": 0.40, "accuracy": 0.70, "f1": 0.65},
+        {"loss": 0.45, "accuracy": 0.80, "f1": 0.78},
+        {"loss": 0.35, "accuracy": 0.74, "f1": 0.67},
+    ])
+
+    best_saved_epochs = []
+    uploaded_artifacts = []
+
+    monkeypatch.setattr(train, "load_config", lambda path: cfg)
+    monkeypatch.setattr(
+        train, "get_loaders",
+        lambda **kwargs: (
+            make_fake_loader(),
+            make_fake_loader(),
+            None,
+            ["a", "b", "c", "d", "e"],
+        ),
+    )
+    monkeypatch.setattr(
+        train, "build_model",
+        lambda *args: BasicCNN(num_classes=5, channels=(8,), image_size=32),
+    )
+    monkeypatch.setattr(train, "initialise_task", lambda **kwargs: MagicMock())
+    monkeypatch.setattr(
+        train, "train_one_epoch",
+        lambda *args, **kwargs: {"loss": 0.5, "accuracy": 0.8, "f1": 0.7},
+    )
+
+    def fake_validation(**kwargs):
+        result = next(validation_results).copy()
+        result["confusion-matrix"] = [[0] * 5 for _ in range(5)]
+        return result
+
+    def fake_save_checkpoint(path, history_metrics, **kwargs):
+        if path.stem.endswith("_best"):
+            best_saved_epochs.append(len(history_metrics["losses"]["validation"]))
+
+    monkeypatch.setattr(train, "calculate_metrics_per_loader", fake_validation)
+    monkeypatch.setattr(train, "save_checkpoint", fake_save_checkpoint)
+    monkeypatch.setattr(train, "log_epoch_metrics", MagicMock())
+    monkeypatch.setattr(train, "log_confusion_matrix", MagicMock())
+    monkeypatch.setattr(train, "close_task", MagicMock())
+    monkeypatch.setattr(
+        train, "upload_checkpoint",
+        lambda task, path, name: uploaded_artifacts.append(name),
+    )
+
+    train.main("configs/prototype.yaml", NAMES[0], "comparison", "SGP-58")
+
+    assert best_saved_epochs == [1, 2]
+    assert "best_checkpoint" in uploaded_artifacts
