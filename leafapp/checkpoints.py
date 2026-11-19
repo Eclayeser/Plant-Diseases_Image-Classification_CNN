@@ -34,7 +34,7 @@ def load_checkpoint(path):
     checkpoint = torch.load(ROOT / path, map_location="cpu")
     config = checkpoint["config"]
 
-    model = build_model(config["model"], config["data"], checkpoint["class_names"])
+    model = build_model(config["model"], config["data"], checkpoint["class_names"], pretrained=False)
 
     model.load_state_dict(checkpoint["state_dict"])
     model.eval()

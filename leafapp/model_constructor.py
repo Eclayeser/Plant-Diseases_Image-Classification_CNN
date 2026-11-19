@@ -4,7 +4,7 @@ from leafapp.models.cnn import BasicCNN
 from leafapp.models.resnet import build_resnet18
 from leafapp.models.regularised_cnn import RegularisedCNN
 
-def build_model(model_settings: dict[str, Any], data_specs: dict[str, Any], class_names: list[str]):
+def build_model(model_settings: dict[str, Any], data_specs: dict[str, Any], class_names: list[str], pretrained: bool = True):
     model = None
 
     if model_settings.get("type", None) is None:
@@ -28,7 +28,7 @@ def build_model(model_settings: dict[str, Any], data_specs: dict[str, Any], clas
         )
 
     if model_settings["type"] == "ResNet18":
-        model = build_resnet18(num_classes=len(class_names))
+        model = build_resnet18(num_classes=len(class_names), pretrained=pretrained)
 
     if model is None:
         raise ValueError(f"Failed to construct a model. Config file specifies {model_settings['type']} - unidentified type.")
