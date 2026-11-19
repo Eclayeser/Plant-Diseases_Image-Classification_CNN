@@ -146,6 +146,7 @@ def download_checkpoint(task: Any, artifact_name: str) -> Path:
 
 
 def build_tags(run_type, model_type, responsible, task_type, issue_id="", extra=()):
+    """Return the ClearML tags for a task."""
     tags = [
         f"@run-type:{run_type}",
         f"@model:{model_type}",
