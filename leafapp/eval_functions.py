@@ -54,6 +54,14 @@ def calculate_confusion_matrix(true_labels, predicted_labels, labels_pool: list[
 
 
 def calculate_most_confused_pairs(cm, class_names, top_k=5) -> list[tuple[int, str, str]]:
+    """
+    List the most common mistakes in a confusion matrix, biggest first.
+
+    cm has true classes as rows and predicted classes as columns. Each record is
+    (count, true class, predicted class), so the direction of a mistake is kept:
+    Correct predictions (the diagonal) and empty cells are skipped, and at most
+    top_k records are returned.
+    """
     out = []
     n = len(cm)
     for row in range(n):
