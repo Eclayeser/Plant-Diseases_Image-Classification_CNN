@@ -280,6 +280,10 @@ myself and Claude reviewed at the end.
 - I ran the experiments and exported the charts from ClearML; Claude helped me interpret the results and wrote the report text, which I reviewed and edited.
 - Approximate share of AI-generated documentation: 75%
 
+## SGP-44: CNN regularisation comparison, Javier
+- I ran the experiments and exported the results from ClearML. Codex helped me gather conclusions from the results and helped structure the reports text. 
+- Approximate share of AI-generated documentation: 50%
+
 ## requirements.txt, pyproject.toml, .gitignore, .github/workflows/tests.yml, README.md (SGP-25, Gul Nil Kayalioglu)
 - I used ChatGPT to help me understand the coverage settings and GitHub Actions workflow. I made the changes myself, ran the tests locally, and checked the coverage report in GitHub Actions.
 - Approximate share of AI-generated code: 10%
