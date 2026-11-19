@@ -2,7 +2,9 @@
 
 from typing import Any
 from pathlib import Path
+import math
 from sklearn.metrics import (
+    
     f1_score,
     accuracy_score,
     precision_score,
@@ -16,6 +18,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import seaborn
+
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -233,6 +236,50 @@ def collect_misclassified_images(model, loader, device, wanted_pairs, max_images
 
     
 # --- Plotting Functions ----
+
+def prepare_image_for_plotting(image, mean=None, std=None) -> torch.Tensor:
+    picture = image.permute(1, 2, 0)
+    if mean is not None:
+        picture = picture * torch.tensor(std) + torch.tensor(mean)
+    return picture.clamp(0, 1)
+
+
+def plot_and_save_misclassified_grid(
+        misclassified: list[tuple[torch.Tensor, int, int]],
+        class_names: list[str],
+        plot_path: str | Path,
+        mean: list[float] | None = None,
+        std: list[float] | None = None,
+        show: bool = False
+    ) -> None:
+    columns = 4
+    rows = max(1, math.ceil(len(misclassified) / columns))
+    fig, axes = plt.subplots(
+        rows, columns, figsize=(columns * 4, rows * 4), squeeze=False
+    )
+
+    for ax in axes.flat:
+        ax.axis("off")
+
+    for ax, (image, true_class, guessed_class) in zip(axes.flat, misclassified):
+        ax.imshow(prepare_image_for_plotting(image, mean, std))
+        ax.set_title(
+            f"true: {class_names[true_class]}\npred: {class_names[guessed_class]}",
+            fontsize=8,
+        )
+
+    plt.tight_layout()
+
+    # save
+    plot_path = ROOT / plot_path
+    plot_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(plot_path, dpi=150, bbox_inches="tight")
+
+    if show:
+        plt.show()
+    plt.close()
+
+
 
 def plot_and_save_training_curve(
         history_metrics: dict[str, dict[str, list[float]]],
