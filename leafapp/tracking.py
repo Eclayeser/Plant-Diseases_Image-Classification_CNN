@@ -9,7 +9,7 @@ from clearml import Task
 
 LOGGER = logging.getLogger(__name__)
 RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
-NAMES = ("Mark Tarnavskyi", "Pranay Singh", "Illia Putintsev", "Javier Fimia", "Reon Carroll-Ito", "Nil Kayalioglu", "Mario Westphalen Cavicchioli")
+NAMES = ("Mark Tarnavskyi", "Pranay Singh", "Illia Putintsev", "Javier Fimia", "Reon Carroll-Ito", "Gul Nil Kayalioglu", "Mario Westphalen Cavicchioli")
 DEFAULT_ARTIFACT = "best_checkpoint"
 ARTIFACTS = (DEFAULT_ARTIFACT, "final_checkpoint")
 PROJECT_NAME = "Plant-Disease-Image-Classification"
