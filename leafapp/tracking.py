@@ -1,11 +1,13 @@
 """Reusable ClearML helpers for experiment tracking."""
 import argparse
 
+import logging
 from pathlib import Path
 from typing import Any, Mapping
 from clearml import Task
 
 
+LOGGER = logging.getLogger(__name__)
 RUN_TYPES = ("debugging", "exploring", "comparison", "production")    # see README.md to understand difference
 NAMES = ("Mark Tarnavskyi", "Pranay Singh", "Illia Putintsev", "Javier Fimia", "Reon Carroll-Ito", "Nil Kayalioglu", "Mario Westphalen Cavicchioli")
 DEFAULT_ARTIFACT = "best_checkpoint"
@@ -48,6 +50,7 @@ def initialise_task(
         tags=tags or [],
         auto_connect_frameworks=False,
         output_uri=output_uri,
+        reuse_last_task_id=False,
     )
     task.connect(dict(config))
     return task
@@ -78,6 +81,24 @@ def log_epoch_metrics(
                 iteration=epoch,
             )
 
+def log_confusion_matrix(
+    logger: Any,
+    epoch: int,
+    matrix: Any,
+    class_names: list[str],
+) -> None:
+    """Report a validation confusion matrix with true labels on rows and predicted labels on columns."""
+    logger.report_confusion_matrix(
+        title="Confusion Matrix",
+        series="validation",
+        matrix=matrix,
+        iteration=epoch,
+        xaxis="Predicted label",
+        yaxis="True label",
+        xlabels=class_names,
+        ylabels=class_names,
+        yaxis_reversed=True,
+    )
 
 def log_final_metrics(logger: Any, metrics: Mapping[str, Any]) -> None:
     """Report each single-number metric (e.g. accuracy, f1) as a ClearML single value."""
@@ -106,7 +127,6 @@ def upload_file(task: Any, path: str | Path, name: str) -> None:
         wait_on_upload=True,
     )
 
-
 def upload_checkpoint(task: Any, checkpoint_path: str | Path, name: str) -> None:
     """Upload a saved checkpoint as a ClearML task artifact."""
     upload_file(task, checkpoint_path, name)
@@ -123,11 +143,6 @@ def download_checkpoint(task: Any, artifact_name: str) -> Path:
 
     local_path = task.artifacts[artifact_name].get_local_copy(raise_on_error=True)
     return Path(local_path)
-
-
-def close_task(task: Any) -> None:
-    """Close the ClearML task after all metrics and artifacts are logged."""
-    task.close()
 
 
 def build_tags(run_type, model_type, responsible, task_type, issue_id="", extra=()):
@@ -177,3 +192,27 @@ def download_onnx_model_from_clearml(model_id: str) -> Path:
 
     model = Model(model_id=model_id)
     return Path(model.get_weights_package(return_path=True, raise_on_error=True))
+
+
+def close_task(task: Any, *, failed: bool = False, message: str | None = None) -> None:
+    """Close the ClearML task and mark it as failed when the run errors out."""
+    if task is None:
+        return
+
+    if failed:
+        try:
+            task.add_tags("@status:failed")
+        except Exception:
+            LOGGER.exception("Could not add the @status:failed tag to the ClearML task")
+
+        try:
+            task.mark_failed(status_message=message or "Task failed")
+        except Exception:
+            LOGGER.exception("Could not mark the ClearML task as failed")
+    try:
+        task.close()
+    except Exception:
+        if failed:
+            LOGGER.exception("Could not close the ClearML task after marking it as failed")
+        else:
+            raise
