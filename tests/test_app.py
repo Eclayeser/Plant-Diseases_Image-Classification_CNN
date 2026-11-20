@@ -2,7 +2,6 @@ import runpy
 import sys
 
 import gradio as gr
-import pandas as pd
 import pytest
 from PIL import Image
 
