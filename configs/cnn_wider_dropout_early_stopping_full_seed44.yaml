@@ -1,0 +1,18 @@
+seed: 44
+data:
+  image_size: 128
+  fraction: 1.0
+  batch_size: 32
+  normalize: plant_village
+  augment: true
+model:
+  type: RegularisedCNN
+  channels: [32, 64, 128]
+  regularisation: dropout
+  dropout_p: 0.2
+train:
+  lr: 0.001
+  epochs: 30
+  weight_decay: 0.01
+  checkpoint_dir: outputs/models
+  patience: 3
