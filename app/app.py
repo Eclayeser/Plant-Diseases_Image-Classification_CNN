@@ -1,7 +1,6 @@
 import os
 
 import gradio as gr
-import pandas as pd
 from PIL import Image
 
 from leafapp.config import MODEL_DIR
@@ -16,14 +15,29 @@ def format_class_name(name):
     return name.replace("___", " - ").replace("_", " ")
 
 
-def prediction_list_html(ranks, names, percents):
-    """Show predictions with matching colours."""
-    rows = []
+def prediction_chart_html(names, percents):
+    """Show the top 5 predictions as horizontal bars."""
+    rows = ["<h3>Top 5 Predictions</h3>"]
 
-    for rank, name, percent, color in zip(ranks, names, percents, COLORS):
-        text = f"{rank} {name}: {percent}%"
-        weight = "bold" if rank == "#1" else "normal"
-        rows.append(f'<p style="color:{color}; font-weight:{weight};">{text}</p>')
+    for i, (name, percent, color) in enumerate(zip(names, percents, COLORS)):
+        weight = "bold" if i == 0 else "normal"
+
+        name_html = f'<p style="font-weight:{weight}; margin:10px 0 4px;">{name}</p>'
+
+        # Grey background with a coloured bar showing the percentage
+        bar_html = (
+            f'<div style="flex:1; background:#eeeeee;">'
+            f'<div style="width:{percent}%; background:{color}; height:22px;"></div>'
+            f'</div>'
+        )
+
+        percent_html = f'<span style="width:55px; text-align:right;">{percent}%</span>'
+
+        bar_row = f'<div style="display:flex; align-items:center; gap:8px;">{bar_html}{percent_html}</div>'
+
+        row = f'<div>{name_html}{bar_row}</div>'
+
+        rows.append(row)
 
     return "".join(rows)
 
@@ -33,37 +47,19 @@ def build_ui(classifier):
 
     def predict(image):
         if image is None:
-            return None, None
+            return None
 
         predictions = classifier.top_k(image, k=5)
-        ranks = [f"#{i + 1}" for i in range(len(predictions))]
         names = [format_class_name(name) for name, _ in predictions]
         percents = [round(probability * 100, 1) for _, probability in predictions]
-
-        chart = pd.DataFrame({"Rank": ranks, "Disease": names, "Probability (%)": percents})
-        return chart, prediction_list_html(ranks, names, percents)
+        return prediction_chart_html(names, percents)
 
     demo = gr.Interface(
         fn=predict,
         inputs=gr.Image(type="pil", label="Upload a leaf image"),
-        outputs=[
-            gr.BarPlot(
-                x="Rank",
-                y="Probability (%)",
-                y_title="Probability (%)",
-                y_lim=[0, 100],
-                title="Top 5 Predictions",
-                x_title=" ",
-                color="Rank",
-                color_map=dict(zip(["#1", "#2", "#3", "#4", "#5"], COLORS)),
-                color_title=" ",
-                height=350,
-                tooltip="all",
-            ),
-            gr.HTML(label="Predicted diseases"),
-        ],
+        outputs=gr.HTML(label="Top 5 Predictions"),
         title="Plant Disease Classification",
-        description="Upload a plant leaf image to identify its disease. The bars and the list below use the same colours.",
+        description="Upload a plant leaf image to identify its disease.",
         api_name="predict",
         flagging_mode="never"
     )
