@@ -47,20 +47,21 @@ def test_build_ui_returns_interface():
     assert isinstance(demo.input_components[0], gr.Image)
 
 
-def test_predict_returns_top_5_dataframe():
-    """predict asks for the top 5 and returns a DataFrame for the bar plot and an HTML list."""
+def test_predict_returns_top_5_html():
+    """Check that the top 5 predictions are shown in the HTML chart."""
     classifier = FakeClassifier(PREDICTIONS)
     demo = build_ui(classifier)
     image = Image.new("RGB", (300, 200), color="green")
 
-    chart, html = demo.fn(image)
+    html = demo.fn(image)
+
     assert classifier.calls == [(image, 5)]
-    assert isinstance(chart, pd.DataFrame)
-    assert list(chart.columns) == ["Rank", "Disease", "Probability (%)"]
-    assert list(chart["Rank"]) == ["#1", "#2", "#3", "#4", "#5"]
-    assert list(chart["Disease"]) == [format_class_name(name) for name, _ in PREDICTIONS[:5]]
-    assert list(chart["Probability (%)"]) == [round(p * 100, 1) for _, p in PREDICTIONS[:5]]
-    assert "#1 Tomato - Leaf Mold: 60.0%" in html
+
+    for name, probability in PREDICTIONS[:5]:
+        assert format_class_name(name) in html
+        assert f"{round(probability * 100, 1)}%" in html
+
+    assert format_class_name(PREDICTIONS[5][0]) not in html
 
 
 def test_predict_without_image():
@@ -68,7 +69,7 @@ def test_predict_without_image():
     classifier = FakeClassifier(PREDICTIONS)
     demo = build_ui(classifier)
 
-    assert demo.fn(None) == (None, None)
+    assert demo.fn(None) is None
     assert classifier.calls == []
 
 
