@@ -210,6 +210,8 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
         cfg["train"].setdefault("patience", None) # None = early stopping off
         cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
         torch.manual_seed(cfg["seed"])
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
         train_loader, val_loader, _, class_names = get_loaders(
             fraction=cfg["data"]["fraction"],
             image_size=cfg["data"]["image_size"],
