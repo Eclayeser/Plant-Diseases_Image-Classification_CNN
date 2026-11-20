@@ -19,8 +19,12 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import seaborn
 
+<<<<<<< HEAD
 
 ROOT = Path(__file__).resolve().parent.parent
+=======
+from leafapp.config import ROOT
+>>>>>>> origin/dev
 
 
 def calculate_f1_score(true_labels, predicted_labels) -> float:
