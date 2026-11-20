@@ -64,11 +64,11 @@ def test_predict_returns_top_5_dataframe():
 
 
 def test_predict_without_image():
-    """With no image uploaded, predict returns None and doesn't call the model."""
+    """With no image uploaded, predict returns None for both outputs and doesn't call the model."""
     classifier = FakeClassifier(PREDICTIONS)
     demo = build_ui(classifier)
 
-    assert demo.fn(None) is None
+    assert demo.fn(None) == (None, None)
     assert classifier.calls == []
 
 
