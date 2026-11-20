@@ -309,3 +309,8 @@ myself and Claude reviewed at the end.
 - Documentation: AI-assisted structuring of local deployment instructions.
 
 Approximate share of AI-generated code: 60%.
+
+## SGP-45: Augmentation (Pranay Singh)
+
+- Analysis and documentation: AI helped generate the validation graphs, and draft the experiment report, which I reviewed against the actual training results.
+- Approximate share of AI-generated documentation: 70%.
