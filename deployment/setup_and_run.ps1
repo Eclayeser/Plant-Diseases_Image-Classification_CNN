@@ -5,12 +5,6 @@ $ErrorActionPreference = "Stop"
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $root
 
-# Require an explicitly selected checkpoint.
-if (-not $env:CHECKPOINT_PATH) {
-    Write-Error "CHECKPOINT_PATH is required. Train and select a model first."
-    exit 1
-}
-
 $python = Join-Path $root ".venv\Scripts\python.exe"
 
 # Create virtual environment if necessary.
@@ -28,15 +22,15 @@ if (-not (Test-Path $python)) {
     }
 }
 
-# Install project dependencies.
+# Install the app's runtime dependencies (the same as the cloud deployment).
 Write-Host "[SGP-5] Installing dependencies..."
-& $python -m pip install -r requirements.txt
+& $python -m pip install -r requirements-deploy.txt
 
 if ($LASTEXITCODE -ne 0) {
     throw "Dependency installation failed."
 }
 
-# Launch the existing Gradio application.
+# Download the model and launch the Gradio application.
 Write-Host "[SGP-5] Starting Gradio at http://localhost:8080"
 & (Join-Path $PSScriptRoot "run_local.ps1")
 

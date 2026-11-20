@@ -7,7 +7,7 @@ import uuid
 
 import torch
 from torch import nn
-from leafapp.config import load_config
+from leafapp.config import load_config, ROOT
 from leafapp.model_constructor import build_model
 from leafapp.optimizer_constructor import choose_optimizer
 from leafapp.data import get_loaders
@@ -26,11 +26,12 @@ from leafapp.tracking import (
     upload_checkpoint,
     RUN_TYPES,
     NAMES,
-    sanitise_name,
     validate_issue_id,
+    build_tags,
+    PROJECT_NAME,
 )
 
-ROOT = Path(__file__).resolve().parent
+
 LOGGER = logging.getLogger(__name__)
 
 def parse_args(argv=None):
@@ -229,19 +230,18 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
         optimizer = choose_optimizer(model.parameters(), cfg["train"])
         config_name = Path(config_path).stem
 
-        tags=[
-            f"@run-type:{run_type}",
-            f"@model:{cfg['model']['type']}",
-            f"@responsible:{sanitise_name(responsible)}",
-            "@task-type:train.py",
-            f"@config-name:{config_name}"
-        ]
-        if issue_id:
-            tags.append(f"@issue:{issue_id}")
+        tags = build_tags(
+            run_type=run_type,
+            model_type=cfg["model"]["type"],
+            responsible=responsible,
+            task_type="train.py",
+            issue_id=issue_id,
+            extra=[f"@config-name:{config_name}"]
+        )
 
         task = initialise_task(
             config=cfg,
-            project_name="Plant-Disease-Image-Classification",
+            project_name=PROJECT_NAME,
             task_name=f"{cfg['model']['type']} - {config_name}",
             tags=tags,
             

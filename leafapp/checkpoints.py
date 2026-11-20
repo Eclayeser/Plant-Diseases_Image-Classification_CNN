@@ -2,8 +2,8 @@
 from pathlib import Path
 import torch
 from leafapp.model_constructor import build_model
+from leafapp.config import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 
 def save_checkpoint(path, model, cfg, class_names, history_metrics):
     """

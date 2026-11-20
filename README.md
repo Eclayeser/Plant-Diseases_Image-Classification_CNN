@@ -151,35 +151,6 @@ Each task is tagged automatically with `@run-type:<type>`, `@model:<model type>`
 
 Every logged task in "Tasks List" has the following tabs: "Exection", "Configuration", "Artifacts", "Info", "Console", "Scalars", "Plots" and "Debug samples".
 
-
-## Running the UI
-
-The Gradio app in `app/app.py` loads a trained checkpoint and shows the top 5 predicted diseases for an uploaded leaf image.
-
-First train a model (see **Training the model**), then start the app with the path to the checkpoint:
-
-```powershell
-# Windows (PowerShell)
-$env:CHECKPOINT_PATH="outputs/models/<model type>_<timestamp>_<id>.pt"
-python -m app.app
-```
-
-```bash
-# Mac / Linux
-CHECKPOINT_PATH=outputs/models/<model type>_<timestamp>_<id>.pt python -m app.app
-```
-- Replace `<model type>_<timestamp>_<id>.pt` with the name of your checkpoint in `outputs/models/`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
-- Open the local link shown in the terminal (usually http://127.0.0.1:7860) and upload a leaf image.
-- The image is preprocessed with the same settings as during evaluation (image size and normalisation are read from the checkpoint config).
-- If `CHECKPOINT_PATH` is not set, the app still starts but shows an error when an image is uploaded.
-- Uploads are limited to 10 MB.
-
-### Local Deployment
-
-For automated setup and deployment on `localhost:8080`, including
-macOS/Linux and Windows launch scripts, see the
-[Local Deployment Guide](deployment/LOCAL_DEPLOYMENT.md).
-
 ## Running the tests
 
 ```bash
@@ -192,3 +163,59 @@ To also see which lines of `leafapp` and `app` are covered by the tests:
 python -m pytest tests/ --cov --cov-report=term-missing
 ```
 The coverage settings are in `pyproject.toml`.
+
+## Deployment
+
+There are two ways to run the app. Both serve `app/app.py` with the same ONNX
+model, which is pinned in `deployment/model.lock.json` and downloaded from
+ClearML. Both need ClearML credentials (see [Running ClearML](#running-clearml)).
+
+### Option 1: Local (SGP-5)
+
+Runs the app on your machine at http://localhost:8080.
+
+```powershell
+# Windows (PowerShell)
+.\deployment\setup_and_run.ps1   # first run: creates .venv and installs requirements-deploy.txt
+.\deployment\run_local.ps1       # later runs
+```
+
+```bash
+# Mac / Linux
+bash deployment/setup_and_run.sh
+bash deployment/run_local.sh
+```
+
+Each run downloads the pinned model, then starts the app. For more detail, see
+the [Local Deployment Guide](deployment/LOCAL_DEPLOYMENT.md).
+
+### Option 2: Cloud on Render (SGP-49)
+
+Live at: *(URL added once the Render service is created)*
+
+- A merge to `main` redeploys the app once the `tests` and `deploy-check`
+  workflows pass, but only if it changes files outside the build filter in
+  `render.yaml`. Merges that only change Markdown files, `documents/`,
+  `notebooks/`, `configs/` or `tests/` don't redeploy.
+- Render installs `requirements-deploy.txt` (no torch), downloads the pinned
+  model and runs `python -m app.app`. The configuration is in `render.yaml`.
+- If a build fails, the previous version stays live.
+- On the free tier, the app sleeps after 15 minutes without visitors, and the
+  first visit after that takes about a minute.
+
+### Changing the deployed model
+
+1. Export a training task's `best_checkpoint` and try it locally:
+   ```bash
+   python -m scripts.export_onnx --task-id <training task ID>
+   python -m app.app
+   ```
+2. Upload it to the ClearML Models tab.
+   ```bash
+   python -m scripts.export_onnx --task-id <training task ID> --upload --responsible "<your name>"
+   ```
+3. Put the printed model ID in `deployment/model.lock.json`, then open a PR and
+   merge it to `main`.
+
+To roll back, set the previous model ID (from the git history of
+`model.lock.json`) and merge to `main`.
