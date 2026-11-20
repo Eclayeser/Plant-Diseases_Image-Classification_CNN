@@ -48,18 +48,19 @@ def test_build_ui_returns_interface():
 
 
 def test_predict_returns_top_5_dataframe():
-    """predict asks for the top 5 and returns them as a DataFrame for the bar plot."""
+    """predict asks for the top 5 and returns a DataFrame for the bar plot and an HTML list."""
     classifier = FakeClassifier(PREDICTIONS)
     demo = build_ui(classifier)
     image = Image.new("RGB", (300, 200), color="green")
 
-    result = demo.fn(image)
-
+    chart, html = demo.fn(image)
     assert classifier.calls == [(image, 5)]
-    assert isinstance(result, pd.DataFrame)
-    assert list(result.columns) == ["Disease", "Probability"]
-    assert list(result["Disease"]) == [format_class_name(name) for name, _ in PREDICTIONS[:5]]
-    assert list(result["Probability"]) == [p for _, p in PREDICTIONS[:5]]
+    assert isinstance(chart, pd.DataFrame)
+    assert list(chart.columns) == ["Rank", "Disease", "Probability (%)"]
+    assert list(chart["Rank"]) == ["#1", "#2", "#3", "#4", "#5"]
+    assert list(chart["Disease"]) == [format_class_name(name) for name, _ in PREDICTIONS[:5]]
+    assert list(chart["Probability (%)"]) == [round(p * 100, 1) for _, p in PREDICTIONS[:5]]
+    assert "#1 Tomato - Leaf Mold: 60.0%" in html
 
 
 def test_predict_without_image():
