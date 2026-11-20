@@ -36,6 +36,8 @@
 
 - "#Evaluate a trained model" (SGP-33 rewrite: --responsible in examples, --task-id/--artifact, ClearML logging) and the evaluation tags line in "#Interface": drafted by Claude; I edited the wording. 85% AI-generated documentation (SGP-33, Mario Cavicchioli)
 
+- "#Run training" (reproducibility bullet): drafted by Claude; I edited the wording. NN% AI-generated documentation (SGP-16, Mario Cavicchioli)
+
 ## leafapp/models/cnn.py (SGP-6, Mario Cavicchioli)
 
 - Tool: Claude (Anthropic), used as a tutor.
@@ -78,6 +80,7 @@
 - Logic to print paths to best and final checkpoints for failed runs were ddebugged by GPT-6. (SGP-29, Reon Carroll-Ito)
 - Code to save current model as final checkpoint and uploading any existing best checkpoint on failed runs were debugged by GPT-6 (SGP-29 Reon Carroll-Ito)
 - Code to log confusion matrices was debugged by GPT-6. (SGP-29 Reon Carroll-Ito)
+- `torch.backends.cudnn.deterministic = True` and `torch.backends.cudnn.benchmark = False`: Lines given from the ticket. Ran tests to prove claim (two same-seed runs, compared exactly with `torch.equal`) (SGP-16, Mario Cavicchioli)
 - Approximate share of AI-generated code: 30%
 
 - **SGP-12, Mark Tarnavskyi** hand-written edits
