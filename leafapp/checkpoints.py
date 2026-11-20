@@ -2,8 +2,8 @@
 from pathlib import Path
 import torch
 from leafapp.model_constructor import build_model
+from leafapp.config import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 
 def save_checkpoint(path, model, cfg, class_names, history_metrics):
     """
@@ -34,7 +34,7 @@ def load_checkpoint(path):
     checkpoint = torch.load(ROOT / path, map_location="cpu")
     config = checkpoint["config"]
 
-    model = build_model(config["model"], config["data"], checkpoint["class_names"])
+    model = build_model(config["model"], config["data"], checkpoint["class_names"], pretrained=False)
 
     model.load_state_dict(checkpoint["state_dict"])
     model.eval()

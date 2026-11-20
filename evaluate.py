@@ -9,17 +9,31 @@ from leafapp.eval_functions import (
     plot_and_save_training_curve,
     plot_and_save_confusion_matrix,
     save_evaluation_report,
-    ROOT,
 )
+from leafapp.config import ROOT
 from leafapp.data import get_loaders
 from leafapp.checkpoints import load_checkpoint
-from leafapp.tracking import NAMES, RUN_TYPES, validate_issue_id, sanitise_name, initialise_task, close_task, log_final_metrics, log_image, upload_file, get_task, download_checkpoint
+from leafapp.tracking import (
+    NAMES,
+    RUN_TYPES,
+    validate_issue_id,
+    sanitise_name,
+    initialise_task,
+    close_task,
+    log_final_metrics,
+    log_image,
+    upload_file,
+    get_task,
+    download_checkpoint,
+    DEFAULT_ARTIFACT,
+    ARTIFACTS,
+    build_tags,
+    PROJECT_NAME,
+)
 
 REPORTS_DIR = ROOT / "outputs" / "eval_reports"
 DIAGRAMS_DIR = ROOT / "outputs" / "diagrams"
 ACCEPTED_DATA_TYPES = ("validation", "test")
-ARTIFACTS = ("best_checkpoint", "final_checkpoint")
-DEFAULT_ARTIFACT = "best_checkpoint"
 
 
 def parse_args(argv=None):
@@ -78,20 +92,18 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
         "training": config,
     }
 
-    tags=[
-        f"@run-type:{run_type}",
-        f"@model:{config['model']['type']}",
-        f"@responsible:{sanitise_name(responsible)}",
-        "@task-type:evaluate.py",
-        f"@split:{data_type}"
-    ]
-
-    if issue_id:
-        tags.append(f"@issue:{issue_id}")
+    tags = build_tags(
+        run_type=run_type,
+        model_type=config["model"]["type"],
+        responsible=responsible,
+        task_type="evaluate.py",
+        issue_id=issue_id,
+        extra=[f"@split:{data_type}"]
+    )
 
     task = initialise_task(
         config=run_config, 
-        project_name="Plant-Disease-Image-Classification", 
+        project_name=PROJECT_NAME, 
         task_name=f"{config['model']['type']} - {checkpoint_name} - {data_type}", 
         tags=tags,
     )

@@ -1,0 +1,45 @@
+name: deploy-check
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+jobs:
+  deploy-smoke:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      CLEARML_API_HOST: https://api.clear.ml
+      CLEARML_WEB_HOST: https://app.clear.ml
+      CLEARML_FILES_HOST: https://files.clear.ml
+      CLEARML_API_ACCESS_KEY: ${{ secrets.CLEARML_API_ACCESS_KEY }}
+      CLEARML_API_SECRET_KEY: ${{ secrets.CLEARML_API_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-deploy.txt
+      - name: Install Requirements
+        run: pip install -r requirements-deploy.txt
+      - name: Check torch is not installed
+        run: |
+          if python -c "import torch" 2>/dev/null; then
+            echo "torch must not be in requirements-deploy.txt"
+            exit 1
+          fi
+      - name: Fetch model from ClearML using model ID in model.lock.json
+        run: python -m scripts.fetch_model_from_clearml
+      - name: Check the app loads the model and predicts
+        run: |
+          python - <<'EOF'
+          from PIL import Image
+          from app.app import build_ui
+          from leafapp.predict import LeafClassifier
+
+          demo = build_ui(LeafClassifier.from_dir())
+          print(demo.fn(Image.new("RGB", (300, 200), "green")))
+          EOF

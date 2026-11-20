@@ -53,15 +53,30 @@ def split(ds, seed, val_frac=0.15, test_frac=0.15):
     return train, val, test
 
 
+def get_normalization_stats(normalize):
+    """Return the (mean, std) pair that a normalize setting selects.
+
+    normalize is "imagenet" (or True) or "plant_village". False returns
+    None (no normalising); any other value raises a ValueError.
+    """
+    if normalize is not False:
+        stats = "imagenet" if normalize is True else normalize
+        if stats not in NORMALIZATION_STATS:
+            raise ValueError(
+                f"Invalid normalize {normalize!r}: expected True, False, "
+                "'imagenet' or 'plant_village'"
+            )
+        return NORMALIZATION_STATS[stats]
+    return None
+
+
 def make_transforms(image_size, augment=True, normalize=False):
     """Build the image transforms for training and evaluation.
 
     Return (train_tf, eval_tf). Both resize images to image_size and
     convert them to tensors. train_tf also adds random flips, rotations
-    and colour changes when augment is True. normalize picks the mean and
-    std both transforms normalise the tensors with: "imagenet" (or True),
-    which pretrained models like ResNet18 expect, or "plant_village", our
-    training split's own. False skips normalising.
+    and colour changes when augment is True. Both normalise with the
+    stats that get_normalization_stats(normalize) selects.
     """
     eval_tf = transforms.Compose(
         [
@@ -81,15 +96,10 @@ def make_transforms(image_size, augment=True, normalize=False):
         )
     else:
         train_tf = eval_tf
-        
-    if normalize is not False:
-        stats = "imagenet" if normalize is True else normalize
-        if stats not in NORMALIZATION_STATS:
-            raise ValueError(
-                f"Invalid normalize {normalize!r}: expected True, False, "
-                "'imagenet' or 'plant_village'"
-            )
-        mean, std = NORMALIZATION_STATS[stats]
+
+    stats = get_normalization_stats(normalize)
+    if stats is not None:
+        mean, std = stats
         normalization = transforms.Normalize(mean, std)
         eval_tf = transforms.Compose([eval_tf, normalization])
         train_tf = transforms.Compose([train_tf, normalization])

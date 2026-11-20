@@ -1,48 +1,52 @@
 import os
 
 import gradio as gr
+import pandas as pd
 from PIL import Image
 
-from leafapp.predict import load_model, get_cnn_predictions, preprocess_image
-
+from leafapp.config import MODEL_DIR
+from leafapp.predict import LeafClassifier
 
 Image.MAX_IMAGE_PIXELS = 20_000_000
 
 
-CHECKPOINT_PATH = os.getenv("CHECKPOINT_PATH")
-
-MODEL, CLASS_NAMES, TRANSFORM = load_model(CHECKPOINT_PATH)
-
-
-def predict(image):
-    if image is None:
-        return None
-
-    if MODEL is None:
-        raise gr.Error("No trained model loaded. Set CHECKPOINT_PATH to a trained checkpoint.")
-
-    # Prepare the uploaded image
-    processed_image = preprocess_image(image, TRANSFORM)
-
-    return get_cnn_predictions(processed_image, MODEL, CLASS_NAMES)
+def format_class_name(name):
+    """Turn a label such as "Tomato___Leaf_Mold" into "Tomato - Leaf Mold"."""
+    return name.replace("___", " - ").replace("_", " ")
 
 
-# Create the Gradio interface
-demo = gr.Interface(
-    fn=predict,
-    inputs=gr.Image(type="pil", label="Upload a leaf image"),
-    outputs=gr.BarPlot(
-        x="Disease",
-        y="Probability",
-        title="Top 5 Predictions",
-        x_label_angle=45,
-        sort="-y"
-    ),
-    title="Plant Disease Classification",
-    description="Upload a plant leaf image to identify its disease.",
-    api_name="predict"
-)
+def build_ui(classifier):
+    """Build the Gradio interface"""
+
+    def predict(image):
+        if image is None:
+            return None
+
+        predictions = classifier.top_k(image, k=5)
+        return pd.DataFrame({
+            "Disease": [format_class_name(name) for name, _ in predictions],
+            "Probability": [probability for _, probability in predictions],
+        })
+
+    demo = gr.Interface(
+        fn=predict,
+        inputs=gr.Image(type="pil", label="Upload a leaf image"),
+        outputs=gr.BarPlot(
+            x="Disease",
+            y="Probability",
+            title="Top 5 Predictions",
+            x_label_angle=45,
+            sort="-y"
+        ),
+        title="Plant Disease Classification",
+        description="Upload a plant leaf image to identify its disease.",
+        api_name="predict",
+        flagging_mode="never"
+    )
+    return demo
 
 
 if __name__ == "__main__":
-    demo.launch(max_file_size="10mb")
+    classifier = LeafClassifier.from_dir(MODEL_DIR)
+    demo = build_ui(classifier)
+    demo.launch(server_port=int(os.getenv("PORT", 8080)), max_file_size="10mb")
