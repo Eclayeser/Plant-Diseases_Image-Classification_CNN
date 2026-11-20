@@ -209,6 +209,8 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
         cfg["data"].setdefault("normalize", False)  # record the default for ClearML visibility
         cfg["train"].setdefault("patience", None) # None = early stopping off
         cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
+        if cfg["model"]["type"] in ("BasicCNN", "RegularisedCNN"):
+            cfg["model"].setdefault("pooling", "flatten")  # record the default for ClearML visibility
         torch.manual_seed(cfg["seed"])
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
