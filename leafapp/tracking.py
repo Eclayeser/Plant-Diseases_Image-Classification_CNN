@@ -83,30 +83,7 @@ def log_epoch_metrics(
             )
 
 def log_confusion_matrix(logger, epoch, matrix, class_names):
-    counts = np.asarray(matrix, dtype=float)
-    row_totals = counts.sum(axis=1, keepdims=True)
-
-    percentages = np.divide(
-        counts,
-        row_totals,
-        out=np.zeros_like(counts),
-        where=row_totals > 0,
-    ) * 100
-
-    logger.report_confusion_matrix(
-        title="Confusion Matrix (%)",
-        series="validation",
-        matrix=percentages,
-        iteration=epoch,
-        xaxis="Predicted label",
-        yaxis="True label",
-        xlabels=class_names,
-        ylabels=class_names,
-        yaxis_reversed=True,
-        extra_layout=layout,
-    )
-    
-    """Report a readable validation confusion matrix to ClearML."""
+    """Report raw and row-normalised validation confusion matrices."""
 
     layout = {
         "width": 1800,
@@ -132,6 +109,29 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
         title="Confusion Matrix",
         series="validation",
         matrix=matrix,
+        iteration=epoch,
+        xaxis="Predicted label",
+        yaxis="True label",
+        xlabels=class_names,
+        ylabels=class_names,
+        yaxis_reversed=True,
+        extra_layout=layout,
+    )
+
+    counts = np.asarray(matrix, dtype=float)
+    row_totals = counts.sum(axis=1, keepdims=True)
+
+    percentages = np.divide(
+        counts,
+        row_totals,
+        out=np.zeros_like(counts),
+        where=row_totals > 0,
+    ) * 100
+
+    logger.report_confusion_matrix(
+        title="Confusion Matrix (%)",
+        series="validation",
+        matrix=percentages,
         iteration=epoch,
         xaxis="Predicted label",
         yaxis="True label",
