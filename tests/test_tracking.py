@@ -356,3 +356,35 @@ def test_download_checkpoint_lists_available_when_missing(tmp_path):
 
 def report_plotly(self, **kwargs):
     self.plots.append(kwargs)
+
+def test_reports_top_ten_classes_by_error_rate():
+    logger = FakeLogger()
+
+    # 11 classes with samples, plus one empty class.
+    matrix = [[0] * 12 for _ in range(12)]
+
+    for i in range(11):
+        matrix[i][i] = 10 - i
+        matrix[i][(i + 1) % 11] = i
+
+    names = [f"Class {i}" for i in range(12)]
+
+    log_confusion_matrix(
+        logger, epoch=5, matrix=matrix, class_names=names
+    )
+
+    assert len(logger.confusion_matrices) == 1
+    assert len(logger.plots) == 1
+
+    plot = logger.plots[0]
+
+    assert plot["title"] == "Highest Class Error Rates"
+    assert plot["iteration"] == 5
+
+    bar = plot["figure"]["data"][0]
+
+    assert bar["type"] == "bar"
+    assert bar["orientation"] == "h"
+    assert bar["y"] == [f"Class {i}" for i in range(10, 0, -1)]
+    assert bar["x"] == [float(i * 10) for i in range(10, 0, -1)]
+    assert "Class 11" not in bar["y"]
