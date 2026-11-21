@@ -9,6 +9,18 @@ import leafapp.config
 from app.app import build_ui, format_class_name
 from leafapp.predict import LeafClassifier
 
+class FakeModelManager:
+    """Simulates multiple models without loading ONNX files."""
+
+    def __init__(self):
+        self.calls = []
+
+    def top_k(self, model_name, image, k=5):
+        self.calls.append((model_name, image, k))
+        return [
+            (f"{model_name}___healthy", 0.8),
+            ("Tomato___Leaf_Mold", 0.2),
+        ]
 
 class FakeClassifier:
     """Stands in for LeafClassifier and returns fixed predictions."""
