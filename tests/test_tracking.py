@@ -116,7 +116,7 @@ def test_log_confusion_matrix_reports_matrix_with_labels():
     assert layout["margin"]["b"] >= 300
     assert layout["xaxis"]["tickangle"] <= -45
 
-    assert logger.confusion_matrices == [
+    assert logger.confusion_matrices[0] == [        
         {
             "title": "Confusion Matrix",
             "series": "validation",
@@ -128,6 +128,38 @@ def test_log_confusion_matrix_reports_matrix_with_labels():
             "ylabels": class_names,
             "yaxis_reversed": True,
         }
+    ]
+
+def test_log_confusion_matrix_reports_normalised_percentages():
+    logger = FakeLogger()
+
+    matrix = [
+        [3, 1, 0],
+        [0, 0, 0],
+        [1, 1, 2],
+    ]
+    class_names = ["healthy", "rust", "mold"]
+
+    log_confusion_matrix(
+        logger, epoch=3, matrix=matrix, class_names=class_names
+    )
+
+    assert len(logger.confusion_matrices) == 2
+
+    counts = logger.confusion_matrices[0]
+    percentages = logger.confusion_matrices[1]
+
+    assert counts["matrix"] == matrix
+
+    assert percentages["title"] == "Confusion Matrix (%)"
+    assert percentages["iteration"] == 3
+    assert percentages["xlabels"] == class_names
+    assert percentages["ylabels"] == class_names
+
+    assert percentages["matrix"].tolist() == [
+        [75.0, 25.0, 0.0],
+        [0.0, 0.0, 0.0],
+        [25.0, 25.0, 50.0],
     ]
 
 def test_upload_checkpoint_registers_artifact_path(tmp_path):
