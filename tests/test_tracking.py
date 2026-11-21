@@ -108,6 +108,14 @@ def test_log_confusion_matrix_reports_matrix_with_labels():
 
     log_confusion_matrix(logger, epoch=3, matrix=matrix, class_names=class_names)
 
+    layout = logger.confusion_matrices[0].pop("extra_layout")
+
+    assert layout["width"] == 1800
+    assert layout["height"] == 1500
+    assert layout["margin"]["l"] >= 350
+    assert layout["margin"]["b"] >= 300
+    assert layout["xaxis"]["tickangle"] <= -45
+
     assert logger.confusion_matrices == [
         {
             "title": "Confusion Matrix",
