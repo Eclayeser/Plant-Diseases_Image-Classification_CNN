@@ -103,6 +103,14 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
             "tickfont": {"size": 10},
             "automargin": True,
         },
+        "colorscale": [
+            [0.0, "#FFFFFF"],
+            [0.15, "#FEE5D9"],
+            [0.45, "#FC9272"],
+            [0.75, "#DE2D26"],
+            [1.0, "#7F0000"],
+        ],
+        "zmin": 0,
     }
 
     logger.report_confusion_matrix(
@@ -138,7 +146,7 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
         xlabels=class_names,
         ylabels=class_names,
         yaxis_reversed=True,
-        extra_layout=layout,
+        extra_layout={**layout, "zmax": 100},
     )
 
 def log_final_metrics(logger: Any, metrics: Mapping[str, Any]) -> None:
