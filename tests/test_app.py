@@ -2,7 +2,6 @@ import runpy
 import sys
 
 import gradio as gr
-import pandas as pd
 import pytest
 from PIL import Image
 
@@ -47,23 +46,25 @@ def test_build_ui_returns_interface():
     assert isinstance(demo.input_components[0], gr.Image)
 
 
-def test_predict_returns_top_5_dataframe():
-    """predict asks for the top 5 and returns them as a DataFrame for the bar plot."""
+def test_predict_returns_top_5_html():
+    """Check that the top 5 predictions are shown in the HTML chart."""
     classifier = FakeClassifier(PREDICTIONS)
     demo = build_ui(classifier)
     image = Image.new("RGB", (300, 200), color="green")
 
-    result = demo.fn(image)
+    html = demo.fn(image)
 
     assert classifier.calls == [(image, 5)]
-    assert isinstance(result, pd.DataFrame)
-    assert list(result.columns) == ["Disease", "Probability"]
-    assert list(result["Disease"]) == [format_class_name(name) for name, _ in PREDICTIONS[:5]]
-    assert list(result["Probability"]) == [p for _, p in PREDICTIONS[:5]]
+
+    for name, probability in PREDICTIONS[:5]:
+        assert format_class_name(name) in html
+        assert f"{round(probability * 100, 1)}%" in html
+
+    assert format_class_name(PREDICTIONS[5][0]) not in html
 
 
 def test_predict_without_image():
-    """With no image uploaded, predict returns None and doesn't call the model."""
+    """With no image uploaded, predict returns None for both outputs and doesn't call the model."""
     classifier = FakeClassifier(PREDICTIONS)
     demo = build_ui(classifier)
 
