@@ -42,26 +42,77 @@ def prediction_chart_html(names, percents):
     return "".join(rows)
 
 
-def build_ui(classifier):
-    """Build the Gradio interface"""
+def build_ui(classifier, model_names=None, default_model=None):
+    def format_predictions(predictions):
+        """Convert the top predictions into the existing HTML chart."""
+        names = [
+            format_class_name(name)
+            for name, _ in predictions
+        ]
 
-    def predict(image):
+        percents = [
+            round(probability * 100, 1)
+            for _, probability in predictions
+        ]
+
+        return prediction_chart_html(names, percents)
+
+    def predict_single(image):
+        """Preserve the existing single-model prediction behaviour."""
         if image is None:
             return None
 
         predictions = classifier.top_k(image, k=5)
-        names = [format_class_name(name) for name, _ in predictions]
-        percents = [round(probability * 100, 1) for _, probability in predictions]
-        return prediction_chart_html(names, percents)
+        return format_predictions(predictions)
+
+    def predict_selected(image, model_name):
+        """Predict using the model selected in the dropdown."""
+        if image is None:
+            return None
+
+        predictions = classifier.top_k(
+            model_name,
+            image,
+            k=5,
+        )
+
+        return format_predictions(predictions)
+
+    image_input = gr.Image(
+        type="pil",
+        label="Upload a leaf image",
+    )
+
+    if model_names is None:
+        inputs = image_input
+        predict_fn = predict_single
+
+    else:
+        if not model_names:
+            raise ValueError("At least one model must be available")
+
+        if default_model is None:
+            default_model = model_names[0]
+
+        if default_model not in model_names:
+            raise ValueError("Default model must be selectable")
+        model_selector = gr.Dropdown(
+            choices=model_names,
+            value=default_model,
+            label="Classification Model",
+            interactive=True,
+        )
+        inputs = [image_input, model_selector]
+        predict_fn = predict_selected
 
     demo = gr.Interface(
-        fn=predict,
-        inputs=gr.Image(type="pil", label="Upload a leaf image"),
+        fn=predict_fn,
+        inputs=inputs,
         outputs=gr.HTML(label="Top 5 Predictions"),
         title="Plant Disease Classification",
         description="Upload a plant leaf image to identify its disease.",
         api_name="predict",
-        flagging_mode="never"
+        flagging_mode="never",
     )
     return demo
 
