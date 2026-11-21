@@ -24,6 +24,8 @@ class FakeLogger:
     def report_confusion_matrix(self, **kwargs):
         self.confusion_matrices.append(kwargs)
 
+    def report_plotly(self, **kwargs):
+        self.plots.append(kwargs)
 
 class FakeTask:
     def __init__(self):
