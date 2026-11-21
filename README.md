@@ -56,6 +56,7 @@ python train.py --responsible "<your name>" --save-interval 1                   
 - Each epoch's validation confusion matrix is reported to the ClearML task's Plots tab, with actual labels on rows and predicted labels on columns.
 - At the end, the model is saved to `outputs/models/<model type>_<timestamp>_<id>.pt`, e.g. `basiccnn_20261105-184800_a3f9c1.pt`.
 - Set `augment: false` under `data:` to turn off training augmentation (random flips, rotations and colour changes). It is on by default.
+- Under `data.augmentation`, you can override `flip_probability` (0.5), `rotation_degrees` (15), `brightness` (0.2), or `saturation` (0.2). For example, `augmentation: {rotation_degrees: 10}` under `data:` changes only the rotation range.
 - `optimizer` under `train:` chooses the optimiser: `AdamW` (default) or `Adam`. See `documents/experiments/SGP-27/` for why AdamW is the default.
 - Same-seed GPU runs are reproducible in our tests: `train.py` sets `torch.backends.cudnn.deterministic = True` and `torch.backends.cudnn.benchmark = False`, and two runs with the same config and `seed` gave identical weights and metrics (checked on `BasicCNN` and `ResNet18`, RTX 4070, PyTorch 2.14.1 with CUDA 13.2). Results can still differ across GPUs, PyTorch/CUDA versions, or between CPU and GPU. This can slow GPU training slightly.
 

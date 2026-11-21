@@ -15,9 +15,33 @@ def test_transforms_give_right_shape_and_range():
         assert x.min().item() >= 0.0 and x.max().item() <= 1.0
 
 
+@pytest.mark.parametrize(
+    "settings, flip_p, degrees, brightness, saturation",
+    [
+        (None, 0.5, 15, 0.2, 0.2),
+        ({"rotation_degrees": 10}, 0.5, 10, 0.2, 0.2),
+        ({"flip_probability": 0.1, "brightness": 0.3, "saturation": 0.4}, 0.1, 15, 0.3, 0.4),
+    ],
+)
+def test_training_augmentation_settings(settings, flip_p, degrees, brightness, saturation):
+    train_tf, eval_tf = make_transforms(64, augmentation=settings)
+    _, flip, rotation, jitter, _ = train_tf.transforms
+    assert flip.p == flip_p
+    assert rotation.degrees == [-degrees, degrees]
+    assert jitter.brightness == pytest.approx((1 - brightness, 1 + brightness))
+    assert jitter.saturation == pytest.approx((1 - saturation, 1 + saturation))
+    assert len(eval_tf.transforms) == 2
+
+
+@pytest.mark.parametrize("settings", [{"rotaton_degrees": 10}, {"flip_probability": 1.5}])
+def test_invalid_augmentation_setting_raises(settings):
+    with pytest.raises(ValueError):
+        make_transforms(64, augmentation=settings)
+
+
 def test_no_augment_reuses_eval_transform():
     """With augment=False, the training transform is the evaluation transform."""
-    train_tf, eval_tf = make_transforms(64, augment=False)
+    train_tf, eval_tf = make_transforms(64, augment=False, augmentation={"rotation_degrees": 10})
     assert train_tf is eval_tf
 
 

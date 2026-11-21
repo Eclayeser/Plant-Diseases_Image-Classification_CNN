@@ -10,7 +10,7 @@ from torch import nn
 from leafapp.config import load_config, ROOT
 from leafapp.model_constructor import build_model
 from leafapp.optimizer_constructor import choose_optimizer
-from leafapp.data import get_loaders
+from leafapp.data import get_loaders, resolve_augmentation
 from leafapp.checkpoints import save_checkpoint
 from leafapp.early_stopping import EarlyStopping
 from leafapp.eval_functions import (
@@ -206,6 +206,9 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
     best_checkpoint_uploaded = False
     try:
         cfg = load_config(ROOT / config_path) 
+        augment = cfg["data"].setdefault("augment", True)
+        if augment:
+            cfg["data"]["augmentation"] = resolve_augmentation(cfg["data"].get("augmentation"))
         cfg["data"].setdefault("normalize", False)  # record the default for ClearML visibility
         cfg["train"].setdefault("patience", None) # None = early stopping off
         cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
@@ -220,7 +223,8 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
             batch_size=cfg["data"]["batch_size"],
             seed=cfg["seed"],
             normalize=cfg["data"].get("normalize", False),
-            augment=cfg["data"].setdefault("augment", True),
+            augment=augment,
+            augmentation=cfg["data"].get("augmentation"),
         )
 
         model = build_model(cfg["model"], cfg["data"], class_names)
