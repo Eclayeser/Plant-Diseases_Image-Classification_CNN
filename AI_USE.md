@@ -371,3 +371,12 @@ Approximate share of AI-generated code: 60%.
 - Approximate share of AI-generated code: 100%
 
 
+## configs/cnn_wider_plant_village_early_stopping_full_seed{42,43,44}.yaml, configs/cnn_wider_dropout_early_stopping_full_seed{42,43,44}.yaml (SGP-52, Mario Westphalen Cavicchioli)
+
+- Claude gave the template for the first config (copy of the existing early-stopping configs with `fraction: 1.0`, the seed and an explicit `augment: true`); I wrote the dropout version and the seed copies.
+- Approximate share of AI-generated code: 0%
+
+## documents/experiments/SGP-52/sgp52_dropout_full_data.md (SGP-52, Mario Westphalen Cavicchioli)
+
+- I ran the six experiments. Claude extracted the results from the ClearML exports and checked them against the checkpoints, computed the per-seed gains, and drafted the write-up. The interpretation (that the consistency argument may come from early stopping, and the inconclusive recommendation) came from our discussion; I edited the wording.
+- Approximate share of AI-generated documentation: 50%
