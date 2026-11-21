@@ -160,6 +160,26 @@ def test_log_confusion_matrix_reports_normalised_percentages():
         [25.0, 25.0, 50.0],
     ]
 
+def test_confusion_matrices_use_white_to_red_scale():
+    logger = FakeLogger()
+
+    log_confusion_matrix(
+        logger,
+        epoch=1,
+        matrix=[[0, 1], [2, 3]],
+        class_names=["healthy", "rust"],
+    )
+
+    assert len(logger.confusion_matrices) == 2
+
+    for entry in logger.confusion_matrices:
+        layout = entry["extra_layout"]
+        assert layout["colorscale"][0] == [0.0, "#FFFFFF"]
+        assert layout["colorscale"][-1] == [1.0, "#7F0000"]
+        assert layout["zmin"] == 0
+
+    assert logger.confusion_matrices[1]["extra_layout"]["zmax"] == 100
+
 def test_upload_checkpoint_registers_artifact_path(tmp_path):
     task = FakeTask()
     checkpoint = tmp_path / "best.pt"
