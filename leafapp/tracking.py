@@ -163,7 +163,7 @@ def build_non_zero_shapes(matrix):
                     "y0": row_idx - 0.5,
                     "y1": row_idx + 0.5,
                     "line": {
-                        "color": "rgba(60, 60, 60, 0.35)",
+                        "color": "rgba(60, 60, 60, 0.2)",
                         "width": 0.8,
                     },
                     "fillcolor": "rgba(0,0,0,0)",
