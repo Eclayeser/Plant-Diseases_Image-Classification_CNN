@@ -115,19 +115,6 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
 
     layout["shapes"] = build_non_zero_shapes(matrix)
 
-    logger.report_confusion_matrix(
-        title="Confusion Matrix",
-        series="validation",
-        matrix=matrix,
-        iteration=epoch,
-        xaxis="Predicted label",
-        yaxis="True label",
-        xlabels=class_names,
-        ylabels=class_names,
-        yaxis_reversed=True,
-        extra_layout=layout,
-    )
-
     counts = np.asarray(matrix, dtype=float)
     row_totals = counts.sum(axis=1, keepdims=True)
 
@@ -149,6 +136,59 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
         ylabels=class_names,
         yaxis_reversed=True,
         extra_layout={**layout, "zmax": 100},
+    )
+
+    row_counts = counts.sum(axis=1)
+    correct_counts = np.diag(counts)
+
+    error_rates = np.divide(
+        row_counts - correct_counts,
+        row_counts,
+        out=np.zeros_like(row_counts),
+        where=row_counts > 0,
+    ) * 100
+
+    valid_classes = np.flatnonzero(row_counts > 0)
+    if len(valid_classes) == 0:
+        return
+
+    worst_classes = sorted(
+        valid_classes,
+        key=lambda i: (-error_rates[i], class_names[i]),
+    )[:10]
+
+    labels = [class_names[i] for i in worst_classes]
+    values = [round(float(error_rates[i]), 2) for i in worst_classes]
+
+    figure = {
+        "data": [{
+            "type": "bar",
+            "orientation": "h",
+            "x": values,
+            "y": labels,
+            "marker": {"color": "#B91C1C"},
+            "hovertemplate": "%{y}: %{x:.2f}% misclassified<extra></extra>",
+        }],
+        "layout": {
+            "height": 650,
+            "margin": {"l": 420, "r": 70, "t": 60, "b": 70},
+            "xaxis": {
+                "title": "Misclassification rate (%)",
+                "range": [0, 100],
+            },
+            "yaxis": {
+                "title": "Actual class",
+                "autorange": "reversed",
+            },
+            "showlegend": False,
+        },
+    }
+
+    logger.report_plotly(
+        title="Highest Class Error Rates",
+        series="validation",
+        figure=figure,
+        iteration=epoch,
     )
 
 def build_non_zero_shapes(matrix):
