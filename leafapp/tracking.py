@@ -113,6 +113,8 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
         "zmin": 0,
     }
 
+    layout["shapes"] = build_non_zero_shapes(matrix)
+
     logger.report_confusion_matrix(
         title="Confusion Matrix",
         series="validation",
@@ -148,6 +150,25 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
         yaxis_reversed=True,
         extra_layout={**layout, "zmax": 100},
     )
+
+def build_non_zero_shapes(matrix):
+    shapes = []
+    for row_idx, row in enumerate(matrix):
+        for col_idx, value in enumerate(row):
+            if value > 0:
+                shapes.append({
+                    "type": "rect",
+                    "x0": col_idx - 0.5,
+                    "x1": col_idx + 0.5,
+                    "y0": row_idx - 0.5,
+                    "y1": row_idx + 0.5,
+                    "line": {
+                        "color": "rgba(60, 60, 60, 0.35)",
+                        "width": 0.8,
+                    },
+                    "fillcolor": "rgba(0,0,0,0)",
+                })
+    return shapes
 
 def log_final_metrics(logger: Any, metrics: Mapping[str, Any]) -> None:
     """Report each single-number metric (e.g. accuracy, f1) as a ClearML single value."""
