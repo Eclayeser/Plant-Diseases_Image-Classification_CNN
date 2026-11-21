@@ -116,8 +116,7 @@ def test_log_confusion_matrix_reports_matrix_with_labels():
     assert layout["margin"]["b"] >= 300
     assert layout["xaxis"]["tickangle"] <= -45
 
-    assert logger.confusion_matrices[0] == [        
-        {
+    assert logger.confusion_matrices[0] == {
             "title": "Confusion Matrix",
             "series": "validation",
             "matrix": matrix,
@@ -128,7 +127,6 @@ def test_log_confusion_matrix_reports_matrix_with_labels():
             "ylabels": class_names,
             "yaxis_reversed": True,
         }
-    ]
 
 def test_log_confusion_matrix_reports_normalised_percentages():
     logger = FakeLogger()
