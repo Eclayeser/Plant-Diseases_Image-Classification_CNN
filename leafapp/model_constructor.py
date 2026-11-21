@@ -15,6 +15,7 @@ def build_model(model_settings: dict[str, Any], data_specs: dict[str, Any], clas
             num_classes=len(class_names),
             channels=model_settings["channels"],
             image_size=data_specs["image_size"],
+            pooling=model_settings.get("pooling", "flatten"),
         )
 
     # when new model is implemented, wire its construction here via if statement!
@@ -25,6 +26,7 @@ def build_model(model_settings: dict[str, Any], data_specs: dict[str, Any], clas
             image_size=data_specs["image_size"],
             regularisation=model_settings["regularisation"],
             dropout_p=model_settings.get("dropout_p", 0.2),
+            pooling=model_settings.get("pooling", "flatten"),
         )
 
     if model_settings["type"] == "ResNet18":

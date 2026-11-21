@@ -36,6 +36,8 @@
 
 - "#Evaluate a trained model" (SGP-33 rewrite: --responsible in examples, --task-id/--artifact, ClearML logging) and the evaluation tags line in "#Interface": drafted by Claude; I edited the wording. 85% AI-generated documentation (SGP-33, Mario Cavicchioli)
 
+- "#Run training" (reproducibility bullet): drafted by Claude; I edited the wording. NN% AI-generated documentation (SGP-16, Mario Cavicchioli)
+
 ## leafapp/models/cnn.py (SGP-6, Mario Cavicchioli)
 
 - Tool: Claude (Anthropic), used as a tutor.
@@ -78,6 +80,7 @@
 - Logic to print paths to best and final checkpoints for failed runs were ddebugged by GPT-6. (SGP-29, Reon Carroll-Ito)
 - Code to save current model as final checkpoint and uploading any existing best checkpoint on failed runs were debugged by GPT-6 (SGP-29 Reon Carroll-Ito)
 - Code to log confusion matrices was debugged by GPT-6. (SGP-29 Reon Carroll-Ito)
+- `torch.backends.cudnn.deterministic = True` and `torch.backends.cudnn.benchmark = False`: Lines given from the ticket. Ran tests to prove claim (two same-seed runs, compared exactly with `torch.equal`) (SGP-16, Mario Cavicchioli)
 - Approximate share of AI-generated code: 30%
 
 - **SGP-12, Mark Tarnavskyi** hand-written edits
@@ -310,6 +313,25 @@ myself and Claude reviewed at the end.
 
 Approximate share of AI-generated code: 60%.
 
+## leafapp/models/cnn.py, leafapp/models/regularised_cnn.py, leafapp/model_constructor.py (SGP-51, Gul Nil Kayalioglu)
+
+- I added a `pooling` option (`flatten` or `avg`) to BasicCNN and passed it through RegularisedCNN and `build_model`.
+- I used Claude to review and check the code I added.
+- Approximate share of AI-generated code: 10%
+
+## tests/test_models.py, tests/test_model_constructor.py, configs/cnn_wider_avg_pooling_early_stopping.yaml (SGP-51, Gul Nil Kayalioglu)
+
+- I wrote tests for the output shape, smaller parameter count, invalid pooling values, and reading the pooling option from the config.
+- Claude helped me decide what to test and with the structure of the tests.
+- The config is a copy of the existing early stopping config with `pooling: avg` added.
+- Approximate share of AI-generated code: 20%
+
+## documents/experiments/SGP-51/sgp51_global_average_pooling.md (SGP-51, Gul Nil Kayalioglu)
+
+- I ran all six training experiments and exported the charts from ClearML.
+- I analysed the results myself, and Claude helped me organise my findings and write them in a report format.
+- Approximate share of AI-generated documentation: 50%
+
 ## leafapp/models/resnet.py, leafapp/model_constructor.py, leafapp/checkpoints.py (SGP-26, Gul Nil Kayalioglu)
 - I added a `pretrained` option so that loading a checkpoint skips the ImageNet weight download. Claude gave me the idea of using this option, and I implemented it myself.
 - Approximate share of AI-generated code: 10%
@@ -350,12 +372,22 @@ Approximate share of AI-generated code: 60%.
 
 ## app/app.py (SGP-55, Gul Nil Kayalioglu)
 
-- I improved the prediction chart: probabilities are shown as percentages on a fixed 0–100 axis, each of the top 5 bars has its own colour, and a list below the chart shows the full disease names in matching colours.
-- I tried different layouts in the app and chose the final design. I used Claude to help me understand how to implement some of these changes.
+- I improved the prediction chart by creating horizontal bars using HTML. Each of the top 5 predictions has its own colour, with the full disease name above the bar and the exact percentage next to it.
+- I tried different layouts in the app and chose the final design. I used Claude to help me understand how to implement some of these changes and improve the code structure.
 - Approximate share of AI-generated code: 40%
 
 ## tests/test_app.py (SGP-55, Gul Nil Kayalioglu)
 
-- I updated the existing tests to match the changes I made in `app.py`, including the ranks, disease names, percentages, and HTML prediction list.
-- I used Claude to review my changes and suggest some minor bug fixes.
+- I updated the existing tests to match the new horizontal HTML chart in `app.py`. The tests check that only the top 5 predictions are displayed, with the correct disease names and percentages.
+- I used Claude to review my changes, suggest minor bug fixes, and help improve the code structure.
 - Approximate share of AI-generated code: 10%
+
+## configs/cnn_wider_plant_village_early_stopping_full_seed{42,43,44}.yaml, configs/cnn_wider_dropout_early_stopping_full_seed{42,43,44}.yaml (SGP-52, Mario Westphalen Cavicchioli)
+
+- Claude gave the template for the first config (copy of the existing early-stopping configs with `fraction: 1.0`, the seed and an explicit `augment: true`); I wrote the dropout version and the seed copies.
+- Approximate share of AI-generated code: 0%
+
+## documents/experiments/SGP-52/sgp52_dropout_full_data.md (SGP-52, Mario Westphalen Cavicchioli)
+
+- I ran the six experiments. Claude extracted the results from the ClearML exports and checked them against the checkpoints, computed the per-seed gains, and drafted the write-up. The interpretation (that the consistency argument may come from early stopping, and the inconclusive recommendation) came from our discussion; I edited the wording.
+- Approximate share of AI-generated documentation: 50%
