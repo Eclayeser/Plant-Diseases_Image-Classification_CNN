@@ -20,7 +20,6 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Starting local deployment..."
-Write-Host "URL: http://localhost:8080"
 
 & $python -m app.app
 
