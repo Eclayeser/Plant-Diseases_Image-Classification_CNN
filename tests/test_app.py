@@ -125,3 +125,31 @@ def test_main_default_port(monkeypatch):
     run_app_main(monkeypatch)
 
     assert launched["server_port"] == 8080
+
+def test_model_selector_has_three_options():
+    manager = FakeModelManager()
+
+    demo = build_ui(
+        manager,
+        model_names=["Model 1", "Model 2", "Model 3"],
+        default_model="Model 1",
+    )
+
+    assert isinstance(demo, gr.Interface)
+
+    assert len(demo.input_components) == 2
+
+    image_input = demo.input_components[0]
+    model_selector = demo.input_components[1]
+
+    assert isinstance(image_input, gr.Image)
+    assert isinstance(model_selector, gr.Dropdown)
+
+    assert model_selector.value == "Model 1"
+
+    choices = [
+        choice[1] if isinstance(choice, (tuple, list)) else choice
+        for choice in model_selector.choices
+    ]
+
+    assert choices == ["Model 1", "Model 2", "Model 3"]
