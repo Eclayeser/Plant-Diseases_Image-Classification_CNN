@@ -176,3 +176,15 @@ def test_model_selector_uses_selected_model():
     assert "Model 2 - healthy" in result_2
     assert "Model 3 - healthy" in result_3
     assert result_2 != result_3
+
+def test_model_selector_without_image():
+    manager = FakeModelManager()
+    demo = build_ui(
+        manager,
+        model_names=["Model 1", "Model 2", "Model 3"],
+        default_model="Model 1",
+    )
+
+    result = demo.fn(None, "Model 2")
+    assert result is None
+    assert manager.calls == []
