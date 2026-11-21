@@ -396,3 +396,11 @@ Approximate share of AI-generated code: 60%.
 
 - I ran the six experiments. Claude extracted the results from the ClearML exports and checked them against the checkpoints, computed the per-seed gains, and drafted the write-up. The interpretation (that the consistency argument may come from early stopping, and the inconclusive recommendation) came from our discussion; I edited the wording.
 - Approximate share of AI-generated documentation: 50%
+
+## SGP-59: Confusion Matrix Readability (Pranay Singh)
+
+- Assisted with diagnosing confusion-matrix readability issues, and designing tests.
+- Used for row-normalisation and the per-class error-rate chart.
+- Testing: I ran the test suite locally and reviewed the resulting plots
+  in ClearML using synthetic confusion matrices.
+- Approximate share of AI-generated code: 40%
