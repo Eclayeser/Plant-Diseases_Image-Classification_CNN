@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import seaborn
 
 from leafapp.config import ROOT
+from leafapp.labels import format_class_name
 
 
 def calculate_f1_score(true_labels, predicted_labels) -> float:
@@ -262,10 +263,9 @@ def plot_and_save_misclassified_grid(
 
     for ax, (image, true_class, guessed_class) in zip(axes.flat, misclassified):
         ax.imshow(prepare_image_for_plotting(image, mean, std))
-        ax.set_title(
-            f"true: {class_names[true_class]}\npred: {class_names[guessed_class]}",
-            fontsize=8,
-        )
+        true_name = format_class_name(class_names[true_class])
+        predicted_name = format_class_name(class_names[guessed_class])
+        ax.set_title(f"true: {true_name}\npred: {predicted_name}", fontsize=8)
 
     plt.tight_layout()
 
