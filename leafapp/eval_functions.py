@@ -213,6 +213,11 @@ def calculate_metrics_per_loader(
     return final_metrics
 
 def collect_misclassified_images(model, loader, device, wanted_pairs, max_images=16):
+    if max_images < 0:
+        raise ValueError(f"max_images must be 0 or more, got {max_images}")
+    if max_images == 0 or not wanted_pairs:
+        return []
+    
     model.eval()
     misclassified = []
     with torch.no_grad():

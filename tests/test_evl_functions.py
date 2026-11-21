@@ -157,3 +157,25 @@ def test_misclassified_grid_saves_a_picture_even_with_no_mistakes(tmp_path):
 
     assert plot_path.is_file(), "Should save an empty grid instead of crashing"
     
+
+def test_misclassified_returns_nothing_without_running_model_when_nothing_wanted():
+    class ExplodingModel(nn.Module):
+        def forward(self, x):
+            raise AssertionError("model must not run when no images are wanted")
+
+    found_with_zero_limit = collect_misclassified_images(
+        ExplodingModel(), make_logits_loader(), "cpu", wanted_pairs={(0, 1)}, max_images=0
+    )
+    found_with_no_pairs = collect_misclassified_images(
+        ExplodingModel(), make_logits_loader(), "cpu", wanted_pairs=set()
+    )
+
+    assert found_with_zero_limit == [], "Should return nothing when max_images is 0"
+    assert found_with_no_pairs == [], "Should return nothing when no pairs are wanted"
+
+
+def test_misclassified_raises_on_negative_max_images():
+    with pytest.raises(ValueError, match="0 or more"):
+        collect_misclassified_images(
+            nn.Identity(), make_logits_loader(), "cpu", wanted_pairs={(0, 1)}, max_images=-1
+        )
