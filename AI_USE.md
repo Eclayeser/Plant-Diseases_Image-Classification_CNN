@@ -380,3 +380,14 @@ Approximate share of AI-generated code: 60%.
 
 - I ran the six experiments. Claude extracted the results from the ClearML exports and checked them against the checkpoints, computed the per-seed gains, and drafted the write-up. The interpretation (that the consistency argument may come from early stopping, and the inconclusive recommendation) came from our discussion; I edited the wording.
 - Approximate share of AI-generated documentation: 50%
+
+
+## configs/cnn_wider_*_full_seed{42,43,44}_patience8.yaml (SGP-63, Mario Westphalen Cavicchioli)
+
+- Copies of the SGP-52 configs with `patience: 8` and `epochs: 40`, made by me; Claude suggested raising the epoch cap so it wouldn't end runs before patience did.
+- Approximate share of AI-generated code: 0%
+
+## documents/experiments/SGP-63/sgp63_patience_rerun.md (SGP-63, Mario Westphalen Cavicchioli)
+
+- I ran the six experiments and chose the framing and the recommendation (both models perform the same, so prefer the simpler and cheaper one). Claude read the checkpoints, computed the comparison with SGP-52 and the timings, and drafted the write-up; I edited it.
+- Approximate share of AI-generated documentation: 30%
