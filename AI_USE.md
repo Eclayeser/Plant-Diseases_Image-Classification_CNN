@@ -313,6 +313,11 @@ myself and Claude reviewed at the end.
 
 Approximate share of AI-generated code: 60%.
 
+## SGP-45: Augmentation (Pranay Singh)
+
+- Analysis and documentation: AI helped generate the validation graphs, and draft the experiment report, which I reviewed against the actual training results.
+- Approximate share of AI-generated documentation: 70%.
+
 ## leafapp/models/cnn.py, leafapp/models/regularised_cnn.py, leafapp/model_constructor.py (SGP-51, Gul Nil Kayalioglu)
 
 - I added a `pooling` option (`flatten` or `avg`) to BasicCNN and passed it through RegularisedCNN and `build_model`.
