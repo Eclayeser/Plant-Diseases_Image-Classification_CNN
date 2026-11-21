@@ -180,6 +180,24 @@ def test_confusion_matrices_use_white_to_red_scale():
 
     assert logger.confusion_matrices[1]["extra_layout"]["zmax"] == 100
 
+def test_confusion_matrices_outline_non_zero_cells():
+    logger = FakeLogger()
+
+    log_confusion_matrix(
+        logger,
+        epoch=1,
+        matrix=[[0, 1], [2, 0]],
+        class_names=["healthy", "rust"],
+    )
+
+    for entry in logger.confusion_matrices:
+        shapes = entry["extra_layout"]["shapes"]
+        assert len(shapes) == 2
+
+        for shape in shapes:
+            assert shape["type"] == "rect"
+            assert shape["line"]["width"] > 0
+
 def test_upload_checkpoint_registers_artifact_path(tmp_path):
     task = FakeTask()
     checkpoint = tmp_path / "best.pt"
