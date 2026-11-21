@@ -5,14 +5,10 @@ import pandas as pd
 from PIL import Image
 
 from leafapp.config import MODEL_DIR
+from leafapp.labels import format_class_name
 from leafapp.predict import LeafClassifier
 
 Image.MAX_IMAGE_PIXELS = 20_000_000
-
-
-def format_class_name(name):
-    """Turn a label such as "Tomato___Leaf_Mold" into "Tomato - Leaf Mold"."""
-    return name.replace("___", " - ").replace("_", " ")
 
 
 def build_ui(classifier):
