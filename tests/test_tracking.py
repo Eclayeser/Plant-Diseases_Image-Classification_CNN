@@ -10,6 +10,7 @@ class FakeLogger:
         self.single_values = []
         self.images = []
         self.confusion_matrices = []
+        self.plots = []
 
     def report_scalar(self, **kwargs):
         self.scalars.append(kwargs)
@@ -108,26 +109,26 @@ def test_log_confusion_matrix_reports_matrix_with_labels():
 
     log_confusion_matrix(logger, epoch=3, matrix=matrix, class_names=class_names)
 
-    layout = logger.confusion_matrices[0].pop("extra_layout")
+    assert len(logger.confusion_matrices) == 1
+    plot = logger.confusion_matrices[0]
 
+    assert plot["title"] == "Confusion Matrix (%)"
+    assert plot["series"] == "validation"
+    assert plot["iteration"] == 3
+    assert plot["xlabels"] == class_names
+    assert plot["ylabels"] == class_names
+    assert plot["yaxis_reversed"] is True
+
+    assert plot["matrix"][0, 0] == pytest.approx(5 / 7 * 100)
+    assert plot["matrix"][1, 1] == pytest.approx(7 / 8 * 100)
+
+    layout = plot["extra_layout"]
     assert layout["width"] == 1800
     assert layout["height"] == 1500
     assert layout["margin"]["l"] >= 350
     assert layout["margin"]["b"] >= 300
     assert layout["xaxis"]["tickangle"] <= -45
-
-    assert logger.confusion_matrices[0] == {
-            "title": "Confusion Matrix",
-            "series": "validation",
-            "matrix": matrix,
-            "iteration": 3,
-            "xaxis": "Predicted label",
-            "yaxis": "True label",
-            "xlabels": class_names,
-            "ylabels": class_names,
-            "yaxis_reversed": True,
-        }
-
+    
 def test_log_confusion_matrix_reports_normalised_percentages():
     logger = FakeLogger()
 
@@ -139,15 +140,14 @@ def test_log_confusion_matrix_reports_normalised_percentages():
     class_names = ["healthy", "rust", "mold"]
 
     log_confusion_matrix(
-        logger, epoch=3, matrix=matrix, class_names=class_names
+        logger,
+        epoch=3,
+        matrix=matrix,
+        class_names=class_names,
     )
 
-    assert len(logger.confusion_matrices) == 2
-
-    counts = logger.confusion_matrices[0]
-    percentages = logger.confusion_matrices[1]
-
-    assert counts["matrix"] == matrix
+    assert len(logger.confusion_matrices) == 1
+    percentages = logger.confusion_matrices[0]
 
     assert percentages["title"] == "Confusion Matrix (%)"
     assert percentages["iteration"] == 3
@@ -170,15 +170,13 @@ def test_confusion_matrices_use_white_to_red_scale():
         class_names=["healthy", "rust"],
     )
 
-    assert len(logger.confusion_matrices) == 2
+    assert len(logger.confusion_matrices) == 1
+    layout = logger.confusion_matrices[0]["extra_layout"]
 
-    for entry in logger.confusion_matrices:
-        layout = entry["extra_layout"]
-        assert layout["colorscale"][0] == [0.0, "#FFFFFF"]
-        assert layout["colorscale"][-1] == [1.0, "#7F0000"]
-        assert layout["zmin"] == 0
-
-    assert logger.confusion_matrices[1]["extra_layout"]["zmax"] == 100
+    assert layout["colorscale"][0] == [0.0, "#FFFFFF"]
+    assert layout["colorscale"][-1] == [1.0, "#7F0000"]
+    assert layout["zmin"] == 0
+    assert layout["zmax"] == 100
 
 def test_confusion_matrices_outline_non_zero_cells():
     logger = FakeLogger()
@@ -190,13 +188,14 @@ def test_confusion_matrices_outline_non_zero_cells():
         class_names=["healthy", "rust"],
     )
 
-    for entry in logger.confusion_matrices:
-        shapes = entry["extra_layout"]["shapes"]
-        assert len(shapes) == 2
+    assert len(logger.confusion_matrices) == 1
+    layout = logger.confusion_matrices[0]["extra_layout"]
+    shapes = layout["shapes"]
+    assert len(shapes) == 2
 
-        for shape in shapes:
-            assert shape["type"] == "rect"
-            assert shape["line"]["width"] > 0
+    for shape in shapes:
+        assert shape["type"] == "rect"
+        assert shape["line"]["width"] > 0
 
 def test_upload_checkpoint_registers_artifact_path(tmp_path):
     task = FakeTask()
@@ -354,3 +353,6 @@ def test_download_checkpoint_lists_available_when_missing(tmp_path):
 
     with pytest.raises(KeyError, match="best_checkpoint"):
         download_checkpoint(task, "final_checkpoint")
+
+def report_plotly(self, **kwargs):
+    self.plots.append(kwargs)
