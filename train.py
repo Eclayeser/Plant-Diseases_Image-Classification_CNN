@@ -33,6 +33,7 @@ from leafapp.tracking import (
 
 
 LOGGER = logging.getLogger(__name__)
+DEFAULT_CHECKPOINT_INTERVAL = 5
 
 def parse_args(argv=None):
     """
@@ -46,7 +47,13 @@ def parse_args(argv=None):
     parser.add_argument("--responsible", required=True, choices=NAMES, help="Name who is responsible for / triggered the run.")
     parser.add_argument("--run-type", choices=RUN_TYPES, default="debugging", help="Describe the purpose of the run.")
     parser.add_argument("--issue-id", default="", help="Pin issue identifier in format 'SGP-XXX'", type=validate_issue_id)
-    parser.add_argument("--save-interval", default=5, metavar="SAVE_INTERVAL", help="Saves a checkpoint every N epoch(s) (default: 5).", type=validate_checkpoint_interval)
+    parser.add_argument(
+        "--save-interval",
+        default=DEFAULT_CHECKPOINT_INTERVAL,
+        metavar="SAVE_INTERVAL",
+        help="Save a checkpoint every N epochs (default: %(default)s).",
+        type=validate_checkpoint_interval,
+    )
     return parser.parse_args(argv)
 
 def validate_checkpoint_interval(value):
@@ -186,7 +193,7 @@ def save_and_upload_failure_artifacts(
     close_task(task, failed=True, message=str(exc))
 
 
-def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
+def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAULT_CHECKPOINT_INTERVAL):
     """
     Train a model using the config at config_path and save a checkpoint.
 
@@ -205,11 +212,13 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
     final_checkpoint_uploaded = False
     best_checkpoint_uploaded = False
     try:
-        cfg = load_config(ROOT / config_path) 
-        augment = cfg["data"].setdefault("augment", True)
-        if augment:
-            cfg["data"]["augmentation"] = resolve_augmentation(cfg["data"].get("augmentation"))
-        cfg["data"].setdefault("normalize", False)  # record the default for ClearML visibility
+        cfg = load_config(ROOT / config_path)
+        data = cfg["data"]
+        data.setdefault("augment", True)
+        data.setdefault("normalize", False)
+        if data["augment"]:
+            data["augmentation"] = resolve_augmentation(data.get("augmentation"))
+        cfg["train"]["checkpoint_interval"] = checkpoint_interval
         cfg["train"].setdefault("patience", None) # None = early stopping off
         cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
         if cfg["model"]["type"] in ("BasicCNN", "RegularisedCNN"):
@@ -218,16 +227,16 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
         train_loader, val_loader, _, class_names = get_loaders(
-            fraction=cfg["data"]["fraction"],
-            image_size=cfg["data"]["image_size"],
-            batch_size=cfg["data"]["batch_size"],
+            fraction=data["fraction"],
+            image_size=data["image_size"],
+            batch_size=data["batch_size"],
             seed=cfg["seed"],
-            normalize=cfg["data"].get("normalize", False),
-            augment=augment,
-            augmentation=cfg["data"].get("augmentation"),
+            normalize=data["normalize"],
+            augment=data["augment"],
+            augmentation=data.get("augmentation"),
         )
 
-        model = build_model(cfg["model"], cfg["data"], class_names)
+        model = build_model(cfg["model"], data, class_names)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if device.type == "cuda":

@@ -117,6 +117,9 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
         "@config-name:prototype",
     ]
     assert captured["task_name"] == "BasicCNN - prototype"
+    assert captured["config"]["train"]["checkpoint_interval"] == 5
+    assert loaders.call_args.kwargs["augment"] is True
+    assert loaders.call_args.kwargs["normalize"] is False
     settings = captured["config"]["data"]["augmentation"]
     assert settings == {"flip_probability": 0.5, "rotation_degrees": 10, "brightness": 0.2, "saturation": 0.2}
     assert loaders.call_args.kwargs["augmentation"] == settings
@@ -127,7 +130,7 @@ def test_main_saves_and_uploads_checkpoints_at_requested_interval(
 ):
     cfg = {
         "seed": 0,
-        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4},
+        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4, "augment": False},
         "model": {"type": "BasicCNN"},
         "train": {
             "lr": 1e-3,
@@ -141,16 +144,8 @@ def test_main_saves_and_uploads_checkpoints_at_requested_interval(
     task = MagicMock()
 
     monkeypatch.setattr(train, "load_config", lambda path: cfg)
-    monkeypatch.setattr(
-        train,
-        "get_loaders",
-        lambda **kwargs: (
-            make_fake_loader(),
-            make_fake_loader(),
-            None,
-            ["a", "b", "c", "d", "e"],
-        ),
-    )
+    loaders = MagicMock(return_value=(make_fake_loader(), make_fake_loader(), None, ["a", "b", "c", "d", "e"]))
+    monkeypatch.setattr(train, "get_loaders", loaders)
     monkeypatch.setattr(
         train,
         "build_model",
@@ -158,7 +153,8 @@ def test_main_saves_and_uploads_checkpoints_at_requested_interval(
             num_classes=5, channels=(8,), image_size=32
         ),
     )
-    monkeypatch.setattr(train, "initialise_task", lambda **kwargs: task)
+    initialise_task = MagicMock(return_value=task)
+    monkeypatch.setattr(train, "initialise_task", initialise_task)
     monkeypatch.setattr(
         train,
         "train_one_epoch",
@@ -170,9 +166,11 @@ def test_main_saves_and_uploads_checkpoints_at_requested_interval(
         lambda **kwargs: {"loss": 0.4, "accuracy": 0.8, "f1": 0.7, "confusion-matrix": [[0] * 5 for _ in range(5)]},
     )
     monkeypatch.setattr(train, "log_epoch_metrics", MagicMock())
-    monkeypatch.setattr(
-        train, "save_checkpoint", lambda path, **kwargs: saved_paths.append(path)
-    )
+    def save_checkpoint(path, cfg, **kwargs):
+        assert cfg["train"]["checkpoint_interval"] == 2
+        saved_paths.append(path)
+
+    monkeypatch.setattr(train, "save_checkpoint", save_checkpoint)
     monkeypatch.setattr(
         train,
         "upload_checkpoint",
@@ -188,6 +186,8 @@ def test_main_saves_and_uploads_checkpoints_at_requested_interval(
         checkpoint_interval=2,
     )
 
+    assert initialise_task.call_args.kwargs["config"]["train"]["checkpoint_interval"] == 2
+    assert loaders.call_args.kwargs["augment"] is False
     periodic_paths = [path for path in saved_paths if "_epoch_" in path.name]
     assert [path.name.rsplit("_epoch_", 1)[1] for path in periodic_paths] == [
         "2.pt",
