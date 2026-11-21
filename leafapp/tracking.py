@@ -81,13 +81,29 @@ def log_epoch_metrics(
                 iteration=epoch,
             )
 
-def log_confusion_matrix(
-    logger: Any,
-    epoch: int,
-    matrix: Any,
-    class_names: list[str],
-) -> None:
-    """Report a validation confusion matrix with true labels on rows and predicted labels on columns."""
+def log_confusion_matrix(logger, epoch, matrix, class_names):
+    """Report a readable validation confusion matrix to ClearML."""
+
+    layout = {
+        "width": 1800,
+        "height": 1500,
+        "margin": {
+            "l": 440,
+            "r": 80,
+            "t": 70,
+            "b": 380,
+        },
+        "xaxis": {
+            "tickangle": -60,
+            "tickfont": {"size": 10},
+            "automargin": True,
+        },
+        "yaxis": {
+            "tickfont": {"size": 10},
+            "automargin": True,
+        },
+    }
+
     logger.report_confusion_matrix(
         title="Confusion Matrix",
         series="validation",
@@ -98,6 +114,7 @@ def log_confusion_matrix(
         xlabels=class_names,
         ylabels=class_names,
         yaxis_reversed=True,
+        extra_layout=layout,
     )
 
 def log_final_metrics(logger: Any, metrics: Mapping[str, Any]) -> None:
