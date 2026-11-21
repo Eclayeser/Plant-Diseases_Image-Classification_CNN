@@ -58,7 +58,6 @@ def build_ui(classifier, model_names=None, default_model=None):
         return prediction_chart_html(names, percents)
 
     def predict_single(image):
-        """Preserve the existing single-model prediction behaviour."""
         if image is None:
             return None
 
@@ -66,7 +65,6 @@ def build_ui(classifier, model_names=None, default_model=None):
         return format_predictions(predictions)
 
     def predict_selected(image, model_name):
-        """Predict using the model selected in the dropdown."""
         if image is None:
             return None
 
