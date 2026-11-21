@@ -9,6 +9,7 @@ import torch
 from torch import nn
 from leafapp.config import load_config, ROOT
 from leafapp.model_constructor import build_model
+from leafapp.models.cnn import DEFAULT_DROPOUT_P
 from leafapp.optimizer_constructor import choose_optimizer
 from leafapp.data import get_loaders, resolve_augmentation
 from leafapp.checkpoints import save_checkpoint
@@ -221,8 +222,11 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
         cfg["train"]["checkpoint_interval"] = checkpoint_interval
         cfg["train"].setdefault("patience", None) # None = early stopping off
         cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
-        if cfg["model"]["type"] in ("BasicCNN", "RegularisedCNN"):
-            cfg["model"].setdefault("pooling", "flatten")  # record the default for ClearML visibility
+        model_settings = cfg["model"]
+        if model_settings["type"] in ("BasicCNN", "RegularisedCNN"):
+            model_settings.setdefault("pooling", "flatten")  # record the default for ClearML visibility
+        if model_settings["type"] == "RegularisedCNN" and model_settings.get("regularisation") == "dropout":
+            model_settings.setdefault("dropout_p", DEFAULT_DROPOUT_P)
         torch.manual_seed(cfg["seed"])
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
@@ -236,7 +240,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             augmentation=data.get("augmentation"),
         )
 
-        model = build_model(cfg["model"], data, class_names)
+        model = build_model(model_settings, data, class_names)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if device.type == "cuda":

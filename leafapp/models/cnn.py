@@ -1,6 +1,9 @@
 from torch import nn
 
-def conv_block(in_ch, out_ch, *, regularisation=None, dropout_p=0.2):
+DEFAULT_DROPOUT_P = 0.2
+
+
+def conv_block(in_ch, out_ch, *, regularisation=None, dropout_p=DEFAULT_DROPOUT_P):
     if regularisation not in (None, "dropout", "batchnorm"):
         raise ValueError("regularisation must be None, 'dropout' or 'batchnorm'")
 

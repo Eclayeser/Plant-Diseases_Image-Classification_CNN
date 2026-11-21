@@ -125,6 +125,28 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
     assert loaders.call_args.kwargs["augmentation"] == settings
     assert train.save_checkpoint.call_args.kwargs["cfg"]["data"]["augmentation"] == settings
 
+@pytest.mark.parametrize("overrides, expected", [({}, 0.2), ({"dropout_p": 0.4}, 0.4)])
+def test_training_records_effective_dropout_probability(monkeypatch, tmp_path, overrides, expected):
+    cfg = {
+        "seed": 0,
+        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4},
+        "model": {"type": "RegularisedCNN", "channels": [8], "regularisation": "dropout", **overrides},
+        "train": {"lr": 0.001, "weight_decay": 0.0, "epochs": 1, "checkpoint_dir": str(tmp_path)},
+    }
+    monkeypatch.setattr(train, "load_config", lambda path: cfg)
+    loaders = (make_fake_loader(), make_fake_loader(), None, ["a", "b", "c", "d", "e"])
+    monkeypatch.setattr(train, "get_loaders", lambda **kwargs: loaders)
+    monkeypatch.setattr(train.torch.cuda, "is_available", lambda: False)
+    task_init = MagicMock()
+    monkeypatch.setattr(train, "initialise_task", task_init)
+
+    train.main("experiment.yaml", VALID_NAME, "comparison", "")
+
+    assert task_init.call_args.kwargs["config"]["model"]["dropout_p"] == expected
+    checkpoint = torch.load(next(tmp_path.glob("*_best.pt")), map_location="cpu")
+    assert checkpoint["config"]["model"]["dropout_p"] == expected
+
+
 def test_main_saves_and_uploads_checkpoints_at_requested_interval(
     monkeypatch, tmp_path
 ):
