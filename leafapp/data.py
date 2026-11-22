@@ -120,13 +120,14 @@ def make_batch_transform(image_transform):
 
 
 def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=True,
-                normalize=False):
+                normalize=False, num_workers=0):
     """Build the train, validation and test loaders for plant_village.
 
     Return (train_loader, val_loader, test_loader, class_names). Each
     batch is a dict: "pixels" of shape [batch_size, 3, image_size,
     image_size] and "label" of shape [batch_size]. class_names[i] is the
-    name of label i.
+    name of label i. num_workers sets the number of subprocesses used for
+    data loading and defaults to 0.
     """
     rows = load_subset(fraction, seed)
     train, val, test = split(rows, seed)
@@ -136,9 +137,11 @@ def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=Tr
     val.set_transform(make_batch_transform(eval_tf))
     test.set_transform(make_batch_transform(eval_tf))
 
-    train_loader = DataLoader(train, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(val, batch_size=batch_size)
-    test_loader = DataLoader(test, batch_size=batch_size)
+    train_loader = DataLoader(
+        train, batch_size=batch_size, shuffle=True, num_workers=num_workers
+    )
+    val_loader = DataLoader(val, batch_size=batch_size, num_workers=num_workers)
+    test_loader = DataLoader(test, batch_size=batch_size, num_workers=num_workers)
 
     class_names = rows.features["label"].names
 
