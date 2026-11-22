@@ -3,8 +3,10 @@ import os
 import gradio as gr
 from PIL import Image
 
-from leafapp.config import MODEL_DIR
+from leafapp.config import MODEL_DIR, MODEL_FILE, LABELS_FILE, MODEL_CONFIG_FILE, ROOT
 from leafapp.predict import LeafClassifier
+from leafapp.model_registry import load_model_registry
+from leafapp.model_manager import ModelManager
 
 Image.MAX_IMAGE_PIXELS = 20_000_000
 COLORS = ["#2e7d32", "#1565c0", "#ef8f00", "#d84315", "#6a1b9a"]  # one colour per rank
@@ -116,6 +118,46 @@ def build_ui(classifier, model_names=None, default_model=None):
 
 
 if __name__ == "__main__":
-    classifier = LeafClassifier.from_dir(MODEL_DIR)
-    demo = build_ui(classifier)
-    demo.launch(server_port=int(os.getenv("PORT", 8080)), max_file_size="10mb")
+    lock_file = ROOT / "deployment" / "model.lock.json"
+    registry = load_model_registry(lock_file)
+    models = registry["models"]
+
+    if len(models) == 1:
+        classifier = LeafClassifier.from_dir(MODEL_DIR)
+        demo = build_ui(classifier)
+    else:
+        model_dirs = {
+            model["name"]: MODEL_DIR / f"model_{index}"
+            for index, model in enumerate(models)
+        }
+
+        required_files = MODEL_FILE, LABELS_FILE, MODEL_CONFIG_FILE
+        for model_dir in model_dirs.values():
+            for file_name in required_files:
+                file_path = model_dir / file_name
+
+                if not file_path.is_file():
+                    raise FileNotFoundError(
+                        f"Missing model file: {file_path}. "
+                        "Run: python -m scripts.fetch_model_from_clearml"
+                    )
+
+        manager = ModelManager(model_dirs=model_dirs)
+
+        default_model_id = registry["model_id"]
+        default_model = next(
+            model["name"]
+            for model in models
+            if model["model_id"] == default_model_id
+        )
+
+        demo = build_ui(
+            manager,
+            model_names=list(model_dirs.keys()),
+            default_model=default_model,
+        )
+
+    demo.launch(
+        server_port=int(os.getenv("PORT", 8080)),
+        max_file_size="10mb",
+    )
