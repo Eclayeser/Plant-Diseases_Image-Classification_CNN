@@ -80,11 +80,17 @@ def test_parse_args_rejects_invalid_run_type():
 def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
     cfg = {
         "seed": 0,
-        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4},
+        "data": {
+            "fraction": 1.0,
+            "image_size": 32,
+            "batch_size": 4,
+            "num_workers": 6,
+        },
         "model": {"type": "BasicCNN"},
         "train": {"lr": 1e-3, "weight_decay": 0.0, "epochs": 1, "checkpoint_dir": str(tmp_path)},
     }
     captured = {}
+    loader_settings = {}
 
     def fake_initialise_task(**kwargs):
         captured.update(kwargs)
@@ -92,10 +98,11 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
 
     monkeypatch.setattr(train, "load_config", lambda path: cfg)
     monkeypatch.setattr(train.torch.cuda, "is_available", lambda: False)
-    monkeypatch.setattr(
-        train, "get_loaders",
-        lambda **kwargs: (make_fake_loader(), make_fake_loader(), None, ["a", "b", "c", "d", "e"]),
-    )
+    def fake_get_loaders(**kwargs):
+        loader_settings.update(kwargs)
+        return make_fake_loader(), make_fake_loader(), None, ["a", "b", "c", "d", "e"]
+
+    monkeypatch.setattr(train, "get_loaders", fake_get_loaders)
     monkeypatch.setattr(
         train, "build_model",
         lambda model_cfg, data_cfg, class_names: BasicCNN(num_classes=5, channels=(8,), image_size=32),
@@ -119,6 +126,7 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
         "@config-name:prototype",
     ]
     assert captured["task_name"] == "BasicCNN - prototype"
+    assert loader_settings["num_workers"] == 6
 
 def test_main_saves_and_uploads_checkpoints_at_requested_interval(
     monkeypatch, tmp_path
