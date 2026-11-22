@@ -12,22 +12,28 @@ classes = [
     "Grape___Black_rot",
 ]
 
-folder = ROOT / "app" / "examples"
-folder.mkdir(parents=True, exist_ok=True)
 
-# Use the same subset and split as training, so the model never saw these images
-data = load_subset(fraction=0.2, seed=42)
-train, val, test = split(data, seed=42)
+def main():
+    folder = ROOT / "app" / "gallery"
+    folder.mkdir(parents=True, exist_ok=True)
 
-class_names = test.features["label"].names
+    # Use the same subset and split as training, so the model never saw these images
+    data = load_subset(fraction=0.2, seed=42)
+    train, val, test = split(data, seed=42)
 
-# Save one image from each class
-for name in classes:
-    label = class_names.index(name)
+    class_names = test.features["label"].names
 
-    for row in test:
-        if row["label"] == label:
-            filename = name.replace("___", "_").replace("(", "").replace(")", "").lower() + ".jpg"
-            row["image"].convert("RGB").save(folder / filename)
-            print("Saved:", filename)
-            break
+    # Save one image from each class
+    for name in classes:
+        label = class_names.index(name)
+
+        for row in test:
+            if row["label"] == label:
+                filename = name.replace("___", "_").lower() + ".jpg"
+                row["image"].convert("RGB").save(folder / filename)
+                print("Saved:", filename)
+                break
+
+
+if __name__ == "__main__":
+    main()
