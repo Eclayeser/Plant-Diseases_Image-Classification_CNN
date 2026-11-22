@@ -11,7 +11,7 @@ from leafapp.config import load_config, ROOT
 from leafapp.model_constructor import build_model
 from leafapp.models.cnn import DEFAULT_DROPOUT_P
 from leafapp.optimizer_constructor import choose_optimizer
-from leafapp.data import get_loaders, resolve_augmentation
+from leafapp.data import get_loaders
 from leafapp.checkpoints import save_checkpoint
 from leafapp.early_stopping import EarlyStopping
 from leafapp.eval_functions import (
@@ -215,10 +215,10 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
     try:
         cfg = load_config(ROOT / config_path)
         data = cfg["data"]
+        if "augmentation" in data:
+            raise ValueError("Remove data.augmentation and use data.augment (true or false).")
         data.setdefault("augment", True)
         data.setdefault("normalize", False)
-        if data["augment"]:
-            data["augmentation"] = resolve_augmentation(data.get("augmentation"))
         cfg["train"]["checkpoint_interval"] = checkpoint_interval
         cfg["train"].setdefault("patience", None) # None = early stopping off
         cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
@@ -237,7 +237,6 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             seed=cfg["seed"],
             normalize=data["normalize"],
             augment=data["augment"],
-            augmentation=data.get("augmentation"),
         )
 
         model = build_model(model_settings, data, class_names)

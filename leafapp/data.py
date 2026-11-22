@@ -3,12 +3,10 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 
 DATASET_NAME = "DScomp380/plant_village"
-DEFAULT_AUGMENTATION = {
-    "flip_probability": 0.5,
-    "rotation_degrees": 15,
-    "brightness": 0.2,
-    "saturation": 0.2,
-}
+FLIP_PROBABILITY = 0.5
+ROTATION_DEGREES = 15
+BRIGHTNESS = 0.2
+SATURATION = 0.2
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 PLANT_VILLAGE_MEAN = [0.4671, 0.4897, 0.4125]
@@ -76,22 +74,7 @@ def get_normalization_stats(normalize):
     return None
 
 
-def resolve_augmentation(overrides=None):
-    """Return the training augmentation settings with any experiment overrides."""
-    if overrides is None:
-        overrides = {}
-    if not isinstance(overrides, dict):
-        raise ValueError("data.augmentation must be a mapping of transform settings")
-    unknown = overrides.keys() - DEFAULT_AUGMENTATION.keys()
-    if unknown:
-        raise ValueError(f"Unknown augmentation settings: {unknown}")
-    settings = DEFAULT_AUGMENTATION | overrides
-    if not 0 <= settings["flip_probability"] <= 1:
-        raise ValueError("flip_probability must be between 0 and 1")
-    return settings
-
-
-def make_transforms(image_size, augment=True, normalize=False, *, augmentation=None):
+def make_transforms(image_size, augment=True, normalize=False):
     """Build the image transforms for training and evaluation.
 
     Return (train_tf, eval_tf). Both resize images to image_size and
@@ -106,13 +89,12 @@ def make_transforms(image_size, augment=True, normalize=False, *, augmentation=N
         ]
     )
     if augment:
-        settings = resolve_augmentation(augmentation)
         train_tf = transforms.Compose(
             [
                 transforms.Resize((image_size, image_size)),
-                transforms.RandomHorizontalFlip(p=settings["flip_probability"]),
-                transforms.RandomRotation(settings["rotation_degrees"]),
-                transforms.ColorJitter(brightness=settings["brightness"], saturation=settings["saturation"]),
+                transforms.RandomHorizontalFlip(p=FLIP_PROBABILITY),
+                transforms.RandomRotation(ROTATION_DEGREES),
+                transforms.ColorJitter(brightness=BRIGHTNESS, saturation=SATURATION),
                 transforms.ToTensor(),
             ]
         )
@@ -142,7 +124,7 @@ def make_batch_transform(image_transform):
 
 
 def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=True,
-                normalize=False, *, augmentation=None):
+                normalize=False):
     """Build the train, validation and test loaders for plant_village.
 
     Return (train_loader, val_loader, test_loader, class_names). Each
@@ -152,7 +134,7 @@ def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=Tr
     """
     rows = load_subset(fraction, seed)
     train, val, test = split(rows, seed)
-    train_tf, eval_tf = make_transforms(image_size, augment, normalize, augmentation=augmentation)
+    train_tf, eval_tf = make_transforms(image_size, augment, normalize)
 
     train.set_transform(make_batch_transform(train_tf))
     val.set_transform(make_batch_transform(eval_tf))
