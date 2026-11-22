@@ -6,7 +6,7 @@ import pytest
 from PIL import Image
 
 import leafapp.config
-from app.app import EXAMPLES_DIR, build_ui, format_class_name
+from app.app import GALLERY_DIR, build_ui, format_class_name
 from leafapp.predict import LeafClassifier
 
 
@@ -116,10 +116,10 @@ def test_main_default_port(monkeypatch):
 
 
 def test_example_images_can_be_opened():
-    """The example folder has leaf images that can be opened."""
-    images = list(EXAMPLES_DIR.glob("*.jpg"))
+    """The gallery folder has leaf images that can be opened."""
+    images = list(GALLERY_DIR.glob("*.jpg"))
 
-    assert len(images) > 0, "There should be example images in app/examples"
+    assert len(images) > 0, "There should be gallery images in app/gallery"
 
     for path in images:
         image = Image.open(path)
@@ -128,10 +128,10 @@ def test_example_images_can_be_opened():
 
 
 def test_build_ui_shows_example_images():
-    """build_ui adds every example image to the interface."""
+    """build_ui adds every gallery image to the interface."""
     demo = build_ui(FakeClassifier(PREDICTIONS))
 
-    images = sorted(EXAMPLES_DIR.glob("*.jpg"))
+    images = sorted(GALLERY_DIR.glob("*.jpg"))
     expected = []
 
     for path in images:
@@ -141,11 +141,11 @@ def test_build_ui_shows_example_images():
 
 
 def test_predict_works_on_example_images():
-    """Each example image can be sent to predict and gives a chart."""
+    """Each gallery image can be sent to predict and gives a chart."""
     classifier = FakeClassifier(PREDICTIONS)
     demo = build_ui(classifier)
 
-    images = list(EXAMPLES_DIR.glob("*.jpg"))
+    images = list(GALLERY_DIR.glob("*.jpg"))
 
     for path in images:
         image = Image.open(path)
