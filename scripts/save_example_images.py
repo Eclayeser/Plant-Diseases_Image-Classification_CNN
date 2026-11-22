@@ -17,7 +17,7 @@ def main():
     folder = ROOT / "app" / "gallery"
     folder.mkdir(parents=True, exist_ok=True)
 
-    # Use the same subset and split as training, so the model never saw these images
+    # Take the images from the test split of the same 20% subset used in our experiments
     data = load_subset(fraction=0.2, seed=42)
     train, val, test = split(data, seed=42)
 
