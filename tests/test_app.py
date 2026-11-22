@@ -234,9 +234,7 @@ def setup_multi_model_deployment(tmp_path, monkeypatch, missing=None):
 def test_main_launches_with_three_model_selector(tmp_path, monkeypatch):
     """Startup should connect the registry, manager and Gradio dropdown."""
 
-    model_root = setup_multi_model_deployment(
-        tmp_path, monkeypatch
-    )
+    model_root = setup_multi_model_deployment(tmp_path, monkeypatch)
 
     loaded = []
     launched = {}
@@ -246,20 +244,14 @@ def test_main_launches_with_three_model_selector(tmp_path, monkeypatch):
             self.model_name = model_name
 
         def top_k(self, image, k=5):
-            return [
-                (f"Tomato___{self.model_name}", 1.0)
-            ]
+            return [(f"Tomato___{self.model_name}", 1.0)]
 
     def fake_from_dir(cls, model_dir):
         model_name = Path(model_dir).name
         loaded.append(Path(model_dir))
         return NamedClassifier(model_name)
 
-    monkeypatch.setattr(
-        LeafClassifier,
-        "from_dir",
-        classmethod(fake_from_dir),
-    )
+    monkeypatch.setattr(LeafClassifier, "from_dir", classmethod(fake_from_dir),)
 
     monkeypatch.setattr(
         gr.Blocks,
@@ -275,12 +267,10 @@ def test_main_launches_with_three_model_selector(tmp_path, monkeypatch):
     run_app_main(monkeypatch)
 
     demo = launched["demo"]
-
     assert isinstance(demo, gr.Interface)
     assert len(demo.input_components) == 2
 
     selector = demo.input_components[1]
-
     assert isinstance(selector, gr.Dropdown)
     assert selector.value == "Model 1"
 
@@ -290,8 +280,6 @@ def test_main_launches_with_three_model_selector(tmp_path, monkeypatch):
     ]
 
     assert choices == ["Model 1", "Model 2", "Model 3"]
-
-    # Nothing should be loaded until the first prediction.
     assert loaded == []
 
     image = Image.new("RGB", (32, 32), color="green")
@@ -307,5 +295,17 @@ def test_main_launches_with_three_model_selector(tmp_path, monkeypatch):
         model_root / "model_0",
     ]
 
-git add tests/test_app.py
-git commit -m "SGP-54: Added a helper for a fake three-model deployment"
+def test_main_rejects_missing_registered_model(tmp_path, monkeypatch):
+    """The app should fail clearly if a registered model was not downloaded."""
+
+    setup_multi_model_deployment(
+        tmp_path,
+        monkeypatch,
+        missing=2,
+    )
+
+    with pytest.raises(
+        FileNotFoundError,
+        match="fetch_model_from_clearml",
+    ):
+        run_app_main(monkeypatch)
