@@ -19,6 +19,13 @@ Configs: `configs/cnn_wider_dropout_plant_village_full_dataset_early_stopping_se
 | 44 | On | 12 | 15 | 0.956 | 0.943 | 0.142 | [task](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/experiments/0f51fb36092f4241b70510dc6d6bc4bd/output/execution) |
 | 44 | Off | 7 | 10 | 0.939 | 0.917 | 0.218 | [task](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/experiments/e585ec03551c45279371ff89cb84e116/output/execution) |
 
+Difference per seed (augmentation off - augmentation on)
+| Seed | Val accuracy | Val F1 | Val loss |
+|---|---:|---:|---:|
+| 42 | -2.0 pts | -0.030 | +0.100 |
+| 43 | -3.5 pts | -0.044 | +0.118 |
+| 44 | -1.7 pts | -0.026 | +0.076 |
+| Mean | -2.4 pts (SD 1.0 pts) | -0.033 (SD 0.009) | +0.098 (SD 0.021) |
 
 ## Observations
 
