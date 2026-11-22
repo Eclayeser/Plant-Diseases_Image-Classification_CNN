@@ -2,7 +2,9 @@
 
 from typing import Any
 from pathlib import Path
+import math
 from sklearn.metrics import (
+    
     f1_score,
     accuracy_score,
     precision_score,
@@ -18,6 +20,7 @@ import matplotlib.pyplot as plt
 import seaborn
 
 from leafapp.config import ROOT
+from leafapp.labels import format_class_name
 
 
 def calculate_f1_score(true_labels, predicted_labels) -> float:
@@ -53,6 +56,33 @@ def calculate_confusion_matrix(true_labels, predicted_labels, labels_pool: list[
     return cm
 
 
+def calculate_most_confused_pairs(cm, class_names, top_k=5) -> list[tuple[int, str, str]]:
+    """
+    List the most common mistakes in a confusion matrix, biggest first.
+
+    cm has true classes as rows and predicted classes as columns. Each record is
+    (count, true class, predicted class), so the direction of a mistake is kept:
+    Correct predictions (the diagonal) and empty cells are skipped, and at most
+    top_k records are returned.
+    """
+    out = []
+    n = len(cm)
+    for row in range(n):
+        for col in range(n):
+            num = int(cm[row][col])
+            if col != row and num > 0:
+                out.append((num, class_names[row], class_names[col]))
+    
+    return sorted(out, reverse=True)[:top_k]
+
+
+def format_most_confused_pairs(pairs) -> str:
+    confused_pair_lines = []
+    for count, true_name, predicted_name in pairs:
+        confused_pair_lines.append(f" - {true_name} -> {predicted_name}: {count}")
+    return "\n".join(confused_pair_lines)
+
+    
 def calculate_top_k_accuracy(true_labels, logits, k: int) -> float:
     """
     Fraction of samples whose true class is among the k highest logits.
@@ -182,8 +212,78 @@ def calculate_metrics_per_loader(
 
     return final_metrics
 
+def collect_misclassified_images(model, loader, device, wanted_pairs, max_images=16):
+    if max_images < 0:
+        raise ValueError(f"max_images must be 0 or more, got {max_images}")
+    if max_images == 0 or not wanted_pairs:
+        return []
+    
+    model.eval()
+    misclassified = []
+    with torch.no_grad():
+        for batch in loader:
+            images, labels = batch["pixels"], batch["label"]
+            images, labels = images.to(device), labels.to(device)
+            logits = model(images)
+            predictions = logits.argmax(dim=1)
+            wrong = predictions != labels
+            
+            for image, true_label, predicted_label in zip(
+                images[wrong], labels[wrong], predictions[wrong]
+            ):
+                true_class, guessed_class = int(true_label), int(predicted_label)
+                if (true_class, guessed_class) in wanted_pairs:
+                    misclassified.append((image.cpu(), true_class, guessed_class))
+                    if len(misclassified) == max_images:
+                        return misclassified
+                
+    return misclassified
 
+    
 # --- Plotting Functions ----
+
+def prepare_image_for_plotting(image, mean=None, std=None) -> torch.Tensor:
+    picture = image.permute(1, 2, 0)
+    if mean is not None:
+        picture = picture * torch.tensor(std) + torch.tensor(mean)
+    return picture.clamp(0, 1)
+
+
+def plot_and_save_misclassified_grid(
+        misclassified: list[tuple[torch.Tensor, int, int]],
+        class_names: list[str],
+        plot_path: str | Path,
+        mean: list[float] | None = None,
+        std: list[float] | None = None,
+        show: bool = False
+    ) -> None:
+    columns = 4
+    rows = max(1, math.ceil(len(misclassified) / columns))
+    fig, axes = plt.subplots(
+        rows, columns, figsize=(columns * 4, rows * 4), squeeze=False
+    )
+
+    for ax in axes.flat:
+        ax.axis("off")
+
+    for ax, (image, true_class, guessed_class) in zip(axes.flat, misclassified):
+        ax.imshow(prepare_image_for_plotting(image, mean, std))
+        true_name = format_class_name(class_names[true_class])
+        predicted_name = format_class_name(class_names[guessed_class])
+        ax.set_title(f"true: {true_name}\npred: {predicted_name}", fontsize=8)
+
+    plt.tight_layout()
+
+    # save
+    plot_path = ROOT / plot_path
+    plot_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(plot_path, dpi=150, bbox_inches="tight")
+
+    if show:
+        plt.show()
+    plt.close()
+
+
 
 def plot_and_save_training_curve(
         history_metrics: dict[str, dict[str, list[float]]],
