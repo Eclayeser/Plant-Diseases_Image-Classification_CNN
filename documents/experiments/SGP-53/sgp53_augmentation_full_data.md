@@ -28,7 +28,9 @@ Difference per seed (augmentation off - augmentation on)
 | Mean | -2.4 pts (SD 1.0 pts) | -0.033 (SD 0.009) | +0.098 (SD 0.021) |
 
 ## Observations
-
+- Augmentation-on runs outperformed the corresponding augmentation-off runs on all three seeds: validation accuracy was higher by 1.7–3.5 percentage points, macro F1 by 0.026–0.044, and validation loss was lower by 0.076–0.118.
+- Averaged across the three seeds, augmentation on improved validation accuracy by 2.4 percentage points and macro F1 by 0.033, while reducing validation loss by 0.098.
+- The augmentation-off runs reached their best validation-loss epoch sooner (epochs 4–7) than the augmentation-on runs (epochs 12–19). These results suggest augmentation helped in this experiment, though the comparison covers only three seeds.
 
 ## Recommendation
 
