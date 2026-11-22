@@ -6,7 +6,7 @@ import pytest
 from PIL import Image
 
 import leafapp.config
-from app.app import build_ui, format_class_name
+from app.app import EXAMPLES_DIR, build_ui, format_class_name
 from leafapp.predict import LeafClassifier
 
 
@@ -113,3 +113,15 @@ def test_main_default_port(monkeypatch):
     run_app_main(monkeypatch)
 
     assert launched["server_port"] == 8080
+
+
+def test_example_images_can_be_opened():
+    """The example folder has leaf images that can be opened."""
+    images = list(EXAMPLES_DIR.glob("*.jpg"))
+
+    assert len(images) > 0, "There should be example images in app/examples"
+
+    for path in images:
+        image = Image.open(path)
+        assert image.width > 0, f"{path.name} should be a valid image"
+        image.close()
