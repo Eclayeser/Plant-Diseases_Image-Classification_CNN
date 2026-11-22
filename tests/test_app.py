@@ -9,6 +9,9 @@ import leafapp.config
 from app.app import build_ui, format_class_name
 from leafapp.predict import LeafClassifier
 
+import json
+from pathlib import Path
+
 class FakeModelManager:
     """Simulates multiple models without loading ONNX files."""
 
@@ -188,3 +191,42 @@ def test_model_selector_without_image():
     result = demo.fn(None, "Model 2")
     assert result is None
     assert manager.calls == []
+
+def setup_multi_model_deployment(tmp_path, monkeypatch, missing=None):
+    """Prepare three fake downloaded models and a registry."""
+
+    deployment = tmp_path / "deployment"
+    deployment.mkdir()
+
+    models = [
+        {"name": "Model 1", "model_id": "model-a"},
+        {"name": "Model 2", "model_id": "model-b"},
+        {"name": "Model 3", "model_id": "model-c"},
+    ]
+
+    (deployment / "model.lock.json").write_text(
+        json.dumps({
+            "model_id": "model-a",
+            "models": models,
+        })
+    )
+
+    model_root = deployment / "model"
+
+    for index in range(3):
+        if index == missing:
+            continue
+
+        folder = model_root / f"model_{index}"
+        folder.mkdir(parents=True)
+
+        (folder / "model.onnx").write_bytes(b"fake model")
+        (folder / "labels.json").write_text('["healthy"]')
+        (folder / "model_config.json").write_text(
+            '{"image_size": 16}'
+        )
+
+    monkeypatch.setattr(leafapp.config, "ROOT", tmp_path)
+    monkeypatch.setattr(leafapp.config, "MODEL_DIR", model_root)
+
+    return model_root
