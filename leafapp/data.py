@@ -106,17 +106,22 @@ def make_transforms(image_size, augment=True, normalize=False):
     return train_tf, eval_tf
 
 
-def make_batch_transform(image_transform):
-    """Return a function that converts a batch of rows with image_transform."""
+class BatchTransform:
+    """Convert a batch of rows with image_transform. Picklable for spawn workers."""
 
-    def transform_batch(batch):
-        """Convert the photos in batch to tensors and keep their labels."""
+    def __init__(self, image_transform):
+        self.image_transform = image_transform
+
+    def __call__(self, batch):
         return {
-            "pixels": [image_transform(img.convert("RGB")) for img in batch["image"]],
+            "pixels": [self.image_transform(img.convert("RGB")) for img in batch["image"]],
             "label": batch["label"],
         }
 
-    return transform_batch
+
+def make_batch_transform(image_transform):
+    """Return a picklable callable that converts a batch of rows with image_transform."""
+    return BatchTransform(image_transform)
 
 
 def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=True,
