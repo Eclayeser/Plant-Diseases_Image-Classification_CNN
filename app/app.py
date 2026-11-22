@@ -1,5 +1,5 @@
 import os
-
+from pathlib import Path
 import gradio as gr
 from PIL import Image
 
@@ -8,6 +8,7 @@ from leafapp.predict import LeafClassifier
 
 Image.MAX_IMAGE_PIXELS = 20_000_000
 COLORS = ["#2e7d32", "#1565c0", "#ef8f00", "#d84315", "#6a1b9a"]  # one colour per rank
+EXAMPLES_DIR = Path(__file__).parent / "examples"
 
 
 def format_class_name(name):
@@ -59,7 +60,8 @@ def build_ui(classifier):
         inputs=gr.Image(type="pil", label="Upload a leaf image"),
         outputs=gr.HTML(label="Top 5 Predictions"),
         title="Plant Disease Classification",
-        description="Upload a plant leaf image to identify its disease.",
+        description="Upload a plant leaf image to identify its disease, or pick one of the examples below.",
+        examples=[[str(path)] for path in sorted(EXAMPLES_DIR.glob("*.jpg"))],
         api_name="predict",
         flagging_mode="never"
     )
