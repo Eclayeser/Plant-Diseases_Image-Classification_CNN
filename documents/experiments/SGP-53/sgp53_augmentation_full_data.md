@@ -1,4 +1,4 @@
-# SGP-52: Dropout on the Full Dataset
+# SGP-53: Data Augmentation on the Full Dataset
 
 ## Setup
 Compared the wider CNN with the same model but data augmentation turned off.
