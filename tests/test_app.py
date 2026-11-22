@@ -230,3 +230,82 @@ def setup_multi_model_deployment(tmp_path, monkeypatch, missing=None):
     monkeypatch.setattr(leafapp.config, "MODEL_DIR", model_root)
 
     return model_root
+
+def test_main_launches_with_three_model_selector(tmp_path, monkeypatch):
+    """Startup should connect the registry, manager and Gradio dropdown."""
+
+    model_root = setup_multi_model_deployment(
+        tmp_path, monkeypatch
+    )
+
+    loaded = []
+    launched = {}
+
+    class NamedClassifier:
+        def __init__(self, model_name):
+            self.model_name = model_name
+
+        def top_k(self, image, k=5):
+            return [
+                (f"Tomato___{self.model_name}", 1.0)
+            ]
+
+    def fake_from_dir(cls, model_dir):
+        model_name = Path(model_dir).name
+        loaded.append(Path(model_dir))
+        return NamedClassifier(model_name)
+
+    monkeypatch.setattr(
+        LeafClassifier,
+        "from_dir",
+        classmethod(fake_from_dir),
+    )
+
+    monkeypatch.setattr(
+        gr.Blocks,
+        "launch",
+        lambda self, **kwargs: launched.update({
+            "demo": self,
+            **kwargs,
+        }),
+    )
+
+    monkeypatch.delenv("PORT", raising=False)
+
+    run_app_main(monkeypatch)
+
+    demo = launched["demo"]
+
+    assert isinstance(demo, gr.Interface)
+    assert len(demo.input_components) == 2
+
+    selector = demo.input_components[1]
+
+    assert isinstance(selector, gr.Dropdown)
+    assert selector.value == "Model 1"
+
+    choices = [
+        item[1] if isinstance(item, (tuple, list)) else item
+        for item in selector.choices
+    ]
+
+    assert choices == ["Model 1", "Model 2", "Model 3"]
+
+    # Nothing should be loaded until the first prediction.
+    assert loaded == []
+
+    image = Image.new("RGB", (32, 32), color="green")
+
+    result_2 = demo.fn(image, "Model 2")
+    result_1 = demo.fn(image, "Model 1")
+
+    assert "Tomato - model 1" in result_2
+    assert "Tomato - model 0" in result_1
+
+    assert loaded == [
+        model_root / "model_1",
+        model_root / "model_0",
+    ]
+
+git add tests/test_app.py
+git commit -m "SGP-54: Added a helper for a fake three-model deployment"
