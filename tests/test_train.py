@@ -84,7 +84,6 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
             "fraction": 1.0,
             "image_size": 32,
             "batch_size": 4,
-            "num_workers": 6,
         },
         "model": {"type": "BasicCNN"},
         "train": {"lr": 1e-3, "weight_decay": 0.0, "epochs": 1, "checkpoint_dir": str(tmp_path)},
@@ -126,7 +125,7 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
         "@config-name:prototype",
     ]
     assert captured["task_name"] == "BasicCNN - prototype"
-    assert loader_settings["num_workers"] == 6
+    assert loader_settings["num_workers"] == 0
 
 def test_main_saves_and_uploads_checkpoints_at_requested_interval(
     monkeypatch, tmp_path
