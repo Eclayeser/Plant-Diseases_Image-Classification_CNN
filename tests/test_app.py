@@ -138,3 +138,20 @@ def test_build_ui_shows_example_images():
         expected.append([str(path)])
 
     assert demo.examples == expected, "All example images should be shown in the app"
+
+
+def test_predict_works_on_example_images():
+    """Each example image can be sent to predict and gives a chart."""
+    classifier = FakeClassifier(PREDICTIONS)
+    demo = build_ui(classifier)
+
+    images = list(EXAMPLES_DIR.glob("*.jpg"))
+
+    for path in images:
+        image = Image.open(path)
+        result = demo.fn(image)
+        image.close()
+
+        assert "Top 5 Predictions" in result, f"{path.name} should give a prediction chart"
+
+    assert len(classifier.calls) == len(images), "The model should be called once per example"
