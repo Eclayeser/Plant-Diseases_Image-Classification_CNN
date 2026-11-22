@@ -117,7 +117,7 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
         "@config-name:prototype",
     ]
     assert captured["task_name"] == "BasicCNN - prototype"
-    assert captured["config"]["train"]["checkpoint_interval"] == 5
+    assert "checkpoint_interval" not in captured["config"]["train"]
     assert loaders.call_args.kwargs["augment"] is True
     assert loaders.call_args.kwargs["normalize"] is False
     assert captured["config"]["data"]["augment"] is True
@@ -195,7 +195,7 @@ def test_main_saves_and_uploads_checkpoints_at_requested_interval(
     )
     monkeypatch.setattr(train, "log_epoch_metrics", MagicMock())
     def save_checkpoint(path, cfg, **kwargs):
-        assert cfg["train"]["checkpoint_interval"] == 2
+        assert "checkpoint_interval" not in cfg["train"]
         saved_paths.append(path)
 
     monkeypatch.setattr(train, "save_checkpoint", save_checkpoint)
@@ -214,7 +214,7 @@ def test_main_saves_and_uploads_checkpoints_at_requested_interval(
         checkpoint_interval=2,
     )
 
-    assert initialise_task.call_args.kwargs["config"]["train"]["checkpoint_interval"] == 2
+    assert "checkpoint_interval" not in initialise_task.call_args.kwargs["config"]["train"]
     assert loaders.call_args.kwargs["augment"] is False
     periodic_paths = [path for path in saved_paths if "_epoch_" in path.name]
     assert [path.name.rsplit("_epoch_", 1)[1] for path in periodic_paths] == [

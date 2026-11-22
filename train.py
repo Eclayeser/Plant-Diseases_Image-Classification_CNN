@@ -219,7 +219,6 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             raise ValueError("Remove data.augmentation and use data.augment (true or false).")
         data.setdefault("augment", True)
         data.setdefault("normalize", False)
-        cfg["train"]["checkpoint_interval"] = checkpoint_interval
         cfg["train"].setdefault("patience", None) # None = early stopping off
         cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
         model_settings = cfg["model"]
