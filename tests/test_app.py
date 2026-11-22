@@ -125,3 +125,16 @@ def test_example_images_can_be_opened():
         image = Image.open(path)
         assert image.width > 0, f"{path.name} should be a valid image"
         image.close()
+
+
+def test_build_ui_shows_example_images():
+    """build_ui adds every example image to the interface."""
+    demo = build_ui(FakeClassifier(PREDICTIONS))
+
+    images = sorted(EXAMPLES_DIR.glob("*.jpg"))
+    expected = []
+
+    for path in images:
+        expected.append([str(path)])
+
+    assert demo.examples == expected, "All example images should be shown in the app"
