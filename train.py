@@ -219,6 +219,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
             seed=cfg["seed"],
             normalize=cfg["data"].get("normalize", False),
             augment=cfg["data"].setdefault("augment", True),
+            num_workers=cfg["data"].get("num_workers", 0),
         )
 
         model = build_model(cfg["model"], cfg["data"], class_names)
