@@ -37,5 +37,6 @@ Difference per seed (augmentation off - augmentation on)
 - Keep augmentation on as the default for now.
 
 ## Limitations
+- Results could be affected by early stopping (`patience: 3`), but without augmentation the model sees the same images every epoch and tends to overfit early so higher patience would not remedy this. This can be confirmed with higher patience testing in the future but low priority for now.
 - All runs used one desktop GPU; exact result values may differ on other hardware
 - Results are on the validation set only; the test set was not used, so these numbers are for choosing settings, not for reporting final performance.
