@@ -33,6 +33,7 @@ Difference per seed (augmentation off - augmentation on)
 - The augmentation-off runs reached their best validation-loss epoch sooner (epochs 4–7) than the augmentation-on runs (epochs 12–19). These results suggest augmentation helped in this experiment, though the comparison covers only three seeds.
 
 ## Recommendation
-
+- A final evaluation on the test set would provide a stronger check, but these results are encouraging enough to continue with data augmentation.
+- Keep augmentation on as the default for now.
 
 ## Limitations
