@@ -220,3 +220,17 @@ Live at: *(URL added once the Render service is created)*
 
 To roll back, set the previous model ID (from the git history of
 `model.lock.json`) and merge to `main`.
+
+### Example images (SGP-64)
+
+The app shows a gallery of example leaf images from `app/examples/`, so users
+can click one to get a prediction without uploading their own. The images are
+the first test-set image of each class, so the model never saw them during
+training. To recreate them, or after changing the classes in the script:
+
+```bash
+python -m scripts.save_example_images
+```
+
+Any `.jpg` added to `app/examples/` is shown in the gallery automatically.
+
