@@ -29,3 +29,10 @@ def test_build_model_missing_type_raises():
 def test_build_model_unknown_type_raises():
     with pytest.raises(ValueError, match="NotAModel"):
         build_model({"type": "NotAModel", "channels": [8]}, DATA_SPECS, CLASS_NAMES)
+
+
+def test_build_model_reads_pooling_from_config():
+    settings = {"type": "BasicCNN", "channels": [8, 16], "pooling": "avg"}
+    model = build_model(settings, DATA_SPECS, CLASS_NAMES)
+
+    assert model.head[-1].in_features == 16, "build_model should use the pooling setting from the config"

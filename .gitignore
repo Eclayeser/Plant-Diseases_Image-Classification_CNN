@@ -5,3 +5,9 @@ __pycache__/
 outputs/
 .pytest_cache/
 *.pt
+.coverage
+htmlcov/
+coverage.xml
+.DS_Store
+.gradio/
+deployment/model/

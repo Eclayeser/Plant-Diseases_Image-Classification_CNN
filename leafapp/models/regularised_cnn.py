@@ -12,6 +12,7 @@ class RegularisedCNN(cnn.BasicCNN):
         *,
         regularisation,
         dropout_p=0.2,
+        pooling="flatten",
     ):
         if regularisation not in {"dropout", "batchnorm"}:
             raise ValueError("regularisation must be 'dropout' or 'batchnorm'")
@@ -24,6 +25,7 @@ class RegularisedCNN(cnn.BasicCNN):
             num_classes=num_classes,
             channels=channels,
             image_size=image_size,
+            pooling=pooling,
         )
 
     def make_block(self, in_ch, out_ch):

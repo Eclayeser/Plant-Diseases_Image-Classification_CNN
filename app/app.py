@@ -1,95 +1,68 @@
 import os
 
 import gradio as gr
-import pandas as pd
-import torch
-
-from leafapp.checkpoints import load_checkpoint
-from leafapp.data import make_transforms
 from PIL import Image
 
+from leafapp.config import MODEL_DIR
+from leafapp.labels import format_class_name
+from leafapp.predict import LeafClassifier
 
 Image.MAX_IMAGE_PIXELS = 20_000_000
+COLORS = ["#2e7d32", "#1565c0", "#ef8f00", "#d84315", "#6a1b9a"]  # one colour per rank
 
 
-CHECKPOINT_PATH = os.getenv("CHECKPOINT_PATH")
+def prediction_chart_html(names, percents):
+    """Show the top 5 predictions as horizontal bars."""
+    rows = ["<h3>Top 5 Predictions</h3>"]
+
+    for i, (name, percent, color) in enumerate(zip(names, percents, COLORS)):
+        weight = "bold" if i == 0 else "normal"
+
+        name_html = f'<p style="font-weight:{weight}; margin:10px 0 4px;">{name}</p>'
+
+        # Grey background with a coloured bar showing the percentage
+        bar_html = (
+            f'<div style="flex:1; background:#eeeeee;">'
+            f'<div style="width:{percent}%; background:{color}; height:22px;"></div>'
+            f'</div>'
+        )
+
+        percent_html = f'<span style="width:55px; text-align:right;">{percent}%</span>'
+
+        bar_row = f'<div style="display:flex; align-items:center; gap:8px;">{bar_html}{percent_html}</div>'
+
+        row = f'<div>{name_html}{bar_row}</div>'
+
+        rows.append(row)
+
+    return "".join(rows)
 
 
-def load_model():
-    # Load the trained CNN model
-    if not CHECKPOINT_PATH:
-        return None, None, None
+def build_ui(classifier):
+    """Build the Gradio interface"""
 
-    model, class_names, _, config = load_checkpoint(CHECKPOINT_PATH)
+    def predict(image):
+        if image is None:
+            return None
 
-    # Use the same image preprocessing as evaluation
-    _, transform = make_transforms(
-        config["data"]["image_size"],
-        augment=False,
-        normalize=config["data"].get("normalize", False),
+        predictions = classifier.top_k(image, k=5)
+        names = [format_class_name(name) for name, _ in predictions]
+        percents = [round(probability * 100, 1) for _, probability in predictions]
+        return prediction_chart_html(names, percents)
+
+    demo = gr.Interface(
+        fn=predict,
+        inputs=gr.Image(type="pil", label="Upload a leaf image"),
+        outputs=gr.HTML(label="Top 5 Predictions"),
+        title="Plant Disease Classification",
+        description="Upload a plant leaf image to identify its disease.",
+        api_name="predict",
+        flagging_mode="never"
     )
-
-    return model, class_names, transform
-
-
-def get_cnn_predictions(image, model, class_names):
-    model.eval()
-
-    # Get predictions from the CNN
-    with torch.no_grad():
-        output = model(image.unsqueeze(0))
-
-    # Convert the output into probabilities
-    probabilities = torch.softmax(output, dim=1)[0]
-
-    # Find the 5 most likely diseases
-    top5 = torch.topk(probabilities, min(5, len(class_names)))
-
-    diseases = []
-    for i in top5.indices:
-        name = class_names[int(i)].replace("___", " - ").replace("_", " ")
-        diseases.append(name)
-
-    return pd.DataFrame({
-        "Disease": diseases,
-        "Probability": top5.values.tolist()
-    })
-
-
-def predict(image):
-    
-    if image is None:
-        return None
-
-    if MODEL is None:
-        raise gr.Error("No trained model loaded. Set CHECKPOINT_PATH to a trained checkpoint.")
-
-    # Prepare the uploaded image
-    image = image.convert("RGB")
-    processed_image = TRANSFORM(image)
-
-    return get_cnn_predictions(processed_image, MODEL, CLASS_NAMES)
-
-
-MODEL, CLASS_NAMES, TRANSFORM = load_model()
-
-
-# Create the Gradio interface
-demo = gr.Interface(
-    fn=predict,
-    inputs=gr.Image(type="pil", label="Upload a leaf image"),
-    outputs=gr.BarPlot(
-        x="Disease",
-        y="Probability",
-        title="Top 5 Predictions",
-        x_label_angle=45,
-        sort="-y"
-    ),
-    title="Plant Disease Classification",
-    description="Upload a plant leaf image to identify its disease.",
-    api_name="predict"
-)
+    return demo
 
 
 if __name__ == "__main__":
-    demo.launch(max_file_size="10mb")
+    classifier = LeafClassifier.from_dir(MODEL_DIR)
+    demo = build_ui(classifier)
+    demo.launch(server_port=int(os.getenv("PORT", 8080)), max_file_size="10mb")

@@ -7,6 +7,7 @@ from leafapp.models.regularised_cnn import RegularisedCNN
 from leafapp.models.resnet import build_resnet18
 from PIL import Image
 from leafapp.data import make_transforms
+from torchvision import models
 
 
 def test_basiccnn_output_shape():
@@ -17,7 +18,7 @@ def test_basiccnn_output_shape():
 
 
 def test_resnet_output_shape():
-    model = build_resnet18()
+    model = build_resnet18(pretrained=False)
     x = torch.randn(2, 3, 128, 128)
     out = model(x)
     assert out.shape == (2, 39), "ResNet18 should output [2, 39] logits"
@@ -170,3 +171,47 @@ def test_invalid_dropout_probability_is_rejected(dropout_p):
             regularisation="dropout",
             dropout_p=dropout_p,
         )
+
+
+def test_avg_pooling_output_shape():
+    model = BasicCNN(pooling="avg")
+    x = torch.randn(2, 3, 128, 128)
+
+    assert model(x).shape == (2, 39), "Avg pooling CNN should output [2, 39] logits"
+
+
+def test_avg_pooling_has_fewer_parameters():
+    flatten_model = BasicCNN()
+    avg_model = BasicCNN(pooling="avg")
+
+    flatten_params = sum(p.numel() for p in flatten_model.parameters())
+    avg_params = sum(p.numel() for p in avg_model.parameters())
+
+    assert avg_params < flatten_params, "Avg pooling should have fewer parameters than flatten"
+
+
+def test_unknown_pooling_is_rejected():
+    with pytest.raises(ValueError, match="pooling"):
+        BasicCNN(pooling="max")
+
+
+def test_regularised_cnn_supports_avg_pooling():
+    model = RegularisedCNN(regularisation="dropout", pooling="avg")
+    x = torch.randn(2, 3, 128, 128)
+
+    assert model(x).shape == (2, 39), "RegularisedCNN with avg pooling should output [2, 39] logits"
+    assert model.head[-1].in_features == 64, "RegularisedCNN should pass pooling to BasicCNN"
+
+
+def test_resnet_uses_imagenet_weights_by_default(monkeypatch):
+    # Check the default weights without downloading them
+    real_resnet18 = models.resnet18
+
+    def check_weights(weights=None):
+        assert weights == models.ResNet18_Weights.DEFAULT, "build_resnet18 should use ImageNet weights by default"
+        return real_resnet18(weights=None)
+
+    monkeypatch.setattr(models, "resnet18", check_weights)
+    model = build_resnet18()
+
+    assert model.fc.out_features == 39, "ResNet18 should have 39 output classes"
