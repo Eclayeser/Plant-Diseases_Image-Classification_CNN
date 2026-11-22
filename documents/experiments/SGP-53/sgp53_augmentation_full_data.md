@@ -37,3 +37,5 @@ Difference per seed (augmentation off - augmentation on)
 - Keep augmentation on as the default for now.
 
 ## Limitations
+- All runs used one desktop GPU; exact result values may differ on other hardware
+- Results are on the validation set only; the test set was not used, so these numbers are for choosing settings, not for reporting final performance.
