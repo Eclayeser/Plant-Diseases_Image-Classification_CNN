@@ -4,15 +4,11 @@ import gradio as gr
 from PIL import Image
 
 from leafapp.config import MODEL_DIR
+from leafapp.labels import format_class_name
 from leafapp.predict import LeafClassifier
 
 Image.MAX_IMAGE_PIXELS = 20_000_000
 COLORS = ["#2e7d32", "#1565c0", "#ef8f00", "#d84315", "#6a1b9a"]  # one colour per rank
-
-
-def format_class_name(name):
-    """Turn a label such as "Tomato___Leaf_Mold" into "Tomato - Leaf Mold"."""
-    return name.replace("___", " - ").replace("_", " ")
 
 
 def prediction_chart_html(names, percents):

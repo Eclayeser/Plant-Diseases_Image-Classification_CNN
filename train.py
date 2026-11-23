@@ -219,6 +219,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             raise ValueError("Remove data.augmentation and use data.augment (true or false).")
         data.setdefault("augment", True)
         data.setdefault("normalize", False)
+        data.setdefault("num_workers", 0)
         cfg["train"].setdefault("patience", None) # None = early stopping off
         cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
         model_settings = cfg["model"]
@@ -236,6 +237,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             seed=cfg["seed"],
             normalize=data["normalize"],
             augment=data["augment"],
+            num_workers=data["num_workers"],
         )
 
         model = build_model(model_settings, data, class_names)
