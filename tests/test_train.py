@@ -130,15 +130,7 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
     assert loader_settings["augment"] is True
     assert loader_settings["normalize"] is False
     assert captured["config"]["data"]["augment"] is True
-    assert "augmentation" not in captured["config"]["data"]
 
-
-@pytest.mark.parametrize("augment", [True, False])
-def test_training_rejects_obsolete_augmentation_block(monkeypatch, augment):
-    cfg = {"data": {"augment": augment, "augmentation": {"rotation_degrees": 10}}}
-    monkeypatch.setattr(train, "load_config", lambda path: cfg)
-    with pytest.raises(ValueError, match=r"Remove data\.augmentation"):
-        train.main("experiment.yaml", VALID_NAME, "comparison", "")
 
 @pytest.mark.parametrize("overrides, expected", [({}, 0.2), ({"dropout_p": 0.4}, 0.4)])
 def test_training_records_effective_dropout_probability(monkeypatch, tmp_path, overrides, expected):

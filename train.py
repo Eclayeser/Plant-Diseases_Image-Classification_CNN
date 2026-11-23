@@ -215,8 +215,6 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
     try:
         cfg = load_config(ROOT / config_path)
         data = cfg["data"]
-        if "augmentation" in data:
-            raise ValueError("Remove data.augmentation and use data.augment (true or false).")
         data.setdefault("augment", True)
         data.setdefault("normalize", False)
         data.setdefault("num_workers", 0)
