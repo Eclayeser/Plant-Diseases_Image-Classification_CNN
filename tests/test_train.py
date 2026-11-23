@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock
 
+import copy
 import pytest
 import torch
 from torch import nn
@@ -493,3 +494,69 @@ def test_main_uploads_checkpoints_when_training_fails(
     close_task.assert_called_once_with(
         task, failed=True, message="training failed"
     )
+
+def test_main_builds_from_connected_config(monkeypatch, tmp_path):
+    cfg = {
+        "seed": 0,
+        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4, "augment": False},
+        "model": {"type": "BasicCNN"},
+        "train": {"lr": 1e-3, "weight_decay": 0.0, "epochs": 1, "checkpoint_dir": str(tmp_path)},
+    }
+    loader_settings = {}
+    optimizer_settings = {}
+
+    def fake_initialise_task(**kwargs):
+        connected = copy.deepcopy(kwargs["config"])  # what a cloned task edited in the UI returns
+        connected["train"]["lr"] = 0.0123
+        connected["data"]["batch_size"] = 7
+        return MagicMock(), connected
+
+    def fake_get_loaders(**kwargs):
+        loader_settings.update(kwargs)
+        return make_fake_loader(), make_fake_loader(), None, ["a", "b", "c", "d", "e"]
+
+    def recording_choose_optimizer(parameters, train_settings):
+        optimizer_settings.update(train_settings)
+        return train.torch.optim.AdamW(parameters, lr=train_settings["lr"])
+
+    monkeypatch.setattr(train, "load_config", lambda path: cfg)
+    monkeypatch.setattr(train.torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(train, "initialise_task", fake_initialise_task)
+    monkeypatch.setattr(train, "get_loaders", fake_get_loaders)
+    monkeypatch.setattr(
+        train, "build_model",
+        lambda model_cfg, data_cfg, class_names: BasicCNN(num_classes=5, channels=(8,), image_size=32),
+    )
+    monkeypatch.setattr(train, "choose_optimizer", recording_choose_optimizer)
+    monkeypatch.setattr(
+        train, "calculate_metrics_per_loader",
+        lambda **kwargs: {"loss": 1.0, "accuracy": 0.5, "f1": 0.5, "confusion-matrix": [[0] * 5 for _ in range(5)]},
+    )
+
+    train.main("experiment.yaml", VALID_NAME, "comparison", "")
+
+    assert optimizer_settings["lr"] == 0.0123, "Optimiser should use the lr from the connected config"
+    assert loader_settings["batch_size"] == 7, "Loaders should use the batch size from the connected config"
+
+def test_main_marks_task_failed_when_loading_data_fails(monkeypatch):
+    cfg = {
+        "seed": 0,
+        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4},
+        "model": {"type": "BasicCNN"},
+        "train": {"lr": 1e-3, "weight_decay": 0.0, "epochs": 1, "checkpoint_dir": "unused"},
+    }
+    task = MagicMock()
+    monkeypatch.setattr(train, "load_config", lambda path: cfg)
+    monkeypatch.setattr(train, "initialise_task", lambda **kwargs: (task, kwargs["config"]))
+
+    def broken_loaders(**kwargs):
+        raise FileNotFoundError("dataset missing")
+
+    monkeypatch.setattr(train, "get_loaders", broken_loaders)
+    close_task = MagicMock()
+    monkeypatch.setattr(train, "close_task", close_task)
+
+    with pytest.raises(FileNotFoundError, match="dataset missing"):
+        train.main("configs/prototype.yaml", VALID_NAME, "debugging", "")
+
+    close_task.assert_called_once_with(task, failed=True, message="dataset missing")
