@@ -1,24 +1,21 @@
 # Computes the mean and std of each colour over the plant_village training photos.
-import argparse
-
 import torch
 
-from leafapp.config import ROOT, load_config
-from leafapp.data import get_loaders
+from leafapp.data import (
+    DEFAULT_BATCH_SIZE,
+    DEFAULT_FRACTION,
+    DEFAULT_IMAGE_SIZE,
+    DEFAULT_SEED,
+    get_loaders,
+)
 
 
-def main(argv=None):
-    parser = argparse.ArgumentParser(description="Compute RGB statistics on the training split.")
-    parser.add_argument("--config", default="configs/prototype.yaml", help="Path to the experiment YAML.")
-    args = parser.parse_args(argv)
-
-    cfg = load_config(ROOT / args.config)
-    data = cfg["data"]
+def main():
     train_loader, _, _, _ = get_loaders(
-        fraction=data["fraction"],
-        image_size=data["image_size"],
-        batch_size=data["batch_size"],
-        seed=cfg["seed"],
+        fraction=DEFAULT_FRACTION,
+        image_size=DEFAULT_IMAGE_SIZE,
+        batch_size=DEFAULT_BATCH_SIZE,
+        seed=DEFAULT_SEED,
         augment=False,
         normalize=False,
     )
