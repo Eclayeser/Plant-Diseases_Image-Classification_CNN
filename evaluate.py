@@ -108,7 +108,7 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
         extra=[f"@split:{data_type}"]
     )
 
-    task = initialise_task(
+    task, _ = initialise_task(
         config=run_config, 
         project_name=PROJECT_NAME, 
         task_name=f"{config['model']['type']} - {checkpoint_name} - {data_type}", 

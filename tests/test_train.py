@@ -93,7 +93,7 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
 
     def fake_initialise_task(**kwargs):
         captured.update(kwargs)
-        return MagicMock()
+        return MagicMock(), kwargs["config"]
 
     monkeypatch.setattr(train, "load_config", lambda path: cfg)
     monkeypatch.setattr(train.torch.cuda, "is_available", lambda: False)
@@ -264,7 +264,7 @@ def test_main_continues_when_periodic_checkpoint_upload_fails(
             num_classes=5, channels=(8,), image_size=32
         ),
     )
-    monkeypatch.setattr(train, "initialise_task", lambda **kwargs: task)
+    monkeypatch.setattr(train, "initialise_task", lambda **kwargs: (task, kwargs["config"]))
 
     def train_epoch(*args, **kwargs):
         trained_epochs.append(len(trained_epochs) + 1)
@@ -353,7 +353,7 @@ def test_main_retries_pending_best_checkpoint_save_after_failure(
             num_classes=5, channels=(8,), image_size=32
         ),
     )
-    monkeypatch.setattr(train, "initialise_task", lambda **kwargs: task)
+    monkeypatch.setattr(train, "initialise_task", lambda **kwargs: (task, kwargs["config"]))
     monkeypatch.setattr(
         train,
         "train_one_epoch",
@@ -441,7 +441,7 @@ def test_main_uploads_checkpoints_when_training_fails(
             num_classes=5, channels=(8,), image_size=32
         ),
     )
-    monkeypatch.setattr(train, "initialise_task", lambda **kwargs: task)
+    monkeypatch.setattr(train, "initialise_task", lambda **kwargs: (task, kwargs["config"]))
 
     def fail_on_second_epoch(*args, **kwargs):
         nonlocal train_calls

@@ -39,7 +39,11 @@ def initialise_task(
     tags: list[str] | None = None,
     output_uri: str | bool | None = None,
 ) -> Any:
-    """Create a ClearML task and connect the complete run configuration."""
+    """Create a ClearML task, connect the run configuration and return both.
+
+    The returned config holds any values edited in the ClearML UI on a cloned
+    task, so callers that build things from the config should use it.
+    """
     from clearml import Task
 
     Task.set_random_seed(None)
@@ -52,8 +56,8 @@ def initialise_task(
         output_uri=output_uri,
         reuse_last_task_id=False,
     )
-    task.connect(dict(config))
-    return task
+    connected_config = task.connect(dict(config))
+    return task, connected_config
 
 
 def get_task(task_id: str) -> Any:
