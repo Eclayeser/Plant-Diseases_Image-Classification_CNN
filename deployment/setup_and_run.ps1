@@ -31,7 +31,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Download the model and launch the Gradio application.
-Write-Host "[SGP-5] Starting Gradio at http://localhost:8080"
+Write-Host "[SGP-5] Starting Gradio..."
 & (Join-Path $PSScriptRoot "run_local.ps1")
 
 exit $LASTEXITCODE

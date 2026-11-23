@@ -453,3 +453,8 @@ Approximate share of AI-generated code: 60%.
 
 - I ran the six experiments and chose the framing and the recommendation (both models perform the same, so prefer the simpler and cheaper one). Claude read the checkpoints, computed the comparison with SGP-52 and the timings, and drafted the write-up; I edited it.
 - Approximate share of AI-generated documentation: 30%
+
+## SGP-56 · Code quality (Javier Fimia)
+
+- For PR 1, I chose the scope to be code configuration and organisation. I used to codex to audit our large codebase and flag possible areas that need refining. I then filtered through these and updated experiment settings, model selection, run tracking and local deployment, then ran the relevant tests locally.
+- Codex generated approximately 70% of the new implementation and test code in PR 1.

@@ -3,6 +3,14 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 
 DATASET_NAME = "DScomp380/plant_village"
+DEFAULT_FRACTION = 0.2
+DEFAULT_IMAGE_SIZE = 128
+DEFAULT_BATCH_SIZE = 32
+DEFAULT_SEED = 42
+FLIP_PROBABILITY = 0.5
+ROTATION_DEGREES = 15
+BRIGHTNESS = 0.2
+SATURATION = 0.2
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 PLANT_VILLAGE_MEAN = [0.4671, 0.4897, 0.4125]
@@ -88,9 +96,9 @@ def make_transforms(image_size, augment=True, normalize=False):
         train_tf = transforms.Compose(
             [
                 transforms.Resize((image_size, image_size)),
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomRotation(15),
-                transforms.ColorJitter(brightness=0.2, saturation=0.2),
+                transforms.RandomHorizontalFlip(p=FLIP_PROBABILITY),
+                transforms.RandomRotation(ROTATION_DEGREES),
+                transforms.ColorJitter(brightness=BRIGHTNESS, saturation=SATURATION),
                 transforms.ToTensor(),
             ]
         )
@@ -124,7 +132,8 @@ def make_batch_transform(image_transform):
     return BatchTransform(image_transform)
 
 
-def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=True,
+def get_loaders(fraction=DEFAULT_FRACTION, image_size=DEFAULT_IMAGE_SIZE,
+                batch_size=DEFAULT_BATCH_SIZE, seed=DEFAULT_SEED, augment=True,
                 normalize=False, num_workers=0):
     """Build the train, validation and test loaders for plant_village.
 
