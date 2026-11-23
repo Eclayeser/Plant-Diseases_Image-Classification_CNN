@@ -85,7 +85,10 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
 
     # load checkpoint info
     model, _, history_metrics, config = load_checkpoint(checkpoint_path)
-    
+
+    # Set default value for num_workers to 0 if not present in config
+    config["data"].setdefault("num_workers", 0)
+
     run_config = {
         "evaluation": {
             "checkpoint": str(requested_checkpoint) if requested_checkpoint is not None else None,
@@ -121,6 +124,7 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
             batch_size=config["data"]["batch_size"],
             seed=config["seed"],
             normalize=config["data"].get("normalize", False),
+            num_workers=config["data"].get("num_workers", 0)
         )
     loaders = {"validation": val_loader, "test": test_loader}
     target_data = loaders[data_type]

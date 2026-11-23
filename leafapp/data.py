@@ -106,27 +106,33 @@ def make_transforms(image_size, augment=True, normalize=False):
     return train_tf, eval_tf
 
 
-def make_batch_transform(image_transform):
-    """Return a function that converts a batch of rows with image_transform."""
+class BatchTransform:
+    """Convert a batch of rows with image_transform. Picklable for spawn workers."""
 
-    def transform_batch(batch):
-        """Convert the photos in batch to tensors and keep their labels."""
+    def __init__(self, image_transform):
+        self.image_transform = image_transform
+
+    def __call__(self, batch):
         return {
-            "pixels": [image_transform(img.convert("RGB")) for img in batch["image"]],
+            "pixels": [self.image_transform(img.convert("RGB")) for img in batch["image"]],
             "label": batch["label"],
         }
 
-    return transform_batch
+
+def make_batch_transform(image_transform):
+    """Return a picklable callable that converts a batch of rows with image_transform."""
+    return BatchTransform(image_transform)
 
 
 def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=True,
-                normalize=False):
+                normalize=False, num_workers=0):
     """Build the train, validation and test loaders for plant_village.
 
     Return (train_loader, val_loader, test_loader, class_names). Each
     batch is a dict: "pixels" of shape [batch_size, 3, image_size,
     image_size] and "label" of shape [batch_size]. class_names[i] is the
-    name of label i.
+    name of label i. num_workers sets the number of subprocesses used for
+    data loading and defaults to 0.
     """
     rows = load_subset(fraction, seed)
     train, val, test = split(rows, seed)
@@ -136,9 +142,11 @@ def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=Tr
     val.set_transform(make_batch_transform(eval_tf))
     test.set_transform(make_batch_transform(eval_tf))
 
-    train_loader = DataLoader(train, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(val, batch_size=batch_size)
-    test_loader = DataLoader(test, batch_size=batch_size)
+    train_loader = DataLoader(
+        train, batch_size=batch_size, shuffle=True, num_workers=num_workers
+    )
+    val_loader = DataLoader(val, batch_size=batch_size, num_workers=num_workers)
+    test_loader = DataLoader(test, batch_size=batch_size, num_workers=num_workers)
 
     class_names = rows.features["label"].names
 
