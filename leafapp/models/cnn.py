@@ -1,6 +1,7 @@
 from torch import nn
 
 DEFAULT_DROPOUT_P = 0.2
+DEFAULT_POOLING = "flatten"
 
 
 def conv_block(in_ch, out_ch, *, regularisation=None, dropout_p=DEFAULT_DROPOUT_P):
@@ -32,7 +33,7 @@ class BasicCNN(nn.Module):
         
     Input [B, 3, image_size, image_size] -> output [B, num_classes] logits.
     """
-    def __init__(self, num_classes=39, channels=(16, 32, 64), image_size=128, pooling="flatten"):
+    def __init__(self, num_classes=39, channels=(16, 32, 64), image_size=128, pooling=DEFAULT_POOLING):
         super().__init__()
         # Chain the blocks: each block's input channels = the previous block's output
         blocks = []

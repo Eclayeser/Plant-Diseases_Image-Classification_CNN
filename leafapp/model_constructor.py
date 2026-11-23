@@ -1,6 +1,6 @@
 from typing import Any
 
-from leafapp.models.cnn import BasicCNN, DEFAULT_DROPOUT_P
+from leafapp.models.cnn import BasicCNN, DEFAULT_DROPOUT_P, DEFAULT_POOLING
 from leafapp.models.resnet import build_resnet18
 from leafapp.models.regularised_cnn import RegularisedCNN
 
@@ -14,7 +14,7 @@ def build_model(model_settings: dict[str, Any], data_specs: dict[str, Any], clas
             num_classes=len(class_names),
             channels=model_settings["channels"],
             image_size=data_specs["image_size"],
-            pooling=model_settings.get("pooling", "flatten"),
+            pooling=model_settings.get("pooling", DEFAULT_POOLING),
         )
 
     if model_type == "RegularisedCNN":
@@ -24,7 +24,7 @@ def build_model(model_settings: dict[str, Any], data_specs: dict[str, Any], clas
             image_size=data_specs["image_size"],
             regularisation=model_settings["regularisation"],
             dropout_p=model_settings.get("dropout_p", DEFAULT_DROPOUT_P),
-            pooling=model_settings.get("pooling", "flatten"),
+            pooling=model_settings.get("pooling", DEFAULT_POOLING),
         )
 
     if model_type == "ResNet18":

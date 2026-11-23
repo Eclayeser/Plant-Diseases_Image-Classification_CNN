@@ -12,7 +12,7 @@ class RegularisedCNN(cnn.BasicCNN):
         *,
         regularisation,
         dropout_p=cnn.DEFAULT_DROPOUT_P,
-        pooling="flatten",
+        pooling=cnn.DEFAULT_POOLING,
     ):
         if regularisation not in {"dropout", "batchnorm"}:
             raise ValueError("regularisation must be 'dropout' or 'batchnorm'")
