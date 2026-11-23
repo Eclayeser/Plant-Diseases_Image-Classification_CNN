@@ -10,6 +10,8 @@ from leafapp.predict import LeafClassifier
 Image.MAX_IMAGE_PIXELS = 20_000_000
 COLORS = ["#2e7d32", "#1565c0", "#ef8f00", "#d84315", "#6a1b9a"]  # one colour per rank
 GALLERY_DIR = Path(__file__).parent / "gallery"
+NO_LEAF_CLASS = "Background_without_leaves"
+NO_LEAF_MESSAGE = "<p><strong>No leaf found.</strong> Please, try a photo of a single leaf.</p>"
 
 
 def prediction_chart_html(names, percents):
@@ -49,7 +51,11 @@ def build_ui(classifier):
         predictions = classifier.top_k(image, k=5)
         names = [format_class_name(name) for name, _ in predictions]
         percents = [round(probability * 100, 1) for _, probability in predictions]
-        return prediction_chart_html(names, percents)
+        chart = prediction_chart_html(names, percents)
+
+        if predictions[0][0] == NO_LEAF_CLASS:
+            return NO_LEAF_MESSAGE + chart
+        return chart
 
     demo = gr.Interface(
         fn=predict,

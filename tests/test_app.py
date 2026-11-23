@@ -169,3 +169,24 @@ def test_description_says_not_a_diagnosis():
     demo = build_ui(FakeClassifier(PREDICTIONS))
 
     assert "not a diagnosis" in demo.description
+    
+
+def test_predict_warns_when_no_leaf_found():
+    """A photo whose top class is the background class gets a "No leaf found" message."""
+    predictions = [("Background_without_leaves", 0.9)] + PREDICTIONS[:4]
+    demo = build_ui(FakeClassifier(predictions))
+    image = Image.new("RGB", (300, 200), color="green")
+
+    html = demo.fn(image)
+
+    assert "No leaf found" in html
+
+
+def test_predict_has_no_warning_for_a_leaf():
+    """A normal leaf prediction shows the chart without the warning."""
+    demo = build_ui(FakeClassifier(PREDICTIONS))
+    image = Image.new("RGB", (300, 200), color="green")
+
+    html = demo.fn(image)
+
+    assert "No leaf found" not in html
