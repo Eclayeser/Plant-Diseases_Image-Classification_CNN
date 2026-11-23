@@ -56,10 +56,14 @@ def build_ui(classifier):
         inputs=gr.Image(type="pil", label="Upload a leaf image"),
         outputs=gr.HTML(label="Top 5 Predictions"),
         title="Plant Disease Classification",
-        description="Upload a plant leaf image to identify its disease, or pick one from the gallery below.",
+        description=(
+            "Upload a plant leaf image to identify its disease, or pick one from the gallery below. "
+            "It gives a first opinion for the crops and diseases the model was trained on and is not a diagnosis."
+        ),
         examples=[[str(path)] for path in sorted(GALLERY_DIR.glob("*.jpg"))],
         api_name="predict",
-        flagging_mode="never"
+        flagging_mode="never",
+        delete_cache=(600, 600),  # every 10 minutes, delete uploads older than 10 minutes
     )
     return demo
 

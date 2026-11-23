@@ -155,3 +155,17 @@ def test_predict_works_on_example_images():
         assert "Top 5 Predictions" in result, f"{path.name} should give a prediction chart"
 
     assert len(classifier.calls) == len(images), "The model should be called once per example"
+    
+
+def test_build_ui_deletes_old_uploads():
+    """Uploaded photos are deleted from the server after about 10 minutes."""
+    demo = build_ui(FakeClassifier(PREDICTIONS))
+
+    assert demo.delete_cache == (600, 600)
+
+
+def test_description_says_not_a_diagnosis():
+    """The app tells users its prediction is not a diagnosis."""
+    demo = build_ui(FakeClassifier(PREDICTIONS))
+
+    assert "not a diagnosis" in demo.description
