@@ -10,7 +10,7 @@ from torch import nn
 from leafapp.config import load_config, ROOT
 from leafapp.model_constructor import build_model
 from leafapp.models.cnn import DEFAULT_DROPOUT_P, DEFAULT_POOLING
-from leafapp.optimizer_constructor import choose_optimizer
+from leafapp.optimizer_constructor import choose_optimizer, DEFAULT_OPTIMIZER
 from leafapp.data import get_loaders
 from leafapp.checkpoints import save_checkpoint
 from leafapp.early_stopping import EarlyStopping
@@ -218,6 +218,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
         data.setdefault("augment", True)
         data.setdefault("normalize", False)
         data.setdefault("num_workers", 0)
+        cfg["train"].setdefault("optimizer", DEFAULT_OPTIMIZER)
         cfg["train"].setdefault("patience", None) # None = early stopping off
         cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
         model_settings = cfg["model"]
@@ -225,6 +226,26 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             model_settings.setdefault("pooling", DEFAULT_POOLING)  # record the default for ClearML visibility
         if model_settings["type"] == "RegularisedCNN" and model_settings.get("regularisation") == "dropout":
             model_settings.setdefault("dropout_p", DEFAULT_DROPOUT_P)
+
+        config_name = Path(config_path).stem
+        tags = build_tags(
+            run_type=run_type,
+            model_type=cfg["model"]["type"],
+            responsible=responsible,
+            task_type="train.py",
+            issue_id=issue_id,
+            extra=[f"@config-name:{config_name}"]
+        )
+
+        task, cfg = initialise_task(
+            config=cfg,
+            project_name=PROJECT_NAME,
+            task_name=f"{cfg['model']['type']} - {config_name}",
+            tags=tags,
+        )
+        data, model_settings = cfg["data"], cfg["model"] # rebind to the connected dicts
+        logger = task.get_logger()
+
         torch.manual_seed(cfg["seed"])
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
@@ -247,25 +268,6 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             print("Training device: CPU (CUDA unavailable; falling back to CPU)")
         model.to(device)
         optimizer = choose_optimizer(model.parameters(), cfg["train"])
-        config_name = Path(config_path).stem
-
-        tags = build_tags(
-            run_type=run_type,
-            model_type=cfg["model"]["type"],
-            responsible=responsible,
-            task_type="train.py",
-            issue_id=issue_id,
-            extra=[f"@config-name:{config_name}"]
-        )
-
-        task = initialise_task(
-            config=cfg,
-            project_name=PROJECT_NAME,
-            task_name=f"{cfg['model']['type']} - {config_name}",
-            tags=tags,
-            
-        )
-        logger = task.get_logger()
 
         # metrics which are to record per-epoch
         history_metrics = {
