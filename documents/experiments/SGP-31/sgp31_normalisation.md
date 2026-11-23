@@ -75,4 +75,4 @@ To confirm the final accuracy, plain and plant_village should be rerun with earl
 - **One seed.** Each config was run with a single seed, so the final differences (1 to 2 points) may not hold with another seed.
 - **Short runs.** All runs stop at 10 epochs while plain was still improving, and the ImageNet run has only 5, so ImageNet and plant_village are only compared over epochs 1 to 5.
 - **Validation numbers only.** The same validation set picked each run's best epoch and the winning config, so the results are slightly optimistic. 
-- **Statistics from part of the data.** The plant_village numbers come from the training split at fraction 0.2 (seed 42). If the final model trains on more data, `compute_norm_stats.py` should be rerun on that split.
+- **Statistics from part of the data.** The plant_village numbers come from the training split at fraction 0.2 (seed 42). In SGP-68, `compute_norm_stats.py` was rerun on the full training split (fraction 1.0, seed 42): mean [0.4672, 0.4896, 0.4123] and std [0.1914, 0.1669, 0.2112], within 0.0003 of the constants in `leafapp/data.py`, so the constants were kept for the full-data runs.

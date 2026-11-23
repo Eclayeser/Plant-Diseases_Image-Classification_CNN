@@ -207,6 +207,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
     try:
         cfg = load_config(ROOT / config_path) 
         cfg["data"].setdefault("normalize", False)  # record the default for ClearML visibility
+        cfg["data"].setdefault("num_workers", 0)  # record the loader default for ClearML visibility
         cfg["train"].setdefault("patience", None) # None = early stopping off
         cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
         if cfg["model"]["type"] in ("BasicCNN", "RegularisedCNN"):
@@ -221,6 +222,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=5):
             seed=cfg["seed"],
             normalize=cfg["data"].get("normalize", False),
             augment=cfg["data"].setdefault("augment", True),
+            num_workers=cfg["data"].get("num_workers", 0)
         )
 
         model = build_model(cfg["model"], cfg["data"], class_names)
