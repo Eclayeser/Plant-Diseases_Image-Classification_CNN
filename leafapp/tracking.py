@@ -38,7 +38,7 @@ def initialise_task(
     task_name: str,
     tags: list[str] | None = None,
     output_uri: str | bool | None = None,
-) -> Any:
+) -> tuple[Any, dict[str, Any]]:
     """Create a ClearML task, connect the run configuration and return both.
 
     The returned config holds any values edited in the ClearML UI on a cloned

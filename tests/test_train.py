@@ -144,7 +144,7 @@ def test_training_records_effective_dropout_probability(monkeypatch, tmp_path, o
     loaders = (make_fake_loader(), make_fake_loader(), None, ["a", "b", "c", "d", "e"])
     monkeypatch.setattr(train, "get_loaders", lambda **kwargs: loaders)
     monkeypatch.setattr(train.torch.cuda, "is_available", lambda: False)
-    task_init = MagicMock()
+    task_init = MagicMock(side_effect=lambda **kwargs: (MagicMock(), kwargs["config"]))
     monkeypatch.setattr(train, "initialise_task", task_init)
 
     train.main("experiment.yaml", VALID_NAME, "comparison", "")
@@ -182,7 +182,7 @@ def test_main_saves_and_uploads_checkpoints_at_requested_interval(
             num_classes=5, channels=(8,), image_size=32
         ),
     )
-    initialise_task = MagicMock(return_value=task)
+    initialise_task = MagicMock(side_effect=lambda **kwargs: (task, kwargs["config"]))
     monkeypatch.setattr(train, "initialise_task", initialise_task)
     monkeypatch.setattr(
         train,
