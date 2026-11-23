@@ -417,6 +417,18 @@ Approximate share of AI-generated code: 60%.
 - I ran the six experiments. Claude extracted the results from the ClearML exports and checked them against the checkpoints, computed the per-seed gains, and drafted the write-up. The interpretation (that the consistency argument may come from early stopping, and the inconclusive recommendation) came from our discussion; I edited the wording.
 - Approximate share of AI-generated documentation: 50%
 
+## scripts/save_example_images.py, app/examples/ (SGP-64, Gul Nil Kayalioglu)
+- I wrote a script to save example leaf images from the test set into `app/examples`. Claude helped me check the code.
+- Approximate share of AI-generated code: 10%
+
+## app/app.py (SGP-64, Gul Nil Kayalioglu)
+- I added example images to the Gradio interface so users can click on them to get predictions. Claude only reviewed my code.
+- Approximate share of AI-generated code: 0%
+
+## tests/test_app.py (SGP-64, Gul Nil Kayalioglu)
+- I decided what to test and wrote tests to check that the example images can be opened, appear in the interface, and work with the prediction function. Claude helped me review and simplify the code, and I ran the tests myself.
+- Approximate share of AI-generated code: 20%
+
 ## leafapp/labels.py, app/app.py (SGP-48, Illia Putintsev)
 
 - `format_class_name()` moved here from `app/app.py`. Claude suggested the separate file and added `.strip()`.
