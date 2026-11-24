@@ -213,6 +213,29 @@ def save_and_upload_failure_artifacts(
     close_task(task, failed=True, message=str(exc))
 
 
+def _apply_training_defaults(cfg: dict) -> None:
+    data = cfg["data"]
+    data.setdefault("augment", True)
+    data.setdefault("normalize", NO_NORMALIZATION)
+    # ClearML casts UI edits to the original type, so keep normalize as a string.
+    if data["normalize"] is False:
+        data["normalize"] = NO_NORMALIZATION
+    elif data["normalize"] is True:
+        data["normalize"] = "imagenet"
+    data.setdefault("num_workers", 0)
+
+    training = cfg["train"]
+    training.setdefault("optimizer", DEFAULT_OPTIMIZER)
+    training.setdefault("patience", None)
+    training.setdefault("min_delta", 0.0)
+
+    model = cfg["model"]
+    if model["type"] in ("BasicCNN", "RegularisedCNN"):
+        model.setdefault("pooling", DEFAULT_POOLING)
+    if model["type"] == "RegularisedCNN" and model.get("regularisation") == "dropout":
+        model.setdefault("dropout_p", DEFAULT_DROPOUT_P)
+
+
 def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAULT_CHECKPOINT_INTERVAL):
     """
     Train a model using the config at config_path and save a checkpoint.
@@ -233,25 +256,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
     best_checkpoint_uploaded = False
     try:
         cfg = load_config(ROOT / config_path)
-        data = cfg["data"]
-        data.setdefault("augment", True)
-
-        data.setdefault("normalize", NO_NORMALIZATION)
-        # ClearML casts UI edits to the original type, so keep normalize as a string
-        if data["normalize"] is False:
-            data["normalize"] = NO_NORMALIZATION
-        elif data["normalize"] is True:
-            data["normalize"] = "imagenet"
-
-        data.setdefault("num_workers", 0)
-        cfg["train"].setdefault("optimizer", DEFAULT_OPTIMIZER)
-        cfg["train"].setdefault("patience", None) # None = early stopping off
-        cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
-        model_settings = cfg["model"]
-        if model_settings["type"] in ("BasicCNN", "RegularisedCNN"):
-            model_settings.setdefault("pooling", DEFAULT_POOLING)  # record the default for ClearML visibility
-        if model_settings["type"] == "RegularisedCNN" and model_settings.get("regularisation") == "dropout":
-            model_settings.setdefault("dropout_p", DEFAULT_DROPOUT_P)
+        _apply_training_defaults(cfg)
 
         config_name = Path(config_path).stem
         tags = build_tags(
@@ -269,7 +274,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             task_name=f"{cfg['model']['type']} - {config_name}",
             tags=tags,
         )
-        data, model_settings = cfg["data"], cfg["model"] # rebind to the connected dicts
+        data, model_settings = cfg["data"], cfg["model"]
         cfg["train"]["patience"] = parse_patience(cfg["train"]["patience"])
         logger = task.get_logger()
 
