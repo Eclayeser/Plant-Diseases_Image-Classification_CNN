@@ -156,7 +156,7 @@ def test_predict_works_on_example_images():
         assert "Top 5 Predictions" in result, f"{path.name} should give a prediction chart"
 
     assert len(classifier.calls) == len(images), "The model should be called once per example"
-    
+
 
 def test_build_ui_deletes_old_uploads():
     """Uploaded photos are deleted from the server after about 10 minutes."""
@@ -170,7 +170,7 @@ def test_description_says_not_a_diagnosis():
     demo = build_ui(FakeClassifier(PREDICTIONS))
 
     assert "not a diagnosis" in demo.description
-    
+
 
 def test_predict_warns_when_no_leaf_found():
     """A photo whose top class is the background class gets a "No leaf found" message."""
@@ -191,7 +191,7 @@ def test_predict_has_no_warning_for_a_leaf():
     html = demo.fn(image)
 
     assert "No leaf found" not in html
-    
+
 
 def test_unreadable_file_shows_a_clear_error(tmp_path):
     """A file that isn't a readable image gives a clear message instead of a generic error."""
@@ -201,11 +201,29 @@ def test_unreadable_file_shows_a_clear_error(tmp_path):
 
     with pytest.raises(gr.Error, match="Couldn't read this file"):
         demo.input_components[0].preprocess(ImageData(path=str(broken)))
-        
-        
+
+
 def test_about_panel_explains_the_models():
-    """The About panel describes the models and their known limits."""
+    """The About panel warns that predictions can be wrong and lists the known limitations."""
     demo = build_ui(FakeClassifier(PREDICTIONS))
 
-    assert "About the models" in demo.article
-    assert "Known limits" in demo.article
+    assert "can be wrong" in demo.article
+    assert "Known limitations" in demo.article
+
+
+def test_image_input_uses_the_normal_image_box():
+    """The custom input is drawn with Gradio's normal image component in the browser."""
+    demo = build_ui(FakeClassifier(PREDICTIONS))
+
+    assert demo.input_components[0].get_block_name() == "image"
+
+
+def test_main_adds_the_app_styles(monkeypatch):
+    """The app is launched with the styles for the AI note and the Read more button."""
+    launched = {}
+    monkeypatch.setattr(LeafClassifier, "from_dir", classmethod(lambda cls, model_dir: FakeClassifier(PREDICTIONS)))
+    monkeypatch.setattr(gr.Blocks, "launch", lambda self, **kwargs: launched.update(kwargs))
+
+    run_app_main(monkeypatch)
+
+    assert ".about-models summary" in launched["css"]

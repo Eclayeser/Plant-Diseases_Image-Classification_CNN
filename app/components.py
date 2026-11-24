@@ -5,6 +5,8 @@ from PIL import Image
 class LeafImage(gr.Image):
     """An image input that shows a clear message when a file can't be read.
     """
+    def get_block_name(self):
+        return "image"  # draw it with Gradio's normal image box in the browser
 
     def preprocess(self, payload):
         try:
