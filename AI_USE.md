@@ -494,3 +494,7 @@ Approximate share of AI-generated code: 60%.
 - Approximate share of AI-generated code: 40%.
 
 - (SGP-35, review fixes) `to_plain_config`, `parse_patience` and the normalize string conversion: issues found by CodeRabbit and Mark; code and tests written by Claude, reviewed and run by me, including confirming the checkpoint load failure before the fix. Approximate share of AI-generated code: 70%.
+## configs/*_patience8_num_workers6.yaml, documents/experiments/SGP-73 (SGP-73, Mario Cavicchioli)
+- Configs written by me from the SGP-63 configs.
+- I ran the experiments; Claude helped me draft the experiment comparisons and conclusion, which I then reviewed and edited when necessary.
+- Approximate share of AI-generated documentation: 45%
