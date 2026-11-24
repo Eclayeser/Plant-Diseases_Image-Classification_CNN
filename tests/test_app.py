@@ -201,3 +201,11 @@ def test_unreadable_file_shows_a_clear_error(tmp_path):
 
     with pytest.raises(gr.Error, match="Couldn't read this file"):
         demo.input_components[0].preprocess(ImageData(path=str(broken)))
+        
+        
+def test_about_panel_explains_the_models():
+    """The About panel describes the models and their known limits."""
+    demo = build_ui(FakeClassifier(PREDICTIONS))
+
+    assert "About the models" in demo.article
+    assert "Known limits" in demo.article

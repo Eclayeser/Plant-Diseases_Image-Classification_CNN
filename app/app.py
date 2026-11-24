@@ -12,7 +12,13 @@ COLORS = ["#2e7d32", "#1565c0", "#ef8f00", "#d84315", "#6a1b9a"]  # one colour p
 GALLERY_DIR = Path(__file__).parent / "gallery"
 NO_LEAF_CLASS = "Background_without_leaves"
 NO_LEAF_MESSAGE = "<p><strong>No leaf found.</strong> Please, try a photo of a single leaf.</p>"
-
+ABOUT_MODELS = """
+### About the models
+- **Training data:** about 55,000 lab photos of leaves from the PlantVillage dataset, in 39 classes
+- **Crops covered:** apple, blueberry, cherry, corn, grape, orange, peach, bell pepper, potato, raspberry, soybean, squash, strawberry, tomato
+- **Known limits:** the photos have plain backgrounds, so field photos with busy backgrounds can fool the models. A crop outside this list still gets one of the 39 labels
+- **More:** each model's test results are in the [model card](https://github.com/Eclayeser/Plant-Diseases_Image-Classification_CNN/blob/main/documents/model_card.md)
+"""
 
 def prediction_chart_html(names, percents):
     """Show the top 5 predictions as horizontal bars."""
@@ -70,6 +76,7 @@ def build_ui(classifier):
         api_name="predict",
         flagging_mode="never",
         delete_cache=(600, 600),  # every 10 minutes, delete uploads older than 10 minutes
+        article=ABOUT_MODELS,
     )
     return demo
 
