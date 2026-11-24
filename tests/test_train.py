@@ -474,8 +474,19 @@ def test_main_saves_improved_best_checkpoint_after_failure(monkeypatch, tmp_path
     monkeypatch.setattr(
         train, "upload_checkpoint", lambda task, path, name: uploaded_artifacts.append((path, name)),
     )
+    close_task = MagicMock()
+    monkeypatch.setattr(train, "close_task", close_task)
 
+    with pytest.raises(KeyboardInterrupt):
+        train.main("configs/prototype.yaml", VALID_NAME, "production", "")
 
+    best_checkpoint_path = [path for path in saved_paths if path.stem.endswith("_best")]
+    assert len(best_checkpoint_path) == 1
+    assert best_checkpoint_path[0].read_text() == "checkpoint"
+    assert {name for _, name in uploaded_artifacts} == {"final_checkpoint", "best_checkpoint"}
+
+    close_task.assert_called_once_with(task, failed=True, message="")
+         
 @pytest.mark.parametrize("failure_epoch", [1, 2])
 def test_main_uploads_checkpoints_when_training_fails(
     monkeypatch, tmp_path, failure_epoch, capsys
