@@ -66,6 +66,6 @@ Recommended settings for the final CNN: full data, augmentation on, `plant_villa
 
 ## Reproducing
 ```bash
-python train.py --config configs/cnn_wider_deeper_early_stopping_full_seed42_patience8_num_workers6.yaml --responsible "Mario Westphalen Cavicchioli" --run-type comparison --issue-id SGP-XX
+python train.py --config configs/cnn_wider_deeper_early_stopping_full_seed42_patience8_num_workers6.yaml --responsible "Mario Westphalen Cavicchioli" --run-type comparison --issue-id SGP-91
 ```
 Repeat with seeds 43 and 44. The dropout runs are in SGP-73.
