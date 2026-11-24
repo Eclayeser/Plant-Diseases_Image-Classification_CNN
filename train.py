@@ -66,6 +66,19 @@ def validate_checkpoint_interval(value):
         raise argparse.ArgumentTypeError("--save-interval must be a positive integer.")
     return ivalue
 
+def parse_patience(value):
+    """
+    Return patience as a positive int, or None when early stopping is off.
+
+    Values edited in the ClearML UI can arrive as strings, so they are converted here.
+    """
+    if value in (None, "", "None"):
+        return None
+    patience = int(value)
+    if patience <= 0:
+        raise ValueError("patience must be a positive integer or empty")
+    return patience
+
 def train_one_epoch(model, loader, criterion, optimizer, device):
     """
     Train the model for one pass over the loader, updating its weights.
@@ -244,6 +257,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             tags=tags,
         )
         data, model_settings = cfg["data"], cfg["model"] # rebind to the connected dicts
+        cfg["train"]["patience"] = parse_patience(cfg["train"]["patience"])
         logger = task.get_logger()
 
         torch.manual_seed(cfg["seed"])

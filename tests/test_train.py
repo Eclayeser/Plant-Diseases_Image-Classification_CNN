@@ -78,6 +78,15 @@ def test_parse_args_rejects_invalid_run_type():
     with pytest.raises(SystemExit):
         parse_args(["--responsible", VALID_NAME, "--run-type", "not-a-run-type"])
 
+@pytest.mark.parametrize("value, expected", [(None, None), ("", None), ("None", None), ("8", 8), (3, 3)])
+def test_parse_patience_converts_connected_values(value, expected):
+    assert train.parse_patience(value) == expected
+
+@pytest.mark.parametrize("value", ["0", -1, "abc"])
+def test_parse_patience_rejects_invalid_values(value):
+    with pytest.raises(ValueError):
+        train.parse_patience(value)
+
 def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
     cfg = {
         "seed": 0,
