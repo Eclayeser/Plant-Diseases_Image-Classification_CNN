@@ -504,10 +504,14 @@ def test_main_uploads_checkpoints_when_training_fails(
         task, failed=True, message="training failed"
     )
 
-def test_main_builds_from_connected_config(monkeypatch, tmp_path):
+@pytest.mark.parametrize(
+    "normalize, expected",
+    [(False, "none"), (True, "imagenet"), ("plant_village", "plant_village")],
+)
+def test_main_builds_from_connected_config(monkeypatch, tmp_path, normalize, expected):
     cfg = {
         "seed": 0,
-        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4, "augment": False},
+        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4, "augment": False, "normalize": normalize},
         "model": {"type": "BasicCNN"},
         "train": {"lr": 1e-3, "weight_decay": 0.0, "epochs": 1, "checkpoint_dir": str(tmp_path)},
     }
@@ -516,6 +520,11 @@ def test_main_builds_from_connected_config(monkeypatch, tmp_path):
 
     def fake_initialise_task(**kwargs):
         connected = copy.deepcopy(kwargs["config"])  # what a cloned task edited in the UI returns
+        assert connected["data"]["normalize"] == expected
+        assert connected["train"]["optimizer"] == "AdamW"
+        assert connected["train"]["patience"] is None
+        assert connected["train"]["min_delta"] == 0.0
+        assert connected["model"]["pooling"] == "flatten"
         connected["train"]["lr"] = 0.0123
         connected["data"]["batch_size"] = 7
         return MagicMock(), connected
