@@ -138,7 +138,7 @@ def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
     assert loader_settings["num_workers"] == 0
     assert "checkpoint_interval" not in captured["config"]["train"]
     assert loader_settings["augment"] is True
-    assert loader_settings["normalize"] is False
+    assert loader_settings["normalize"] == "none"
     assert captured["config"]["data"]["augment"] is True
 
 

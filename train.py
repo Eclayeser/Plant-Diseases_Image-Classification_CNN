@@ -11,7 +11,7 @@ from leafapp.config import load_config, ROOT
 from leafapp.model_constructor import build_model
 from leafapp.models.cnn import DEFAULT_DROPOUT_P, DEFAULT_POOLING
 from leafapp.optimizer_constructor import choose_optimizer, DEFAULT_OPTIMIZER
-from leafapp.data import get_loaders
+from leafapp.data import get_loaders, NO_NORMALIZATION
 from leafapp.checkpoints import save_checkpoint
 from leafapp.early_stopping import EarlyStopping
 from leafapp.eval_functions import (
@@ -229,7 +229,14 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
         cfg = load_config(ROOT / config_path)
         data = cfg["data"]
         data.setdefault("augment", True)
-        data.setdefault("normalize", False)
+
+        data.setdefault("normalize", NO_NORMALIZATION)
+        # ClearML casts UI edits to the original type, so keep normalize as a string
+        if data["normalize"] is False:
+            data["normalize"] = NO_NORMALIZATION
+        elif data["normalize"] is True:
+            data["normalize"] = "imagenet"
+
         data.setdefault("num_workers", 0)
         cfg["train"].setdefault("optimizer", DEFAULT_OPTIMIZER)
         cfg["train"].setdefault("patience", None) # None = early stopping off
