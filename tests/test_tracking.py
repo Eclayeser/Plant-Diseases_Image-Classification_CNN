@@ -399,19 +399,13 @@ def test_confusion_matrix_displays_non_zero_raw_counts():
     )
 
     plot = logger.confusion_matrices[0]
-    annotations = plot["extra_layout"]["annotations"]
+    layout = plot["extra_layout"]
 
-    labels = {
-        (item["y"], item["x"]): item["text"]
-        for item in annotations
-    }
-
-    assert labels == {
-        ("healthy", "healthy"): "180",
-        ("healthy", "rust"): "20",
-        ("rust", "rust"): "100",
-    }
-
+    assert layout["text"] == [
+        ["180", "20"],
+        ["", "100"],
+    ]
+    assert layout["texttemplate"] == "%{text}"
     assert plot["matrix"][0, 0] == pytest.approx(90)
     assert plot["matrix"][0, 1] == pytest.approx(10)
 
@@ -427,6 +421,6 @@ def test_empty_confusion_matrix_has_no_labels():
 
     layout = logger.confusion_matrices[0]["extra_layout"]
 
-    assert layout["annotations"] == []
+    assert layout["text"] == [["", ""], ["", ""]]
     assert layout["shapes"] == []
     assert logger.plots == []
