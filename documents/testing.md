@@ -12,8 +12,11 @@ Unit tests check individual functions and components.
 | Model architectures and output shapes | To check that the models produce the expected outputs. |
 | Model and optimiser configuration | To make sure the correct settings are used. |
 | Early stopping | To check that training stops when there is no improvement. |
-| Evaluation metrics | To make sure model performance is calculated correctly. |
-| Input validation and label formatting | To handle invalid inputs and display readable class names. |
+| Evaluation metrics and error analysis | To make sure metrics, confusion matrices and misclassified images are reported correctly. |
+| Invalid settings and label formatting | To reject invalid model and optimiser settings and display readable class names. |
+| Normalisation statistics | To make sure the mean and standard deviation are calculated only from the training images, without augmentation or normalisation. |
+| Command-line arguments | To make sure training and evaluation accept valid arguments and reject invalid ones. |
+| Softmax and top-k predictions | To make sure prediction probabilities are calculated and sorted correctly. |
 
 ## Integration Testing
 
@@ -25,10 +28,12 @@ Integration tests check how different parts of the project work together.
 | Saving and loading checkpoints | To make sure trained models can be restored correctly. |
 | Image preprocessing and prediction | To check that images are processed correctly before prediction. |
 | Gradio interface and example gallery | To make sure images can be passed to the prediction function and results are displayed. |
-| ClearML tracking | To check metric logging and checkpoint handling. |
+| ClearML tracking | To check metric logging, checkpoint handling and task management. |
 | ONNX export preparation | To make sure the model uses the correct normalisation when exported to ONNX. |
+| App warnings and errors | To make sure users see a clear message when no leaf is found or a file cannot be read. |
+| Training failure handling | To make sure available checkpoints are preserved and the ClearML task is marked as failed when training fails. |
 
-The pytest tests do not need the full dataset, a GPU or a connection to ClearML. They mainly use small test images, fake models and fake ClearML objects. We use pytest's monkeypatch to replace slow or external parts and tmp_path to create temporary files. This keeps the tests fast.
+The pytest tests do not need the full dataset, a GPU or a connection to ClearML. They mainly use small test images, fake models and fake ClearML objects. We use pytest's `monkeypatch` to replace slow or external parts and `tmp_path` to create temporary files. This keeps the tests fast.
 
 ## Continuous Integration
 
