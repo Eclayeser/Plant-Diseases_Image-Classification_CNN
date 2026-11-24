@@ -39,4 +39,9 @@ Two GitHub Actions workflows run on every push:
 | `tests.yml` | Runs all pytest tests with coverage on Python 3.12 (CPU only). | To catch broken code before it is merged. |
 | `deploy-check.yml` | Installs only the deployment requirements, checks that torch is not installed, downloads the real model from ClearML and makes one prediction with the app. | To check that the app works with the real model and deployment dependencies. |
 
+## System Testing
+
+The complete application should also be tested manually by uploading leaf images, selecting example images and checking the prediction results and error messages.
+
+This helps us check the user experience, which is not fully covered by automated tests.
 
