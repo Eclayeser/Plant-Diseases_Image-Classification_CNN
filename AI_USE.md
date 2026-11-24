@@ -498,3 +498,7 @@ Approximate share of AI-generated code: 60%.
 - Configs written by me from the SGP-63 configs.
 - I ran the experiments; Claude helped me draft the experiment comparisons and conclusion, which I then reviewed and edited when necessary.
 - Approximate share of AI-generated documentation: 45%
+
+## documents/testing.md (SGP-84, Gul Nil Kayalioglu)
+- I wrote the first draft of the test strategy and decided how to group the tests into levels. Claude checked the document against the test files and CI workflows, suggested the Continuous Integration section, the paragraph about fakes, and some missing test areas. I edited the wording and checked the test list and coverage myself.
+- Approximate share of AI-generated text: 30%
