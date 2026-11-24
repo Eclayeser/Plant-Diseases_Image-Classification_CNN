@@ -66,6 +66,6 @@ Run tests with code coverage:
 
 `python -m pytest tests/ --cov --cov-report=term-missing`
 
-As of 24 November 2026, all 159 pytest tests passed, with 83% code coverage for the measured modules.
+As of 24 November 2026, all 159 pytest tests passed, with 83% code coverage for `leafapp/` and `app/`. `train.py`, `evaluate.py` and some scripts in `scripts/` have tests but are not included in the coverage measurement.
 
 New features and bug fixes should include relevant tests to prevent existing functionality from breaking.
