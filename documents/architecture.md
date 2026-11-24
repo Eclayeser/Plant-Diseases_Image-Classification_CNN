@@ -13,19 +13,7 @@ Explains the project structure and how its components connect.
 
 ### High-level diagram
 
-```text
-<!-- Replace with a diagram (ASCII, Mermaid, or an image link). Suggested flow:
-
-  Dataset ──► data.py ──► train.py ──► checkpoint ──► ClearML Models
-                              │                            │
-                              ▼                            ▼
-                         evaluate.py              fetch_model_from_clearml.py
-                                                           │
-                                                     export_onnx.py
-                                                           │
-                                                      app/app.py  ──► Render
--->
-```
+![Architecture diagram](architecture_diagram.png)
 
 ---
 
