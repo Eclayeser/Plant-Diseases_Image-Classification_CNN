@@ -469,3 +469,5 @@ Approximate share of AI-generated code: 60%.
 ## leafapp/tracking.py, evaluate.py, scripts/export_onnx.py (SGP-35, Mario Cavicchioli)
 - `initialise_task()` now returns `(task, connected_config)` instead of discarding what `task.connect` returns; the callers unpack it. Claude explained the bug and helped me understand how to change it; I applied it with the given skeletons. 
 - Approximate share of AI-generated code: 40%.
+
+- (SGP-35, review fixes) `to_plain_config`, `parse_patience` and the normalize string conversion: issues found by CodeRabbit and Mark; code and tests written by Claude, reviewed and run by me, including confirming the checkpoint load failure before the fix. Approximate share of AI-generated code: 70%.
