@@ -15,12 +15,12 @@ Configs: `configs/cnn_wider_dropout_early_stopping_full_seed{42,43,44}_patience8
 ## Results (best validation-loss epoch)
 | Seed | Model | Best epoch | Stopped at | Val accuracy | Val F1 | Val loss | ClearML |
 |---|---|---:|---:|---:|---:|---:|---|
-| 42 | Wider | 29 | 37 | 0.961 | 0.950 | 0.123 | [task](TODO) |
-| 42 | Wider+Deeper | 23 | 31 | 0.967 | 0.957 | 0.102 | [task](TODO) |
-| 43 | Wider | 15 | 23 | 0.957 | 0.944 | 0.155 | [task](TODO) |
-| 43 | Wider+Deeper | 35 | 43 | 0.969 | 0.960 | 0.113 | [task](TODO) |
-| 44 | Wider | 22 | 30 | 0.963 | 0.952 | 0.124 | [task](TODO) |
-| 44 | Wider+Deeper | 37 | 45 | 0.970 | 0.959 | 0.089 | [task](TODO) |
+| 42 | Wider | 29 | 37 | 0.961 | 0.950 | 0.123 | [task](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/tasks/97f0df79c39e46f69c0ff97f246e7119/output/log) |
+| 42 | Wider+Deeper | 23 | 31 | 0.967 | 0.957 | 0.102 | [task](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/tasks/d0e8070132b44c6f8e93024e11308fe4/output/log) |
+| 43 | Wider | 15 | 23 | 0.957 | 0.944 | 0.155 | [task](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/tasks/06f8876009204f0a8025844afc97c564/output/log) |
+| 43 | Wider+Deeper | 35 | 43 | 0.969 | 0.960 | 0.113 | [task](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/tasks/bcfc6ff7c5784474961e785e3ccc45ee/output/log) |
+| 44 | Wider | 22 | 30 | 0.963 | 0.952 | 0.124 | [task](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/tasks/a0574cb008a84968b455ea6b7785fd42/output/log) |
+| 44 | Wider+Deeper | 37 | 45 | 0.970 | 0.959 | 0.089 | [task](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/tasks/d29cdcca59e8493e8af911df575aa546/output/log) |
 
 ### Summary
 | | Wider | Wider+Deeper |
