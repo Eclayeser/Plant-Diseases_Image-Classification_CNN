@@ -461,10 +461,17 @@ Approximate share of AI-generated code: 60%.
 - I ran the six experiments and chose the framing and the recommendation (both models perform the same, so prefer the simpler and cheaper one). Claude read the checkpoints, computed the comparison with SGP-52 and the timings, and drafted the write-up; I edited it.
 - Approximate share of AI-generated documentation: 30%
 
-## SGP-56 · Code quality (Javier Fimia)
+## SGP-56 · Configuration and code organisation (Javier Fimia)
 
-- For PR 1, I chose the scope to be code configuration and organisation. I used to codex to audit our large codebase and flag possible areas that need refining. I then filtered through these and updated experiment settings, model selection, run tracking and local deployment, then ran the relevant tests locally.
-- Codex generated approximately 70% of the new implementation and test code in PR 1.
+- For PR 113, I focused on how the project supplies and records settings. Codex helped me audit the codebase. I chose which findings to act on, updated the experiment settings, model selection, run tracking and local deployment, and ran the relevant tests locally.
+- Codex generated approximately 70% of the new implementation and test code in PR 113.
+
+## SGP-65 · Modularity and dependencies (Javier Fimia)
+
+- I used Codex to review the codebase for duplicated logic and import dependencies. We narrowed the work to separating evaluation plots from metrics, extracting the training defaults used before connecting to ClearML, and extracting the evaluation report formatter.
+- Codex then helped implement the refactors and wrote the regression tests. It compared the plots and report text with the previous outputs and ran the full local suite (163 tests passed).
+- Codex then wrote part of the new implementation and test code for SGP-65. The plotting and formatting logic moved from existing files was already part of the project.
+- Codex generated approximately 60% of the new implementation and test code in PR 113.
 
 
 ## app/app.py (SGP-88, Illia Putintsev)
