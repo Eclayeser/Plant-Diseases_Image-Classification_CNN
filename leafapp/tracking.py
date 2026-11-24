@@ -82,8 +82,8 @@ def log_epoch_metrics(
                 iteration=epoch,
             )
 
-def log_confusion_matrix(logger, epoch, matrix, class_names):
-    """Report raw and row-normalised validation confusion matrices."""
+def build_confusion_layout(matrix):
+    """Build the layout for the normalised confusion matrix."""
 
     layout = {
         "width": 1800,
@@ -114,6 +114,12 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
     }
 
     layout["shapes"] = build_non_zero_shapes(matrix)
+    return layout
+
+def log_confusion_matrix(logger, epoch, matrix, class_names):
+    """Report the normalised validation confusion matrix and error rates."""
+
+    layout = build_confusion_layout(matrix)
 
     counts = np.asarray(matrix, dtype=float)
     row_totals = counts.sum(axis=1, keepdims=True)
