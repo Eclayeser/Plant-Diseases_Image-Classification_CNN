@@ -14,6 +14,7 @@ class FakeLogger:
         self.single_values = []
         self.images = []
         self.confusion_matrices = []
+        self.plots = []
 
     def report_scalar(self, **kwargs):
         self.scalars.append(kwargs)
@@ -27,6 +28,8 @@ class FakeLogger:
     def report_confusion_matrix(self, **kwargs):
         self.confusion_matrices.append(kwargs)
 
+    def report_plotly(self, **kwargs):
+        self.plots.append(kwargs)
 
 class FakeTask:
     def __init__(self):
@@ -112,19 +115,93 @@ def test_log_confusion_matrix_reports_matrix_with_labels():
 
     log_confusion_matrix(logger, epoch=3, matrix=matrix, class_names=class_names)
 
-    assert logger.confusion_matrices == [
-        {
-            "title": "Confusion Matrix",
-            "series": "validation",
-            "matrix": matrix,
-            "iteration": 3,
-            "xaxis": "Predicted label",
-            "yaxis": "True label",
-            "xlabels": class_names,
-            "ylabels": class_names,
-            "yaxis_reversed": True,
-        }
+    assert len(logger.confusion_matrices) == 1
+    plot = logger.confusion_matrices[0]
+
+    assert plot["title"] == "Confusion Matrix (%)"
+    assert plot["series"] == "validation"
+    assert plot["iteration"] == 3
+    assert plot["xlabels"] == class_names
+    assert plot["ylabels"] == class_names
+    assert plot["yaxis_reversed"] is True
+
+    assert plot["matrix"][0, 0] == pytest.approx(5 / 7 * 100)
+    assert plot["matrix"][1, 1] == pytest.approx(7 / 8 * 100)
+
+    layout = plot["extra_layout"]
+    assert layout["width"] == 1800
+    assert layout["height"] == 1500
+    assert layout["margin"]["l"] >= 350
+    assert layout["margin"]["b"] >= 300
+    assert layout["xaxis"]["tickangle"] <= -45
+    
+def test_log_confusion_matrix_reports_normalised_percentages():
+    logger = FakeLogger()
+
+    matrix = [
+        [3, 1, 0],
+        [0, 0, 0],
+        [1, 1, 2],
     ]
+    class_names = ["healthy", "rust", "mold"]
+
+    log_confusion_matrix(
+        logger,
+        epoch=3,
+        matrix=matrix,
+        class_names=class_names,
+    )
+
+    assert len(logger.confusion_matrices) == 1
+    percentages = logger.confusion_matrices[0]
+
+    assert percentages["title"] == "Confusion Matrix (%)"
+    assert percentages["iteration"] == 3
+    assert percentages["xlabels"] == class_names
+    assert percentages["ylabels"] == class_names
+
+    assert percentages["matrix"].tolist() == [
+        [75.0, 25.0, 0.0],
+        [0.0, 0.0, 0.0],
+        [25.0, 25.0, 50.0],
+    ]
+
+def test_confusion_matrices_use_white_to_red_scale():
+    logger = FakeLogger()
+
+    log_confusion_matrix(
+        logger,
+        epoch=1,
+        matrix=[[0, 1], [2, 3]],
+        class_names=["healthy", "rust"],
+    )
+
+    assert len(logger.confusion_matrices) == 1
+    layout = logger.confusion_matrices[0]["extra_layout"]
+
+    assert layout["colorscale"][0] == [0.0, "#FFFFFF"]
+    assert layout["colorscale"][-1] == [1.0, "#7F0000"]
+    assert layout["zmin"] == 0
+    assert layout["zmax"] == 100
+
+def test_confusion_matrices_outline_non_zero_cells():
+    logger = FakeLogger()
+
+    log_confusion_matrix(
+        logger,
+        epoch=1,
+        matrix=[[0, 1], [2, 0]],
+        class_names=["healthy", "rust"],
+    )
+
+    assert len(logger.confusion_matrices) == 1
+    layout = logger.confusion_matrices[0]["extra_layout"]
+    shapes = layout["shapes"]
+    assert len(shapes) == 2
+
+    for shape in shapes:
+        assert shape["type"] == "rect"
+        assert shape["line"]["width"] > 0
 
 def test_upload_checkpoint_registers_artifact_path(tmp_path):
     task = FakeTask()
@@ -282,6 +359,75 @@ def test_download_checkpoint_lists_available_when_missing(tmp_path):
 
     with pytest.raises(KeyError, match="best_checkpoint"):
         download_checkpoint(task, "final_checkpoint")
+
+def test_reports_top_ten_classes_by_error_rate():
+    logger = FakeLogger()
+
+    # 11 classes with samples, plus one empty class.
+    matrix = [[0] * 12 for _ in range(12)]
+
+    for i in range(11):
+        matrix[i][i] = 10 - i
+        matrix[i][(i + 1) % 11] = i
+
+    names = [f"Class {i}" for i in range(12)]
+
+    log_confusion_matrix(
+        logger, epoch=5, matrix=matrix, class_names=names
+    )
+
+    assert len(logger.confusion_matrices) == 1
+    assert len(logger.plots) == 1
+
+    plot = logger.plots[0]
+
+    assert plot["title"] == "Highest Class Error Rates"
+    assert plot["iteration"] == 5
+
+    bar = plot["figure"]["data"][0]
+
+    assert bar["type"] == "bar"
+    assert bar["orientation"] == "h"
+    assert bar["y"] == [f"Class {i}" for i in range(10, 0, -1)]
+    assert bar["x"] == [float(i * 10) for i in range(10, 0, -1)]
+    assert "Class 11" not in bar["y"]
+
+def test_confusion_matrix_displays_non_zero_raw_counts():
+    logger = FakeLogger()
+
+    log_confusion_matrix(
+        logger,
+        epoch=1,
+        matrix=[[180, 20], [0, 100]],
+        class_names=["healthy", "rust"],
+    )
+
+    plot = logger.confusion_matrices[0]
+    layout = plot["extra_layout"]
+
+    assert layout["text"] == [
+        ["180", "20"],
+        ["", "100"],
+    ]
+    assert layout["texttemplate"] == "%{text}"
+    assert plot["matrix"][0, 0] == pytest.approx(90)
+    assert plot["matrix"][0, 1] == pytest.approx(10)
+
+def test_empty_confusion_matrix_has_no_labels():
+    logger = FakeLogger()
+
+    log_confusion_matrix(
+        logger,
+        epoch=1,
+        matrix=[[0, 0], [0, 0]],
+        class_names=["healthy", "rust"],
+    )
+
+    layout = logger.confusion_matrices[0]["extra_layout"]
+
+    assert layout["text"] == [["", ""], ["", ""]]
+    assert layout["shapes"] == []
+    assert logger.plots == []
 
 
 def test_connected_config_can_be_saved_and_loaded(tmp_path):
