@@ -45,3 +45,8 @@ The complete application should also be tested manually by uploading leaf images
 
 This helps us check the user experience, which is not fully covered by automated tests.
 
+## Model Evaluation
+
+Model performance is evaluated separately using accuracy, precision, recall, F1-score and confusion matrices.
+
+The validation set is used to compare models, while the test set is used for final evaluation.
