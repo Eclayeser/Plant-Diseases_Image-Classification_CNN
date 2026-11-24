@@ -192,6 +192,7 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
     )
 
 def build_non_zero_shapes(matrix):
+    """Create outlines around non-zero confusion matrix cells."""
     shapes = []
     for row_idx, row in enumerate(matrix):
         for col_idx, value in enumerate(row):
