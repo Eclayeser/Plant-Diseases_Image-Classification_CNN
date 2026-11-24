@@ -1,0 +1,7 @@
+.ai-note { padding: 8px 12px; border-left: 3px solid var(--color-accent); background: var(--background-fill-secondary); }
+.about-models summary { cursor: pointer; display: inline-block; list-style: none; padding: 6px 14px; border: 1px solid var(--border-color-primary); border-radius: var(--radius-lg); font-weight: 600; }
+.about-models summary::-webkit-details-marker { display: none; }
+.about-models summary::after { content: " ▾"; }
+.about-models[open] summary::after { content: " ▴"; }
+.about-models summary:hover { background: var(--background-fill-secondary); }
+.about-models[open] summary { margin-bottom: 12px; }
