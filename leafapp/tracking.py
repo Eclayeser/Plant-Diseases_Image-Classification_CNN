@@ -82,7 +82,7 @@ def log_epoch_metrics(
                 iteration=epoch,
             )
 
-def build_confusion_layout(matrix):
+def build_confusion_layout(matrix, percentages, class_names):
     """Build the layout for the normalised confusion matrix."""
 
     layout = {
@@ -114,12 +114,32 @@ def build_confusion_layout(matrix):
     }
 
     layout["shapes"] = build_non_zero_shapes(matrix)
+    layout["annotations"] = [
+        {
+            "x": class_names[col],
+            "y": class_names[row],
+            "xref": "x",
+            "yref": "y",
+            "text": str(int(value)),
+            "showarrow": False,
+            "font": {
+                "size": 10,
+                "color": (
+                    "#FFFFFF"
+                    if percentages[row][col] >= 65
+                    else "#222222"
+                ),
+            },
+        }
+        for row, values in enumerate(matrix)
+        for col, value in enumerate(values)
+        if value > 0
+    ]
+
     return layout
 
 def log_confusion_matrix(logger, epoch, matrix, class_names):
     """Report the normalised validation confusion matrix and error rates."""
-
-    layout = build_confusion_layout(matrix)
 
     counts = np.asarray(matrix, dtype=float)
     row_totals = counts.sum(axis=1, keepdims=True)
@@ -131,6 +151,10 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
         where=row_totals > 0,
     ) * 100
 
+    layout = build_confusion_layout(
+        counts, percentages, class_names
+    )
+
     logger.report_confusion_matrix(
         title="Confusion Matrix (%)",
         series="validation",
@@ -141,11 +165,11 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
         xlabels=class_names,
         ylabels=class_names,
         yaxis_reversed=True,
+        comment="Cell labels: raw counts. Colours: row-normalised percentages.",
         extra_layout={**layout, "zmax": 100},
     )
 
     log_class_error_rates(logger, epoch, counts, class_names)
-
 
 def log_class_error_rates(logger, epoch, matrix, class_names):
     """Report the ten classes with the highest validation error rates."""
