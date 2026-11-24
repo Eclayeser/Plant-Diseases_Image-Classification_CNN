@@ -387,3 +387,46 @@ def test_reports_top_ten_classes_by_error_rate():
     assert bar["y"] == [f"Class {i}" for i in range(10, 0, -1)]
     assert bar["x"] == [float(i * 10) for i in range(10, 0, -1)]
     assert "Class 11" not in bar["y"]
+
+def test_confusion_matrix_displays_non_zero_raw_counts():
+    logger = FakeLogger()
+
+    log_confusion_matrix(
+        logger,
+        epoch=1,
+        matrix=[[180, 20], [0, 100]],
+        class_names=["healthy", "rust"],
+    )
+
+    plot = logger.confusion_matrices[0]
+    annotations = plot["extra_layout"]["annotations"]
+
+    labels = {
+        (item["y"], item["x"]): item["text"]
+        for item in annotations
+    }
+
+    assert labels == {
+        ("healthy", "healthy"): "180",
+        ("healthy", "rust"): "20",
+        ("rust", "rust"): "100",
+    }
+
+    assert plot["matrix"][0, 0] == pytest.approx(90)
+    assert plot["matrix"][0, 1] == pytest.approx(10)
+
+def test_empty_confusion_matrix_has_no_labels():
+    logger = FakeLogger()
+
+    log_confusion_matrix(
+        logger,
+        epoch=1,
+        matrix=[[0, 0], [0, 0]],
+        class_names=["healthy", "rust"],
+    )
+
+    layout = logger.confusion_matrices[0]["extra_layout"]
+
+    assert layout["annotations"] == []
+    assert layout["shapes"] == []
+    assert logger.plots == []
