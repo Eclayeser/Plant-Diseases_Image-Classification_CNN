@@ -87,6 +87,46 @@ def test_parse_patience_rejects_invalid_values(value):
     with pytest.raises(ValueError, match="patience must be a positive integer"):
         train.parse_patience(value)
 
+@pytest.mark.parametrize("value, expected", [(1, 1), (30, 30), ("5", 5)])
+def test_parse_epochs_converts_connected_values(value, expected):
+    assert train.parse_epochs(value) == expected
+
+@pytest.mark.parametrize("value", [0, "0", -1, "abc", 2.5, "2.5", True, None])
+def test_parse_epochs_rejects_invalid_values(value):
+    with pytest.raises(ValueError, match="epochs must be a positive integer"):
+        train.parse_epochs(value)
+
+def test_main_rejects_zero_epochs_set_in_connected_config(monkeypatch, tmp_path):
+    cfg = {
+        "seed": 0,
+        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4},
+        "model": {"type": "BasicCNN"},
+        "train": {"lr": 1e-3, "weight_decay": 0.0, "epochs": 1, "checkpoint_dir": str(tmp_path)},
+    }
+    task = MagicMock()
+
+    def fake_initialise_task(**kwargs):
+        connected = copy.deepcopy(kwargs["config"])
+        connected["train"]["epochs"] = 0  # what a cloned task edited in the UI returns
+        return task, connected
+
+    monkeypatch.setattr(train, "load_config", lambda path: cfg)
+    monkeypatch.setattr(train, "initialise_task", fake_initialise_task)
+    get_loaders = MagicMock()
+    monkeypatch.setattr(train, "get_loaders", get_loaders)
+    upload_checkpoint = MagicMock()
+    monkeypatch.setattr(train, "upload_checkpoint", upload_checkpoint)
+    close_task = MagicMock()
+    monkeypatch.setattr(train, "close_task", close_task)
+
+    with pytest.raises(ValueError, match="epochs must be a positive integer"):
+        train.main("configs/prototype.yaml", VALID_NAME, "debugging", "")
+
+    get_loaders.assert_not_called()
+    upload_checkpoint.assert_not_called()
+    close_task.assert_called_once()
+    assert close_task.call_args.kwargs["failed"] is True
+
 def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
     cfg = {
         "seed": 0,
