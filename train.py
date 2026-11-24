@@ -10,8 +10,8 @@ from torch import nn
 from leafapp.config import load_config, ROOT
 from leafapp.model_constructor import build_model
 from leafapp.models.cnn import DEFAULT_DROPOUT_P, DEFAULT_POOLING
-from leafapp.optimizer_constructor import choose_optimizer
-from leafapp.data import get_loaders
+from leafapp.optimizer_constructor import choose_optimizer, DEFAULT_OPTIMIZER
+from leafapp.data import get_loaders, NO_NORMALIZATION
 from leafapp.checkpoints import save_checkpoint
 from leafapp.early_stopping import EarlyStopping
 from leafapp.eval_functions import (
@@ -65,6 +65,25 @@ def validate_checkpoint_interval(value):
     if ivalue <= 0:
         raise argparse.ArgumentTypeError("--save-interval must be a positive integer.")
     return ivalue
+
+def parse_patience(value):
+    """
+    Return patience as a positive int, or None when early stopping is off.
+
+    Values edited in the ClearML UI can arrive as strings, so they are converted here.
+    """
+    if value in (None, "", "None"):
+        return None
+    message = f"patience must be a positive integer or empty, got {value!r}"
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
+        raise ValueError(message)
+    try:
+        patience = int(value)
+    except ValueError:
+        raise ValueError(message) from None
+    if patience <= 0:
+        raise ValueError(message)
+    return patience
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
     """
@@ -216,8 +235,16 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
         cfg = load_config(ROOT / config_path)
         data = cfg["data"]
         data.setdefault("augment", True)
-        data.setdefault("normalize", False)
+
+        data.setdefault("normalize", NO_NORMALIZATION)
+        # ClearML casts UI edits to the original type, so keep normalize as a string
+        if data["normalize"] is False:
+            data["normalize"] = NO_NORMALIZATION
+        elif data["normalize"] is True:
+            data["normalize"] = "imagenet"
+
         data.setdefault("num_workers", 0)
+        cfg["train"].setdefault("optimizer", DEFAULT_OPTIMIZER)
         cfg["train"].setdefault("patience", None) # None = early stopping off
         cfg["train"].setdefault("min_delta", 0.0) # 0.0 = any drop counts as improvement
         model_settings = cfg["model"]
@@ -225,6 +252,27 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             model_settings.setdefault("pooling", DEFAULT_POOLING)  # record the default for ClearML visibility
         if model_settings["type"] == "RegularisedCNN" and model_settings.get("regularisation") == "dropout":
             model_settings.setdefault("dropout_p", DEFAULT_DROPOUT_P)
+
+        config_name = Path(config_path).stem
+        tags = build_tags(
+            run_type=run_type,
+            model_type=cfg["model"]["type"],
+            responsible=responsible,
+            task_type="train.py",
+            issue_id=issue_id,
+            extra=[f"@config-name:{config_name}"]
+        )
+
+        task, cfg = initialise_task(
+            config=cfg,
+            project_name=PROJECT_NAME,
+            task_name=f"{cfg['model']['type']} - {config_name}",
+            tags=tags,
+        )
+        data, model_settings = cfg["data"], cfg["model"] # rebind to the connected dicts
+        cfg["train"]["patience"] = parse_patience(cfg["train"]["patience"])
+        logger = task.get_logger()
+
         torch.manual_seed(cfg["seed"])
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
@@ -247,25 +295,6 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             print("Training device: CPU (CUDA unavailable; falling back to CPU)")
         model.to(device)
         optimizer = choose_optimizer(model.parameters(), cfg["train"])
-        config_name = Path(config_path).stem
-
-        tags = build_tags(
-            run_type=run_type,
-            model_type=cfg["model"]["type"],
-            responsible=responsible,
-            task_type="train.py",
-            issue_id=issue_id,
-            extra=[f"@config-name:{config_name}"]
-        )
-
-        task = initialise_task(
-            config=cfg,
-            project_name=PROJECT_NAME,
-            task_name=f"{cfg['model']['type']} - {config_name}",
-            tags=tags,
-            
-        )
-        logger = task.get_logger()
 
         # metrics which are to record per-epoch
         history_metrics = {

@@ -20,6 +20,7 @@ NORMALIZATION_STATS = {
     "plant_village": (PLANT_VILLAGE_MEAN, PLANT_VILLAGE_STD),
 }
 
+NO_NORMALIZATION = "none"
 
 def load_subset(fraction, seed):
     """Return a stratified random fraction of the plant_village rows.
@@ -64,18 +65,18 @@ def split(ds, seed, val_frac=0.15, test_frac=0.15):
 def get_normalization_stats(normalize):
     """Return the (mean, std) pair that a normalize setting selects.
 
-    normalize is "imagenet" (or True) or "plant_village". False returns
-    None (no normalising); any other value raises a ValueError.
+    normalize is "imagenet" (or True) or "plant_village". False or "none"
+    returns None (no normalising); any other value raises a ValueError.
     """
-    if normalize is not False:
-        stats = "imagenet" if normalize is True else normalize
-        if stats not in NORMALIZATION_STATS:
-            raise ValueError(
-                f"Invalid normalize {normalize!r}: expected True, False, "
-                "'imagenet' or 'plant_village'"
-            )
-        return NORMALIZATION_STATS[stats]
-    return None
+    if normalize in (False, NO_NORMALIZATION):
+        return None
+    stats = "imagenet" if normalize is True else normalize
+    if stats not in NORMALIZATION_STATS:
+        raise ValueError(
+            f"Invalid normalize {normalize!r}: expected True, False, "
+            "'none', 'imagenet' or 'plant_village'"
+        )
+    return NORMALIZATION_STATS[stats]
 
 
 def make_transforms(image_size, augment=True, normalize=False):

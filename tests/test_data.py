@@ -1,7 +1,7 @@
 from datasets import ClassLabel, Dataset
 from PIL import Image
 import torch
-from leafapp.data import make_batch_transform, make_transforms, split
+from leafapp.data import make_batch_transform, make_transforms, split, get_normalization_stats
 import pytest
 
 
@@ -89,3 +89,7 @@ def test_normalize_rejects_unknown_name(bad_value):
     """An unknown or empty normalize name raises a ValueError instead of being ignored."""
     with pytest.raises(ValueError):
         make_transforms(8, normalize=bad_value)
+
+
+def test_none_string_means_no_normalization():
+    assert get_normalization_stats("none") is None

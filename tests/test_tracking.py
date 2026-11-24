@@ -1,7 +1,11 @@
 import pytest
 
 from pathlib import Path
-from leafapp.tracking import close_task, log_epoch_metrics, log_confusion_matrix, upload_checkpoint, log_final_metrics, upload_file, log_image, download_checkpoint
+from leafapp.tracking import close_task, log_epoch_metrics, log_confusion_matrix, upload_checkpoint, log_final_metrics, upload_file, log_image, download_checkpoint, to_plain_config
+from clearml.utilities.proxy_object import ProxyDictPostWrite
+from leafapp.tracking import to_plain_config
+from leafapp.checkpoints import save_checkpoint, load_checkpoint
+from leafapp.models.cnn import BasicCNN
 
 
 class FakeLogger:
@@ -424,3 +428,25 @@ def test_empty_confusion_matrix_has_no_labels():
     assert layout["text"] == [["", ""], ["", ""]]
     assert layout["shapes"] == []
     assert logger.plots == []
+
+
+def test_connected_config_can_be_saved_and_loaded(tmp_path):
+    connected = ProxyDictPostWrite(None, lambda *args: None, {
+        "model": {"type": "BasicCNN", "channels": [8]},
+        "data": {"image_size": 32},
+        "train": {"lr": 0.0123},
+    })
+    cfg = to_plain_config(connected)
+
+    assert type(cfg) is dict and type(cfg["model"]) is dict, "Connected config should be plain dicts"
+    path = tmp_path / "model.pt"
+    save_checkpoint(
+        path=path,
+        model=BasicCNN(num_classes=5, channels=(8,), image_size=32),
+        cfg=cfg,
+        class_names=["a", "b", "c", "d", "e"],
+        history_metrics={},
+    )
+
+    _, _, _, loaded_config = load_checkpoint(path)
+    assert loaded_config["train"]["lr"] == 0.0123, "Checkpoint should load and keep the connected values"
