@@ -8,6 +8,8 @@ from leafapp.eval_functions import (
     calculate_metrics_per_loader,
     calculate_most_confused_pairs,
     collect_misclassified_images,
+)
+from leafapp.eval_plots import (
     prepare_image_for_plotting,
     plot_and_save_misclassified_grid,
 )

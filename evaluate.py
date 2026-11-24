@@ -6,12 +6,14 @@ from pathlib import Path
 from datetime import datetime
 from leafapp.eval_functions import (
     calculate_metrics_per_loader,
-    plot_and_save_training_curve,
-    plot_and_save_confusion_matrix,
     save_evaluation_report,
     calculate_most_confused_pairs,
     format_most_confused_pairs,
     collect_misclassified_images,
+)
+from leafapp.eval_plots import (
+    plot_and_save_training_curve,
+    plot_and_save_confusion_matrix,
     plot_and_save_misclassified_grid,
 )
 from leafapp.config import ROOT
