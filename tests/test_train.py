@@ -466,6 +466,11 @@ def test_main_saves_improved_best_checkpoint_after_failure(monkeypatch, tmp_path
         },
     )
 
+    def interrupt_reporting(*args, **kwargs):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(train, report_name, interrupt_reporting)
+
     def save_checkpoint(path, **kwargs):
         path.write_text("checkpoint")
         saved_paths.append(path)
