@@ -144,6 +144,13 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
         extra_layout={**layout, "zmax": 100},
     )
 
+    log_class_error_rates(logger, epoch, counts, class_names)
+
+
+def log_class_error_rates(logger, epoch, matrix, class_names):
+    """Report the ten classes with the highest validation error rates."""
+
+    counts = np.asarray(matrix, dtype=float)
     row_counts = counts.sum(axis=1)
     correct_counts = np.diag(counts)
 
