@@ -30,3 +30,13 @@ Integration tests check how different parts of the project work together.
 
 The pytest tests do not need the full dataset, a GPU or a connection to ClearML. They mainly use small test images, fake models and fake ClearML objects. We use pytest's monkeypatch to replace slow or external parts and tmp_path to create temporary files. This keeps the tests fast.
 
+## Continuous Integration
+
+Two GitHub Actions workflows run on every push:
+
+| Workflow | What it does | Why |
+|---|---|---|
+| `tests.yml` | Runs all pytest tests with coverage on Python 3.12 (CPU only). | To catch broken code before it is merged. |
+| `deploy-check.yml` | Installs only the deployment requirements, checks that torch is not installed, downloads the real model from ClearML and makes one prediction with the app. | To check that the app works with the real model and deployment dependencies. |
+
+
