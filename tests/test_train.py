@@ -415,7 +415,7 @@ def test_main_retries_pending_best_checkpoint_save_after_failure(
     assert best_checkpoint_path.read_text() == "best epoch 2"
 
 @pytest.mark.parametrize("report_name", ["log_epoch_metrics", "log_confusion_matrix"])
-def test_main_saves_improved_best_checkpoint_after_failure(monkeypatch, tmp_path, report_name):
+def test_main_saves_improved_best_checkpoint_after_interruption(monkeypatch, tmp_path, report_name):
     cfg = {
         "seed": 0,
         "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4},
@@ -453,7 +453,11 @@ def test_main_saves_improved_best_checkpoint_after_failure(monkeypatch, tmp_path
     monkeypatch.setattr(
         train,
         "train_one_epoch",
-        lambda *args, **kwargs: {"loss": 0.5, "accuracy": 0.8, "f1": 0.7},
+        lambda *args, **kwargs: {
+            "loss": 0.5, 
+            "accuracy": 0.8, 
+            "f1": 0.7
+            },
     )
     monkeypatch.setattr(
         train,
