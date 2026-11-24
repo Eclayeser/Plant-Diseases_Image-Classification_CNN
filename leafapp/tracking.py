@@ -82,7 +82,7 @@ def log_epoch_metrics(
                 iteration=epoch,
             )
 
-def build_confusion_layout(matrix, percentages, class_names):
+def build_confusion_layout(matrix):
     """Build the layout for the normalised confusion matrix."""
 
     layout = {
@@ -114,27 +114,13 @@ def build_confusion_layout(matrix, percentages, class_names):
     }
 
     layout["shapes"] = build_non_zero_shapes(matrix)
-    layout["annotations"] = [
-        {
-            "x": class_names[col],
-            "y": class_names[row],
-            "xref": "x",
-            "yref": "y",
-            "text": str(int(value)),
-            "showarrow": False,
-            "font": {
-                "size": 10,
-                "color": (
-                    "#FFFFFF"
-                    if percentages[row][col] >= 65
-                    else "#222222"
-                ),
-            },
-        }
-        for row, values in enumerate(matrix)
-        for col, value in enumerate(values)
-        if value > 0
+    layout["text"] = [
+        [str(int(value)) if value > 0 else "" for value in row]
+        for row in matrix
     ]
+
+    layout["texttemplate"] = "%{text}"
+    layout["textfont"] = {"size": 10}
 
     return layout
 
@@ -151,9 +137,7 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
         where=row_totals > 0,
     ) * 100
 
-    layout = build_confusion_layout(
-        counts, percentages, class_names
-    )
+    layout = build_confusion_layout(counts)
 
     logger.report_confusion_matrix(
         title="Confusion Matrix (%)",
