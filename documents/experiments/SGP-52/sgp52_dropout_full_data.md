@@ -40,6 +40,6 @@ Keep dropout as the default for now so ongoing experiments stay comparable, and 
 
 ## Limitations
 - Three seeds per model is too few to confirm either the small accuracy gain or the difference in consistency.
-- `patience: 3` may have stopped the no-dropout runs too early. A follow-up should rerun both models with a longer patience (e.g. 6), changing nothing else.
+- `patience: 3` may have stopped the no-dropout runs too early. This was checked in SGP-63 (`patience: 8`): no-dropout improved and the two models performed the same, so the dropout advantage reported here came mostly from early stopping. See `documents/experiments/SGP-63/`.
 - All runs used one laptop GPU; exact values may differ on other hardware.
 - Results are on the validation set only; the test set was not used, so these numbers are for choosing settings, not for reporting final performance.

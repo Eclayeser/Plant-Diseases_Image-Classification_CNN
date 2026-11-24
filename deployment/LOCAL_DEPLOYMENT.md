@@ -1,6 +1,6 @@
 # SGP-5 — Local Deployment
 
-Runs the Gradio interface with the deployed ONNX model at http://localhost:8080.
+Runs the Gradio interface with the deployed ONNX model at http://localhost:8080 by default.
 
 ## Requirements
 
@@ -45,7 +45,7 @@ For subsequent runs:
 .\deployment\run_local.ps1
 ```
 
-Open http://localhost:8080 in your browser.
+Open the local URL printed by Gradio in your browser.
 
 ## Trying a model that is not deployed yet
 
@@ -62,4 +62,4 @@ The export needs the full `requirements.txt`, because it uses torch.
 ## Notes
 
 - Stop the server with Ctrl+C.
-- If port 8080 is already occupied, stop the other application first.
+- To use another port, set `$env:PORT = "9090"` in PowerShell or `export PORT=9090` in Bash before running either launcher.

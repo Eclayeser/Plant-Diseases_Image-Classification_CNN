@@ -11,8 +11,8 @@ class RegularisedCNN(cnn.BasicCNN):
         image_size=128,
         *,
         regularisation,
-        dropout_p=0.2,
-        pooling="flatten",
+        dropout_p=cnn.DEFAULT_DROPOUT_P,
+        pooling=cnn.DEFAULT_POOLING,
     ):
         if regularisation not in {"dropout", "batchnorm"}:
             raise ValueError("regularisation must be 'dropout' or 'batchnorm'")

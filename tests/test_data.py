@@ -15,6 +15,16 @@ def test_transforms_give_right_shape_and_range():
         assert x.min().item() >= 0.0 and x.max().item() <= 1.0
 
 
+def test_training_uses_fixed_augmentation_strengths():
+    train_tf, eval_tf = make_transforms(64, augment=True)
+    _, flip, rotation, jitter, _ = train_tf.transforms
+    assert flip.p == 0.5
+    assert rotation.degrees == [-15, 15]
+    assert jitter.brightness == pytest.approx((0.8, 1.2))
+    assert jitter.saturation == pytest.approx((0.8, 1.2))
+    assert len(eval_tf.transforms) == 2
+
+
 def test_no_augment_reuses_eval_transform():
     """With augment=False, the training transform is the evaluation transform."""
     train_tf, eval_tf = make_transforms(64, augment=False)

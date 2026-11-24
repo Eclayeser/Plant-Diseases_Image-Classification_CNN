@@ -6,7 +6,7 @@ import pytest
 from PIL import Image
 
 import leafapp.config
-from app.app import build_ui, format_class_name
+from app.app import GALLERY_DIR, build_ui, format_class_name
 from leafapp.predict import LeafClassifier
 
 
@@ -113,3 +113,45 @@ def test_main_default_port(monkeypatch):
     run_app_main(monkeypatch)
 
     assert launched["server_port"] == 8080
+
+
+def test_example_images_can_be_opened():
+    """The gallery folder has leaf images that can be opened."""
+    images = list(GALLERY_DIR.glob("*.jpg"))
+
+    assert len(images) > 0, "There should be gallery images in app/gallery"
+
+    for path in images:
+        image = Image.open(path)
+        assert image.width > 0, f"{path.name} should be a valid image"
+        image.close()
+
+
+def test_build_ui_shows_example_images():
+    """build_ui adds every gallery image to the interface."""
+    demo = build_ui(FakeClassifier(PREDICTIONS))
+
+    images = sorted(GALLERY_DIR.glob("*.jpg"))
+    expected = []
+
+    for path in images:
+        expected.append([str(path)])
+
+    assert demo.examples == expected, "All example images should be shown in the app"
+
+
+def test_predict_works_on_example_images():
+    """Each gallery image can be sent to predict and gives a chart."""
+    classifier = FakeClassifier(PREDICTIONS)
+    demo = build_ui(classifier)
+
+    images = list(GALLERY_DIR.glob("*.jpg"))
+
+    for path in images:
+        image = Image.open(path)
+        result = demo.fn(image)
+        image.close()
+
+        assert "Top 5 Predictions" in result, f"{path.name} should give a prediction chart"
+
+    assert len(classifier.calls) == len(images), "The model should be called once per example"
