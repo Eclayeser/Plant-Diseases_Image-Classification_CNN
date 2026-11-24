@@ -356,9 +356,6 @@ def test_download_checkpoint_lists_available_when_missing(tmp_path):
     with pytest.raises(KeyError, match="best_checkpoint"):
         download_checkpoint(task, "final_checkpoint")
 
-def report_plotly(self, **kwargs):
-    self.plots.append(kwargs)
-
 def test_reports_top_ten_classes_by_error_rate():
     logger = FakeLogger()
 
