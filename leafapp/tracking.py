@@ -57,7 +57,7 @@ def initialise_task(
         reuse_last_task_id=False,
     )
     connected_config = task.connect(dict(config))
-    return task, connected_config
+    return task, to_plain_config(connected_config)
 
 
 def get_task(task_id: str) -> Any:
@@ -197,6 +197,15 @@ def download_onnx_model_from_clearml(model_id: str) -> Path:
 
     model = Model(model_id=model_id)
     return Path(model.get_weights_package(return_path=True, raise_on_error=True))
+
+
+def to_plain_config(value):
+    """Recursively convert ClearML's connected proxy dicts into plain dicts and lists."""
+    if isinstance(value, dict):
+        return {key: to_plain_config(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [to_plain_config(item) for item in value]
+    return value
 
 
 def close_task(task: Any, *, failed: bool = False, message: str | None = None) -> None:
