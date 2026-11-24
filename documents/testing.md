@@ -50,3 +50,17 @@ This helps us check the user experience, which is not fully covered by automated
 Model performance is evaluated separately using accuracy, precision, recall, F1-score and confusion matrices.
 
 The validation set is used to compare models, while the test set is used for final evaluation.
+
+## Running the Tests
+
+Run all pytest tests:
+
+`python -m pytest tests/`
+
+Run tests with code coverage:
+
+`python -m pytest tests/ --cov --cov-report=term-missing`
+
+As of 24 November 2026, all 159 pytest tests passed, with 83% code coverage for the measured modules.
+
+New features and bug fixes should include relevant tests to prevent existing functionality from breaking.
