@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 from typing import Any, Mapping
 from clearml import Task
+import numpy as np
 
 
 LOGGER = logging.getLogger(__name__)
@@ -81,24 +82,155 @@ def log_epoch_metrics(
                 iteration=epoch,
             )
 
-def log_confusion_matrix(
-    logger: Any,
-    epoch: int,
-    matrix: Any,
-    class_names: list[str],
-) -> None:
-    """Report a validation confusion matrix with true labels on rows and predicted labels on columns."""
+def build_confusion_layout(matrix):
+    """Build the layout for the normalised confusion matrix."""
+
+    layout = {
+        "width": 1800,
+        "height": 1500,
+        "margin": {
+            "l": 440,
+            "r": 80,
+            "t": 70,
+            "b": 380,
+        },
+        "xaxis": {
+            "tickangle": -60,
+            "tickfont": {"size": 10},
+            "automargin": True,
+        },
+        "yaxis": {
+            "tickfont": {"size": 10},
+            "automargin": True,
+        },
+        "colorscale": [
+            [0.0, "#FFFFFF"],
+            [0.15, "#FEE5D9"],
+            [0.45, "#FC9272"],
+            [0.75, "#DE2D26"],
+            [1.0, "#7F0000"],
+        ],
+        "zmin": 0,
+    }
+
+    layout["shapes"] = build_non_zero_shapes(matrix)
+    layout["text"] = [
+        [str(int(value)) if value > 0 else "" for value in row]
+        for row in matrix
+    ]
+
+    layout["texttemplate"] = "%{text}"
+    layout["textfont"] = {"size": 10}
+
+    return layout
+
+def log_confusion_matrix(logger, epoch, matrix, class_names):
+    """Report the normalised validation confusion matrix and error rates."""
+
+    counts = np.asarray(matrix, dtype=float)
+    row_totals = counts.sum(axis=1, keepdims=True)
+
+    percentages = np.divide(
+        counts,
+        row_totals,
+        out=np.zeros_like(counts),
+        where=row_totals > 0,
+    ) * 100
+
+    layout = build_confusion_layout(counts)
+
     logger.report_confusion_matrix(
-        title="Confusion Matrix",
+        title="Confusion Matrix (%)",
         series="validation",
-        matrix=matrix,
+        matrix=percentages,
         iteration=epoch,
         xaxis="Predicted label",
         yaxis="True label",
         xlabels=class_names,
         ylabels=class_names,
         yaxis_reversed=True,
+        comment="Cell labels: raw counts. Colours: row-normalised percentages.",
+        extra_layout={**layout, "zmax": 100},
     )
+
+    log_class_error_rates(logger, epoch, counts, class_names)
+
+def log_class_error_rates(logger, epoch, matrix, class_names):
+    """Report the ten classes with the highest validation error rates."""
+
+    counts = np.asarray(matrix, dtype=float)
+    row_counts = counts.sum(axis=1)
+    correct_counts = np.diag(counts)
+
+    error_rates = np.divide(
+        row_counts - correct_counts,
+        row_counts,
+        out=np.zeros_like(row_counts),
+        where=row_counts > 0,
+    ) * 100
+
+    valid_classes = np.flatnonzero(row_counts > 0)
+    if len(valid_classes) == 0:
+        return
+
+    worst_classes = sorted(
+        valid_classes,
+        key=lambda i: (-error_rates[i], class_names[i]),
+    )[:10]
+
+    labels = [class_names[i] for i in worst_classes]
+    values = [round(float(error_rates[i]), 2) for i in worst_classes]
+
+    figure = {
+        "data": [{
+            "type": "bar",
+            "orientation": "h",
+            "x": values,
+            "y": labels,
+            "marker": {"color": "#B91C1C"},
+            "hovertemplate": "%{y}: %{x:.2f}% misclassified<extra></extra>",
+        }],
+        "layout": {
+            "height": 650,
+            "margin": {"l": 420, "r": 70, "t": 60, "b": 70},
+            "xaxis": {
+                "title": "Misclassification rate (%)",
+                "range": [0, 100],
+            },
+            "yaxis": {
+                "title": "Actual class",
+                "autorange": "reversed",
+            },
+            "showlegend": False,
+        },
+    }
+
+    logger.report_plotly(
+        title="Highest Class Error Rates",
+        series="validation",
+        figure=figure,
+        iteration=epoch,
+    )
+
+def build_non_zero_shapes(matrix):
+    """Create outlines around non-zero confusion matrix cells."""
+    shapes = []
+    for row_idx, row in enumerate(matrix):
+        for col_idx, value in enumerate(row):
+            if value > 0:
+                shapes.append({
+                    "type": "rect",
+                    "x0": col_idx - 0.5,
+                    "x1": col_idx + 0.5,
+                    "y0": row_idx - 0.5,
+                    "y1": row_idx + 0.5,
+                    "line": {
+                        "color": "rgba(60, 60, 60, 0.2)",
+                        "width": 0.8,
+                    },
+                    "fillcolor": "rgba(0,0,0,0)",
+                })
+    return shapes
 
 def log_final_metrics(logger: Any, metrics: Mapping[str, Any]) -> None:
     """Report each single-number metric (e.g. accuracy, f1) as a ClearML single value."""
