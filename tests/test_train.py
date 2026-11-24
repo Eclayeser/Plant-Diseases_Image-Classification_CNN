@@ -82,7 +82,7 @@ def test_parse_args_rejects_invalid_run_type():
 def test_parse_patience_converts_connected_values(value, expected):
     assert train.parse_patience(value) == expected
 
-@pytest.mark.parametrize("value", ["0", -1, "abc"])
+@pytest.mark.parametrize("value", ["0", -1, "abc", 2.5, "2.5", True])
 def test_parse_patience_rejects_invalid_values(value):
     with pytest.raises(ValueError):
         train.parse_patience(value)
