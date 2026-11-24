@@ -347,6 +347,11 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             history_metrics["accuracies"]["validation"].append(val_epoch_metrics["accuracy"])
             history_metrics["f1s"]["validation"].append(val_epoch_metrics["f1"])
 
+            best_checkpoint_improved = val_epoch_metrics["loss"] < best_validation_loss
+            if best_checkpoint_improved:
+                best_validation_loss = val_epoch_metrics["loss"]
+                best_checkpoint_pending = True
+
             log_epoch_metrics(
                 logger=logger,
                 epoch=epoch + 1,
@@ -364,9 +369,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
                 class_names=class_names,
             )
 
-            if val_epoch_metrics["loss"] < best_validation_loss:
-                best_validation_loss = val_epoch_metrics["loss"]
-                best_checkpoint_pending = True
+            if best_checkpoint_improved:
                 save_checkpoint(
                     path=best_checkpoint_path,
                     model=model,
