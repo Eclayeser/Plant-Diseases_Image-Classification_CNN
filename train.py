@@ -74,11 +74,15 @@ def parse_patience(value):
     """
     if value in (None, "", "None"):
         return None
+    message = f"patience must be a positive integer or empty, got {value!r}"
     if isinstance(value, bool) or not isinstance(value, (int, str)):
-        raise ValueError(f"patience must be a positive integer or empty, got {value!r}")
-    patience = int(value)
+        raise ValueError(message)
+    try:
+        patience = int(value)
+    except ValueError:
+        raise ValueError(message) from None
     if patience <= 0:
-        raise ValueError(f"patience must be a positive integer or empty, got {value!r}")
+        raise ValueError(message)
     return patience
 
 def train_one_epoch(model, loader, criterion, optimizer, device):

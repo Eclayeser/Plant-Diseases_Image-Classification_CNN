@@ -84,7 +84,7 @@ def test_parse_patience_converts_connected_values(value, expected):
 
 @pytest.mark.parametrize("value", ["0", -1, "abc", 2.5, "2.5", True])
 def test_parse_patience_rejects_invalid_values(value):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="patience must be a positive integer"):
         train.parse_patience(value)
 
 def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
