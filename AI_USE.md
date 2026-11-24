@@ -459,6 +459,14 @@ Approximate share of AI-generated code: 60%.
 - For PR 1, I chose the scope to be code configuration and organisation. I used to codex to audit our large codebase and flag possible areas that need refining. I then filtered through these and updated experiment settings, model selection, run tracking and local deployment, then ran the relevant tests locally.
 - Codex generated approximately 70% of the new implementation and test code in PR 1.
 
+## SGP-59: Confusion Matrix Readability (Pranay Singh)
+
+- Assisted with diagnosing confusion-matrix readability issues, and designing tests.
+- Used for row-normalisation and the per-class error-rate chart.
+- Testing: I ran the test suite locally and reviewed the resulting plots
+  in ClearML using synthetic confusion matrices.
+- Approximate share of AI-generated code: 45%
+
 ## configs/*_patience8_num_workers6.yaml, documents/experiments/SGP-73 (SGP-73, Mario Cavicchioli)
 - Configs written by me from the SGP-63 configs.
 - I ran the experiments; Claude helped me draft the experiment comparisons and conclusion, which I then reviewed and edited when necessary.
