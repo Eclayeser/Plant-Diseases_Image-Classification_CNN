@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import gradio as gr
 from PIL import Image
-
+from app.components import LeafImage
 from leafapp.config import MODEL_DIR
 from leafapp.labels import format_class_name
 from leafapp.predict import LeafClassifier
@@ -59,7 +59,7 @@ def build_ui(classifier):
 
     demo = gr.Interface(
         fn=predict,
-        inputs=gr.Image(type="pil", label="Upload a leaf image"),
+        inputs=LeafImage(type="pil", label="Upload a leaf image"),
         outputs=gr.HTML(label="Top 5 Predictions"),
         title="Plant Disease Classification",
         description=(

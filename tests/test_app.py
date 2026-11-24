@@ -2,6 +2,7 @@ import runpy
 import sys
 
 import gradio as gr
+from gradio.components.image import ImageData
 import pytest
 from PIL import Image
 
@@ -190,3 +191,13 @@ def test_predict_has_no_warning_for_a_leaf():
     html = demo.fn(image)
 
     assert "No leaf found" not in html
+    
+
+def test_unreadable_file_shows_a_clear_error(tmp_path):
+    """A file that isn't a readable image gives a clear message instead of a generic error."""
+    broken = tmp_path / "broken.jpg"
+    broken.write_bytes(b"not an image")
+    demo = build_ui(FakeClassifier(PREDICTIONS))
+
+    with pytest.raises(gr.Error, match="Couldn't read this file"):
+        demo.input_components[0].preprocess(ImageData(path=str(broken)))
