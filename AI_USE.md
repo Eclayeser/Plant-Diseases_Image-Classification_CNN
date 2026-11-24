@@ -88,6 +88,9 @@
 - `augment` passed to `get_loaders()` from the config: written by me; Claude corrected the argument name. (SGP-32, Mario Cavicchioli)
 - `choose_optimizer()` call replacing the hard-coded AdamW: added by me. (SGP-27, Mario Cavicchioli)
 
+- (SGP-35) Moved `initialise_task()` before the seed, loaders, model and optimiser, set the optimiser default before connecting, and rebound `cfg`, `data` and `model_settings` to the connected config. This replaces the SGP-27 ordering above. Claude helped with brainstorming and provided skeletons and pseudocode to help me write the code.
+- Approximate share of AI-generated code: 40
+
 ## tests/test_train.py (SGP-10, Mario Cavicchioli)
 
 - `make_fake_loader()` and the weight-change test: mostly written by Claude, reviewed and run by me.
@@ -100,6 +103,8 @@
 - Checkpoint interval checks and path saving checks were mostly written by GPT-6. (SGP-29, Reon Carroll-Ito)
 - `test_main_continues_when_periodic_checkpoint_upload_fails()` and `test_main_retries_pending_best_checkpoint_save_after_failure()`: mostly written by GPT-6. (SGP-29, Reon Carroll-Ito)
 - Approximate share of AI-generated code: 70%
+
+- (SGP-35) Updated the `initialise_task` fakes to return `(task, config)`, and added `test_main_builds_from_connected_config` and `test_main_marks_task_failed_when_loading_data_fails`: written by Claude, reviewed and run by me, including checking the first test fails when the connected config is ignored. Approximate share of AI-generated code: 60%.
 
 ## tests/test_checkpoints.py (SGP-10, Mario Cavicchioli)
 
@@ -276,6 +281,8 @@ myself and Claude reviewed at the end.
 - `choose_optimizer()` and `OPTIMIZERS`: Claude explained the design (factory function like `build_model`, name-to-class dict, default for old configs, `ValueError` for unknown names) and gave a fill-in-the-blank skeleton; I completed it, and Claude corrected my mistakes (including the `.get` line).
 - `.get` → `.setdefault` so the chosen optimiser is recorded in ClearML and the checkpoint: Claude explained the difference and the side effect; I made the change. Docstring update written by Claude.
 - Approximate share of AI-generated code: 50%
+
+- (SGP-35) `DEFAULT_OPTIMIZER` constant so `train.py` can record the default before connecting: suggested by Claude, added by me.
 
 ## tests/test_optimizer_constructor.py (SGP-27, Mario Cavicchioli)
 - Four tests (default, Adam, values passed through, unknown name): Claude gave a fill-in-the-blank structure; I completed them and ran them.
@@ -467,6 +474,11 @@ Approximate share of AI-generated code: 60%.
   in ClearML using synthetic confusion matrices.
 - Approximate share of AI-generated code: 45%
 
+## leafapp/tracking.py, evaluate.py, scripts/export_onnx.py (SGP-35, Mario Cavicchioli)
+- `initialise_task()` now returns `(task, connected_config)` instead of discarding what `task.connect` returns; the callers unpack it. Claude explained the bug and helped me understand how to change it; I applied it with the given skeletons. 
+- Approximate share of AI-generated code: 40%.
+
+- (SGP-35, review fixes) `to_plain_config`, `parse_patience` and the normalize string conversion: issues found by CodeRabbit and Mark; code and tests written by Claude, reviewed and run by me, including confirming the checkpoint load failure before the fix. Approximate share of AI-generated code: 70%.
 ## configs/*_patience8_num_workers6.yaml, documents/experiments/SGP-73 (SGP-73, Mario Cavicchioli)
 - Configs written by me from the SGP-63 configs.
 - I ran the experiments; Claude helped me draft the experiment comparisons and conclusion, which I then reviewed and edited when necessary.
