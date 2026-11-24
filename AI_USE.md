@@ -498,3 +498,8 @@ Approximate share of AI-generated code: 60%.
 - Configs written by me from the SGP-63 configs.
 - I ran the experiments; Claude helped me draft the experiment comparisons and conclusion, which I then reviewed and edited when necessary.
 - Approximate share of AI-generated documentation: 45%
+
+## configs/cnn_wider_deeper_early_stopping_full_seed{42,43,44}_patience8_num_workers6.yaml, documents/experiments/SGP-91 (SGP-91, Mario Cavicchioli)
+- Configs: copied from the SGP-73 Wider+Deeper dropout configs and edited by me (dropout removed).
+- I ran the experiments; Claude read the results from the checkpoints and drafted the write-up and PR description, which I reviewed and edited.
+- Approximate share of AI-generated code: 0% (configs); approximate share of AI-generated text: 60% (write-up).
