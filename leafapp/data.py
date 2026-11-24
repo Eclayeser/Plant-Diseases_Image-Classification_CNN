@@ -3,6 +3,14 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 
 DATASET_NAME = "DScomp380/plant_village"
+DEFAULT_FRACTION = 0.2
+DEFAULT_IMAGE_SIZE = 128
+DEFAULT_BATCH_SIZE = 32
+DEFAULT_SEED = 42
+FLIP_PROBABILITY = 0.5
+ROTATION_DEGREES = 15
+BRIGHTNESS = 0.2
+SATURATION = 0.2
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 PLANT_VILLAGE_MEAN = [0.4671, 0.4897, 0.4125]
@@ -12,6 +20,7 @@ NORMALIZATION_STATS = {
     "plant_village": (PLANT_VILLAGE_MEAN, PLANT_VILLAGE_STD),
 }
 
+NO_NORMALIZATION = "none"
 
 def load_subset(fraction, seed):
     """Return a stratified random fraction of the plant_village rows.
@@ -56,18 +65,18 @@ def split(ds, seed, val_frac=0.15, test_frac=0.15):
 def get_normalization_stats(normalize):
     """Return the (mean, std) pair that a normalize setting selects.
 
-    normalize is "imagenet" (or True) or "plant_village". False returns
-    None (no normalising); any other value raises a ValueError.
+    normalize is "imagenet" (or True) or "plant_village". False or "none"
+    returns None (no normalising); any other value raises a ValueError.
     """
-    if normalize is not False:
-        stats = "imagenet" if normalize is True else normalize
-        if stats not in NORMALIZATION_STATS:
-            raise ValueError(
-                f"Invalid normalize {normalize!r}: expected True, False, "
-                "'imagenet' or 'plant_village'"
-            )
-        return NORMALIZATION_STATS[stats]
-    return None
+    if normalize in (False, NO_NORMALIZATION):
+        return None
+    stats = "imagenet" if normalize is True else normalize
+    if stats not in NORMALIZATION_STATS:
+        raise ValueError(
+            f"Invalid normalize {normalize!r}: expected True, False, "
+            "'none', 'imagenet' or 'plant_village'"
+        )
+    return NORMALIZATION_STATS[stats]
 
 
 def make_transforms(image_size, augment=True, normalize=False):
@@ -88,9 +97,9 @@ def make_transforms(image_size, augment=True, normalize=False):
         train_tf = transforms.Compose(
             [
                 transforms.Resize((image_size, image_size)),
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomRotation(15),
-                transforms.ColorJitter(brightness=0.2, saturation=0.2),
+                transforms.RandomHorizontalFlip(p=FLIP_PROBABILITY),
+                transforms.RandomRotation(ROTATION_DEGREES),
+                transforms.ColorJitter(brightness=BRIGHTNESS, saturation=SATURATION),
                 transforms.ToTensor(),
             ]
         )
@@ -124,7 +133,8 @@ def make_batch_transform(image_transform):
     return BatchTransform(image_transform)
 
 
-def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=True,
+def get_loaders(fraction=DEFAULT_FRACTION, image_size=DEFAULT_IMAGE_SIZE,
+                batch_size=DEFAULT_BATCH_SIZE, seed=DEFAULT_SEED, augment=True,
                 normalize=False, num_workers=0):
     """Build the train, validation and test loaders for plant_village.
 

@@ -1,6 +1,7 @@
 import pytest
 import torch
 from leafapp.models.cnn import BasicCNN
+from leafapp.models.regularised_cnn import RegularisedCNN
 from leafapp.model_constructor import build_model
 
 DATA_SPECS = {"image_size": 32}
@@ -19,6 +20,20 @@ def test_build_model_uses_config_values():
     x = torch.randn(2, 3, 32, 32)
     assert model(x).shape == (2, len(CLASS_NAMES)), "Output size should match the number of classes"
     assert len(model.features) == 2, "Should build one conv block per channel entry"
+
+
+def test_build_model_uses_configured_dropout_in_regularised_cnn():
+    settings = {
+        "type": "RegularisedCNN",
+        "channels": [8, 16],
+        "regularisation": "dropout",
+        "dropout_p": 0.4,
+    }
+    model = build_model(settings, DATA_SPECS, CLASS_NAMES)
+
+    assert isinstance(model, RegularisedCNN)
+    probabilities = [layer.p for layer in model.modules() if isinstance(layer, torch.nn.Dropout2d)]
+    assert probabilities == [0.4, 0.4]
 
 
 def test_build_model_missing_type_raises():

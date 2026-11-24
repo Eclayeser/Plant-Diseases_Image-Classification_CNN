@@ -2,14 +2,19 @@ import os
 from pathlib import Path
 import gradio as gr
 from PIL import Image
-
+from app.components import LeafImage
 from leafapp.config import MODEL_DIR
 from leafapp.labels import format_class_name
 from leafapp.predict import LeafClassifier
 
 Image.MAX_IMAGE_PIXELS = 20_000_000
 COLORS = ["#2e7d32", "#1565c0", "#ef8f00", "#d84315", "#6a1b9a"]  # one colour per rank
-GALLERY_DIR = Path(__file__).parent / "gallery"
+APP_DIR = Path(__file__).parent
+GALLERY_DIR = APP_DIR / "gallery"
+ABOUT_MODELS = (APP_DIR / "about_models.md").read_text(encoding="utf-8")
+APP_CSS = (APP_DIR / "style.css").read_text(encoding="utf-8")
+NO_LEAF_CLASS = "Background_without_leaves"
+NO_LEAF_MESSAGE = "<p><strong>No leaf found.</strong> Please, try a photo of a single leaf.</p>"
 
 
 def prediction_chart_html(names, percents):
@@ -49,17 +54,26 @@ def build_ui(classifier):
         predictions = classifier.top_k(image, k=5)
         names = [format_class_name(name) for name, _ in predictions]
         percents = [round(probability * 100, 1) for _, probability in predictions]
-        return prediction_chart_html(names, percents)
+        chart = prediction_chart_html(names, percents)
+
+        if predictions[0][0] == NO_LEAF_CLASS:
+            return NO_LEAF_MESSAGE + chart
+        return chart
 
     demo = gr.Interface(
         fn=predict,
-        inputs=gr.Image(type="pil", label="Upload a leaf image"),
+        inputs=LeafImage(type="pil", label="Upload a leaf image"),
         outputs=gr.HTML(label="Top 5 Predictions"),
         title="Plant Disease Classification",
-        description="Upload a plant leaf image to identify its disease, or pick one from the gallery below.",
+        description=(
+            "Upload a plant leaf image to identify its disease, or pick one from the gallery below. "
+            "It gives a first opinion for the crops and diseases the model was trained on and is not a diagnosis."
+        ),
         examples=[[str(path)] for path in sorted(GALLERY_DIR.glob("*.jpg"))],
         api_name="predict",
-        flagging_mode="never"
+        flagging_mode="never",
+        delete_cache=(600, 600),  # every 10 minutes, delete uploads older than 10 minutes
+        article=ABOUT_MODELS,
     )
     return demo
 
@@ -67,4 +81,4 @@ def build_ui(classifier):
 if __name__ == "__main__":
     classifier = LeafClassifier.from_dir(MODEL_DIR)
     demo = build_ui(classifier)
-    demo.launch(server_port=int(os.getenv("PORT", 8080)), max_file_size="10mb")
+    demo.launch(server_port=int(os.getenv("PORT", 8080)), max_file_size="10mb", css=APP_CSS)

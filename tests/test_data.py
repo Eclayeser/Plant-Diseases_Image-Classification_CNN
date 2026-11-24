@@ -1,7 +1,7 @@
 from datasets import ClassLabel, Dataset
 from PIL import Image
 import torch
-from leafapp.data import make_batch_transform, make_transforms, split
+from leafapp.data import make_batch_transform, make_transforms, split, get_normalization_stats
 import pytest
 
 
@@ -13,6 +13,16 @@ def test_transforms_give_right_shape_and_range():
         x = tf(photo)
         assert x.shape == (3, 64, 64)
         assert x.min().item() >= 0.0 and x.max().item() <= 1.0
+
+
+def test_training_uses_fixed_augmentation_strengths():
+    train_tf, eval_tf = make_transforms(64, augment=True)
+    _, flip, rotation, jitter, _ = train_tf.transforms
+    assert flip.p == 0.5
+    assert rotation.degrees == [-15, 15]
+    assert jitter.brightness == pytest.approx((0.8, 1.2))
+    assert jitter.saturation == pytest.approx((0.8, 1.2))
+    assert len(eval_tf.transforms) == 2
 
 
 def test_no_augment_reuses_eval_transform():
@@ -79,3 +89,7 @@ def test_normalize_rejects_unknown_name(bad_value):
     """An unknown or empty normalize name raises a ValueError instead of being ignored."""
     with pytest.raises(ValueError):
         make_transforms(8, normalize=bad_value)
+
+
+def test_none_string_means_no_normalization():
+    assert get_normalization_stats("none") is None

@@ -4,6 +4,7 @@ OPTIMIZERS = {
     "AdamW": torch.optim.AdamW,
     "Adam": torch.optim.Adam,
 }
+DEFAULT_OPTIMIZER = "AdamW"
 
 def choose_optimizer(parameters, train_settings):
     """Build the optimiser named in the train settings (AdamW if not given).
@@ -12,7 +13,7 @@ def choose_optimizer(parameters, train_settings):
     ClearML and in the checkpoint even when the config doesn't set it.
     """
 
-    name = train_settings.setdefault("optimizer", "AdamW")
+    name = train_settings.setdefault("optimizer", DEFAULT_OPTIMIZER)
     if name not in OPTIMIZERS:
         raise ValueError(f"Unknown optimiser '{name}'. Choose from: {list(OPTIMIZERS)}")
     optimizer_class = OPTIMIZERS[name]
