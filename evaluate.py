@@ -66,6 +66,37 @@ def parse_args(argv=None):
     return args
 
 
+def format_evaluation_report(
+    checkpoint_path: str | Path,
+    data_type: str,
+    metrics: dict,
+    confused_pairs: list[tuple[int, str, str]],
+    *,
+    curve_path: Path,
+    matrix_path: Path,
+    grid_path: Path,
+) -> str:
+    """Build the text report with diagram paths relative to the project root."""
+    _, per_class_text = metrics["per-class-metrics"]
+    return (
+        f"---   Checkpoint: {checkpoint_path} | Data Set Chosen: {data_type.upper()}   ---\n"
+        f"- Top-1 Accuracy: {metrics['accuracy']}\n"
+        f"- Top-3 Accuracy: {metrics['top-3-accuracy']}\n"
+        f"- Top-5 Accuracy: {metrics['top-5-accuracy']}\n"
+        f"- Macro Precision: {metrics['precision']}\n"
+        f"- Macro Recall: {metrics['recall']}\n"
+        f"- Macro F1: {metrics['f1']}\n"
+        "\n Per-Class Metrics:\n"
+        f"{per_class_text}\n"
+        " Most Confused Pairs (true -> predicted):\n"
+        f"{format_most_confused_pairs(confused_pairs)}\n"
+        "\n==============================   Diagrams   ==============================\n"
+        f" - Training Curve (Historical Metrics): {curve_path.relative_to(ROOT)}\n"
+        f" - Confusion Matrix: {matrix_path.relative_to(ROOT)}\n"
+        f" - Misclassified Images: {grid_path.relative_to(ROOT)}\n"
+    )
+
+
 def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_type, issue_id, task_id, artifact):
     """
     Evaluate a saved checkpoint on the validation or test set.
@@ -196,26 +227,10 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
 
     # save written report
     report_path = REPORTS_DIR / f"{run_name}_report.txt"
-    report = (
-            f"---   Checkpoint: {checkpoint_path} | Data Set Chosen: {data_type.upper()}   ---\n"
-            f"- Top-1 Accuracy: {overall_metrics['accuracy']}\n"
-            f"- Top-3 Accuracy: {overall_metrics['top-3-accuracy']}\n"
-            f"- Top-5 Accuracy: {overall_metrics['top-5-accuracy']}\n"
-            f"- Macro Precision: {overall_metrics['precision']}\n"
-            f"- Macro Recall: {overall_metrics['recall']}\n"
-            f"- Macro F1: {overall_metrics['f1']}\n"
-            f"\n"
-            f" Per-Class Metrics:\n"
-            f"{overall_metrics['per-class-metrics'][1]}"    # [1] is to_print version / [0] is a dict
-            f"\n"
-            f" Most Confused Pairs (true -> predicted):\n"
-            f"{format_most_confused_pairs(confused_pairs)}\n"
-            f"\n"
-            f"==============================   Diagrams   ==============================\n"
-            f" - Training Curve (Historical Metrics): {curve_path.relative_to(ROOT)}\n"
-            f" - Confusion Matrix: {matrix_path.relative_to(ROOT)}\n"
-            f" - Misclassified Images: {grid_path.relative_to(ROOT)}\n"
-        )
+    report = format_evaluation_report(
+        checkpoint_path, data_type, overall_metrics, confused_pairs,
+        curve_path=curve_path, matrix_path=matrix_path, grid_path=grid_path,
+    )
 
     save_evaluation_report(report, report_path)
     print(f"Saved evaluation report to {report_path.relative_to(ROOT)}")
