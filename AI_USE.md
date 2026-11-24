@@ -403,4 +403,4 @@ Approximate share of AI-generated code: 60%.
 - Used for row-normalisation and the per-class error-rate chart.
 - Testing: I ran the test suite locally and reviewed the resulting plots
   in ClearML using synthetic confusion matrices.
-- Approximate share of AI-generated code: 40%
+- Approximate share of AI-generated code: 45%
