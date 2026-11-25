@@ -120,7 +120,9 @@ def build_batch_ui(classifier):
         inputs=gr.File(file_count="multiple", file_types=["image"], type="filepath", label="Upload leaf images"),
         outputs=gr.Dataframe(headers=["File", "Prediction", "Confidence"], label="Predictions"),
         title="Batch Prediction",
-        description="Upload several leaf photos at once to get the top prediction for each one.",
+                description=(
+            "Upload several leaf photos at once to get the top prediction for each one. "
+            "It gives a first opinion for the crops and diseases the model was trained on and is not a diagnosis."),
         api_name="predict_batch",
         flagging_mode="never",
         delete_cache=(600, 600),  # same clean-up as the single image tab
