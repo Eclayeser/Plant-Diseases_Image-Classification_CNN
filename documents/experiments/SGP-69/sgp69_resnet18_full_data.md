@@ -21,15 +21,16 @@ The checkpoints are not committed to the repository. They are stored as artifact
 ## Evaluation
 The results were evaluated against the validation data split using `evaluate.py`
 
-| Seed  | Top-1 | Top-3 | Top-5 | Macro precision | Macro recall | Macro F1 |
+| Seed | Top-1 | Top-3 | Top-5 | Macro precision | Macro recall | Macro F1 |
 |---|---:|---:|---:|---:|---:|---:|
-| 42 | 0.9873 | 0.9996 | 0.9996 | 0.9821 | 0.9758 | 0.9775 |
-| 43 | 0.9894 | 0.9994 | 0.9999 | 0.9865 | 0.9862 | 0.9860 |
-| 44 | 0.9867 | 0.9994 | 0.9998 | 0.9843 | 0.9838 | 0.9835 |
+| 42 | 0.9905 | 0.9995 | 0.9998 | 0.9871 | 0.9847 | 0.9857 |
+| 43 | 0.9894 | 0.9998 | 0.9999 | 0.9864 | 0.9851 | 0.9856 |
+| 44 | 0.9909 | 0.9994 | 0.9999 | 0.9891 | 0.9875 | 0.9882 |
 
 The validation split has 8317 images across 38 classes.
 
 ## Observations
+
 
 ## Recommendation
 
