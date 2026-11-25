@@ -66,3 +66,26 @@ Evaluate the best checkpoint:
 python evaluate.py --checkpoint <best_checkpoint_path> \
  --responsible "<name>" --run-type production --issue-id SGP-69
 ```
+
+Export the training task's `best_checkpoint`:
+```bash
+python -m scripts.export_onnx --task-id <training_task_ID>
+```
+
+Upload it to the ClearML "Models" tab:
+```bash
+python -m scripts.export_onnx --task-id <training task ID> --upload --responsible "<your name>"
+```
+Put the printed model ID in `deployment/model.lock.json`
+
+Run locally:
+```bash
+# Windows (PowerShell)
+.\deployment\setup_and_run.ps1   # first run: creates .venv and installs requirements-deploy.txt
+.\deployment\run_local.ps1       # later runs
+```
+```bash
+# Mac / Linux
+bash deployment/setup_and_run.sh
+bash deployment/run_local.sh
+```
