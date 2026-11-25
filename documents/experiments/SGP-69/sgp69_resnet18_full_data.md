@@ -48,6 +48,11 @@ The validation split has 8317 images across 38 classes.
 ## Deployment
 - Seed 44 was selected for deployment because it achieved the highest top-1 accuracy and macro F1 on the validation split. The seed-44 best-validation-loss checkpoint was exported to ONNX.
 
+|  | ID | URL |
+|---|---|---|
+| Task | 23edd3eb3f8e436aacbeeef0bbc1775c | [Link](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/experiments/23edd3eb3f8e436aacbeeef0bbc1775c/output/execution) |
+| Model | 4ecac99ad9b048c9ae0c9226e327393f | [Link](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/models/4ecac99ad9b048c9ae0c9226e327393f/general?columns=selected&columns=framework&columns=name&columns=tags&columns=ready&columns=project.name&columns=users&columns=task.name&columns=last_update&order=-created) |
+
 ## Limitations
 - While the seed spread is small, three runs are too few to estimate variance or support significance claims.
 - Best-epoch metrics depend on noisy validation loss, and small differences between epochs are within the noise. Seed 43 shows that the lowest-loss checkpoint is not guaranteed to have the best F1.
@@ -69,14 +74,19 @@ python evaluate.py --checkpoint <best_checkpoint_path> \
 
 Export the training task's `best_checkpoint`:
 ```bash
-python -m scripts.export_onnx --task-id <training_task_ID>
+python -m scripts.export_onnx --task-id <training task ID>
 ```
 
 Upload it to the ClearML "Models" tab:
 ```bash
-python -m scripts.export_onnx --task-id <training task ID> --upload --responsible "<your name>"
+python -m scripts.export_onnx --task-id <training task ID> --upload --responsible "<name>"
 ```
-Put the printed model ID in `deployment/model.lock.json`
+Put the printed model ID in `deployment/model.lock.json`:
+```
+{
+  "model_id": "<model ID>"
+}
+```
 
 Run locally:
 ```bash
