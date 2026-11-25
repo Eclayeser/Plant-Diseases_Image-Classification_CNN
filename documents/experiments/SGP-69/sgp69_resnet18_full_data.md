@@ -45,6 +45,11 @@ The validation split has 8317 images across 38 classes.
 - **Corn leaf diseases are the most persistent weak spot.** *Corn Cercospora leaf spot / Gray leaf spot* is mistaken for *Corn Northern Leaf Blight* in every seed (9, 9 and 6 images). It is the top confused pair for seeds 42 and 43 and the second for seed 44. *Corn GLS* has the lowest or near-lowest F1 in each seed (0.94, 0.91, 0.95), with recall of 0.88, 0.88 and 0.92.
 - **Tomato classes are the next source of errors.** *Tomato early blight* has F1 of 0.95–0.96 in every seed (recall 0.93–0.95). *Tomato target spot* and *Tomato spider mites* are confused with each other in seeds 43 and 44 (8 and 7 images, in opposite directions). Seed 42's second and third confusions are *Tomato late blight* predicted as *Potato late blight* (7) and *Tomato early blight* (5).
 
+## Limitations
+- While the seed spread is small, three runs are too few to estimate variance or support significance claims.
+- Best-epoch metrics depend on noisy validation loss, and small differences between epochs are within the noise. Seed 43 shows that the lowest-loss checkpoint is not guaranteed to have the best F1.
+- Runs used a ROCm build of PyTorch. Results are deterministic only given the SGP-16 fix, and may not match CUDA exactly.
+
 ## Deployment
 - Seed 44 was selected for deployment because it achieved the highest top-1 accuracy and macro F1 on the validation split. The seed-44 best-validation-loss checkpoint was exported to ONNX.
 
@@ -52,11 +57,6 @@ The validation split has 8317 images across 38 classes.
 |---|---|---|
 | Task | 23edd3eb3f8e436aacbeeef0bbc1775c | [Link](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/experiments/23edd3eb3f8e436aacbeeef0bbc1775c/output/execution) |
 | Model | 4ecac99ad9b048c9ae0c9226e327393f | [Link](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/models/4ecac99ad9b048c9ae0c9226e327393f/general?columns=selected&columns=framework&columns=name&columns=tags&columns=ready&columns=project.name&columns=users&columns=task.name&columns=last_update&order=-created) |
-
-## Limitations
-- While the seed spread is small, three runs are too few to estimate variance or support significance claims.
-- Best-epoch metrics depend on noisy validation loss, and small differences between epochs are within the noise. Seed 43 shows that the lowest-loss checkpoint is not guaranteed to have the best F1.
-- Runs used a ROCm build of PyTorch. Results are deterministic only given the SGP-16 fix, and may not match CUDA exactly.
 
 ## Reproducing
 Train each seed:
