@@ -461,6 +461,11 @@ Approximate share of AI-generated code: 60%.
 - I ran the six experiments and chose the framing and the recommendation (both models perform the same, so prefer the simpler and cheaper one). Claude read the checkpoints, computed the comparison with SGP-52 and the timings, and drafted the write-up; I edited it.
 - Approximate share of AI-generated documentation: 30%
 
+## documents/architecture.md (SGP-85, Mark Tarnavskyi)
+
+- I wrote the structure, the repository layout table and the diagram. Claude read the code and drafted the overview, component descriptions, local documentation table and data flow, then simplified the file to avoid repeating what the docstrings already say; I reviewed and edited the result.
+- Approximate share of AI-generated documentation: 50%
+
 ## SGP-56 · Code quality (Javier Fimia)
 
 - For PR 1, I chose the scope to be code configuration and organisation. I used to codex to audit our large codebase and flag possible areas that need refining. I then filtered through these and updated experiment settings, model selection, run tracking and local deployment, then ran the relevant tests locally.
