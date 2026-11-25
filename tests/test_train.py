@@ -87,6 +87,46 @@ def test_parse_patience_rejects_invalid_values(value):
     with pytest.raises(ValueError, match="patience must be a positive integer"):
         train.parse_patience(value)
 
+@pytest.mark.parametrize("value, expected", [(1, 1), (30, 30), ("5", 5)])
+def test_parse_epochs_converts_connected_values(value, expected):
+    assert train.parse_epochs(value) == expected
+
+@pytest.mark.parametrize("value", [0, "0", -1, "abc", 2.5, "2.5", True, None])
+def test_parse_epochs_rejects_invalid_values(value):
+    with pytest.raises(ValueError, match="epochs must be a positive integer"):
+        train.parse_epochs(value)
+
+def test_main_rejects_zero_epochs_set_in_connected_config(monkeypatch, tmp_path):
+    cfg = {
+        "seed": 0,
+        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4},
+        "model": {"type": "BasicCNN"},
+        "train": {"lr": 1e-3, "weight_decay": 0.0, "epochs": 1, "checkpoint_dir": str(tmp_path)},
+    }
+    task = MagicMock()
+
+    def fake_initialise_task(**kwargs):
+        connected = copy.deepcopy(kwargs["config"])
+        connected["train"]["epochs"] = 0  # what a cloned task edited in the UI returns
+        return task, connected
+
+    monkeypatch.setattr(train, "load_config", lambda path: cfg)
+    monkeypatch.setattr(train, "initialise_task", fake_initialise_task)
+    get_loaders = MagicMock()
+    monkeypatch.setattr(train, "get_loaders", get_loaders)
+    upload_checkpoint = MagicMock()
+    monkeypatch.setattr(train, "upload_checkpoint", upload_checkpoint)
+    close_task = MagicMock()
+    monkeypatch.setattr(train, "close_task", close_task)
+
+    with pytest.raises(ValueError, match="epochs must be a positive integer"):
+        train.main("configs/prototype.yaml", VALID_NAME, "debugging", "")
+
+    get_loaders.assert_not_called()
+    upload_checkpoint.assert_not_called()
+    close_task.assert_called_once()
+    assert close_task.call_args.kwargs["failed"] is True
+
 def test_main_tags_task_with_run_details(monkeypatch, tmp_path, capsys):
     cfg = {
         "seed": 0,
@@ -414,6 +454,89 @@ def test_main_retries_pending_best_checkpoint_save_after_failure(
     assert best_save_epochs == [1, 2, 2]
     assert best_checkpoint_path.read_text() == "best epoch 2"
 
+@pytest.mark.parametrize("report_name", ["log_epoch_metrics", "log_confusion_matrix"])
+def test_main_saves_improved_best_checkpoint_after_interruption(monkeypatch, tmp_path, report_name):
+    cfg = {
+        "seed": 0,
+        "data": {"fraction": 1.0, "image_size": 32, "batch_size": 4},
+        "model": {"type": "BasicCNN"},
+        "train": {
+            "lr": 1e-3,
+            "weight_decay": 0.0,
+            "epochs": 1,
+            "checkpoint_dir": str(tmp_path),
+        },
+    }
+    task = MagicMock()
+    saved_paths = []
+    uploaded_artifacts = []
+
+    monkeypatch.setattr(train, "load_config", lambda path: cfg)
+    monkeypatch.setattr(
+        train,
+        "get_loaders",
+        lambda **kwargs: (
+            make_fake_loader(),
+            make_fake_loader(),
+            None,
+            ["a", "b", "c", "d", "e"],
+        ),
+    )
+    monkeypatch.setattr(
+        train,
+        "build_model",
+        lambda model_cfg, data_cfg, class_names: BasicCNN(
+            num_classes=5, channels=(8,), image_size=32
+        ),
+    )
+    monkeypatch.setattr(train, "initialise_task", lambda **kwargs: (task, kwargs["config"]))
+    monkeypatch.setattr(
+        train,
+        "train_one_epoch",
+        lambda *args, **kwargs: {
+            "loss": 0.5, 
+            "accuracy": 0.8, 
+            "f1": 0.7
+            },
+    )
+    monkeypatch.setattr(
+        train,
+        "calculate_metrics_per_loader",
+        lambda **kwargs: {
+            "loss": 0.4,
+            "accuracy": 0.8,
+            "f1": 0.7,
+            "confusion-matrix": [[0] * 5 for _ in range(5)],
+        },
+    )
+
+    def interrupt_reporting(*args, **kwargs):
+        assert list(tmp_path.glob("*_best.pt")), "Best checkpoint should have been saved before reporting"
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(train, report_name, interrupt_reporting)
+
+    def save_checkpoint(path, **kwargs):
+        path.write_text("checkpoint")
+        saved_paths.append(path)
+
+    monkeypatch.setattr(train, "save_checkpoint", save_checkpoint)
+    monkeypatch.setattr(
+        train, "upload_checkpoint", lambda task, path, name: uploaded_artifacts.append((path, name)),
+    )
+    close_task = MagicMock()
+    monkeypatch.setattr(train, "close_task", close_task)
+
+    with pytest.raises(KeyboardInterrupt):
+        train.main("configs/prototype.yaml", VALID_NAME, "production", "")
+
+    best_checkpoint_path = [path for path in saved_paths if path.stem.endswith("_best")]
+    assert len(best_checkpoint_path) == 1
+    assert best_checkpoint_path[0].read_text() == "checkpoint"
+    assert {name for _, name in uploaded_artifacts} == {"final_checkpoint", "best_checkpoint"}
+
+    close_task.assert_called_once_with(task, failed=True, message="")
+         
 @pytest.mark.parametrize("failure_epoch", [1, 2])
 def test_main_uploads_checkpoints_when_training_fails(
     monkeypatch, tmp_path, failure_epoch, capsys
