@@ -358,6 +358,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
                     class_names=class_names,
                     history_metrics=history_metrics,
                 )
+                best_checkpoint_pending = False
 
             log_epoch_metrics(
                 logger=logger,
