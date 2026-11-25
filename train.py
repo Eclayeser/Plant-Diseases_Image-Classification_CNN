@@ -213,7 +213,7 @@ def save_and_upload_failure_artifacts(
     close_task(task, failed=True, message=str(exc))
 
 
-def _apply_training_defaults(cfg: dict) -> None:
+def apply_training_defaults(cfg: dict) -> None:
     data = cfg["data"]
     data.setdefault("augment", True)
     data.setdefault("normalize", NO_NORMALIZATION)
@@ -256,7 +256,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
     best_checkpoint_uploaded = False
     try:
         cfg = load_config(ROOT / config_path)
-        _apply_training_defaults(cfg)
+        apply_training_defaults(cfg)
 
         config_name = Path(config_path).stem
         tags = build_tags(
