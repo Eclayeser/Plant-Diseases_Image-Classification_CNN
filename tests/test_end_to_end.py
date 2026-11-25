@@ -1,8 +1,12 @@
 # Runs the whole pipeline once on tiny fake data: train, evaluate, export to ONNX and predict.
 from unittest.mock import MagicMock
 
-import train
+from PIL import Image
+
 import evaluate
+import train
+from leafapp.predict import LeafClassifier
+from scripts import export_onnx
 from utils import make_fake_loader
 
 
@@ -73,3 +77,21 @@ def test_end_to_end_pipeline(monkeypatch, tmp_path):
     reports = list((tmp_path / "reports").glob("*_report.txt"))
     assert len(reports) == 1
     assert "Top-1 Accuracy" in reports[0].read_text()
+
+
+    # Export the trained checkpoint to ONNX without ClearML
+    monkeypatch.setattr(export_onnx, "get_task", lambda task_id: task)
+    monkeypatch.setattr(export_onnx, "download_checkpoint", lambda task, artifact: checkpoint)
+
+    model_dir = tmp_path / "model"
+    export_onnx.main("fake-task-id", out_dir=model_dir)
+
+    # Load the exported model and predict one image
+    classifier = LeafClassifier.from_dir(model_dir)
+    predictions = classifier.top_k(Image.new("RGB", (64, 64), "green"), k=5)
+
+    # Check the top-5 predictions
+    assert len(predictions) == 5
+    for name, probability in predictions:
+        assert name in CLASS_NAMES
+        assert 0 <= probability <= 1
