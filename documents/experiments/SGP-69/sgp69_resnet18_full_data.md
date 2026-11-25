@@ -38,6 +38,7 @@ The validation split has 8317 images across 38 classes.
 - **Tomato classes are the next source of errors.** *Tomato early blight* has F1 of 0.95–0.96 in every seed (recall 0.93–0.95). *Tomato target spot* and *Tomato spider mites* are confused with each other in seeds 43 and 44 (8 and 7 images, in opposite directions). Seed 42's second and third confusions are *Tomato late blight* predicted as *Potato late blight* (7) and *Tomato early blight* (5).
 
 ## Deployment
+- Seed 44 was selected for deployment because it achieved the highest top-1 accuracy and macro F1 on the validation split. The seed-44 best-validation-loss checkpoint was exported to ONNX.
 
 ## Limitations
 - While the seed spread is small, three runs are too few to estimate variance or support significance claims.
