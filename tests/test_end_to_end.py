@@ -2,7 +2,9 @@
 from unittest.mock import MagicMock
 
 import train
+import evaluate
 from utils import make_fake_loader
+
 
 CLASS_NAMES = ["a", "b", "c", "d", "e"]
 
@@ -51,3 +53,23 @@ def test_end_to_end_pipeline(monkeypatch, tmp_path):
     checkpoints = list((tmp_path / "checkpoints").glob("*_best.pt"))
     assert len(checkpoints) == 1
     checkpoint = checkpoints[0]
+
+    # 2. Evaluate the trained model
+    monkeypatch.setattr(evaluate, "get_loaders", fake_get_loaders)
+    monkeypatch.setattr(evaluate, "initialise_task", lambda **kwargs: (task, kwargs["config"]))
+    monkeypatch.setattr(evaluate, "log_final_metrics", MagicMock())
+    monkeypatch.setattr(evaluate, "log_image", MagicMock())
+    monkeypatch.setattr(evaluate, "upload_file", MagicMock())
+    monkeypatch.setattr(evaluate, "close_task", MagicMock())
+
+    # Save evaluation outputs in a temporary folder
+    monkeypatch.setattr(evaluate, "ROOT", tmp_path)
+    monkeypatch.setattr(evaluate, "REPORTS_DIR", tmp_path / "reports")
+    monkeypatch.setattr(evaluate, "DIAGRAMS_DIR", tmp_path / "diagrams")
+
+    evaluate.main(checkpoint, "test", train.NAMES[0], "debugging", "", None, None)
+
+    # Check the evaluation report
+    reports = list((tmp_path / "reports").glob("*_report.txt"))
+    assert len(reports) == 1
+    assert "Top-1 Accuracy" in reports[0].read_text()
