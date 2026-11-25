@@ -518,3 +518,13 @@ Approximate share of AI-generated code: 60%.
 ## documents/testing.md (SGP-90, Gul Nil Kayalioglu)
 - I added an End-to-End Testing section and updated the test count and coverage.
 - Approximate share of AI-generated text:0%
+
+## app/app.py (SGP-71, Gul Nil Kayalioglu)
+- I designed the structure of the batch prediction feature while keeping the existing application structure unchanged. Claude helped me improve and review the code.
+- I ran the app locally, uploaded leaf photos, a non-leaf photo and files with long names, and fixed the table columns and the missing diagnosis disclaimer after seeing them in the browser.
+- Approximate share of AI-generated code: 30%
+
+## tests/test_app.py (SGP-71, Gul Nil Kayalioglu)
+- I identified which tests were needed and wrote the test code with Claude's help using a fill-in-the-blank approach.
+- I ran all the tests locally and checked that they pass.
+- Approximate share of AI-generated code: 40%
