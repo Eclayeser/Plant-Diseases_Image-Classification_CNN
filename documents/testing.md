@@ -35,6 +35,12 @@ Integration tests check how different parts of the project work together.
 
 The pytest tests do not need the full dataset, a GPU or a connection to ClearML. They mainly use small test images, fake models and fake ClearML objects. We use pytest's `monkeypatch` to replace slow or external parts and `tmp_path` to create temporary files. This keeps the tests fast.
 
+## End-to-End Testing
+
+`tests/test_end_to_end.py` tests the whole pipeline by training a small model for one epoch, evaluating it, exporting it to ONNX and predicting one image using `LeafClassifier`.
+
+It checks that each step works with the output of the previous step and that the top-5 probabilities are between 0 and 1. Fake data and mocked ClearML objects are used to keep the test fast and avoid external connections.
+
 ## Continuous Integration
 
 Two GitHub Actions workflows run on every push:
@@ -66,6 +72,6 @@ Run tests with code coverage:
 
 `python -m pytest tests/ --cov --cov-report=term-missing`
 
-As of 24 November 2026, all 159 pytest tests passed, with 83% code coverage for `leafapp/` and `app/`. `train.py`, `evaluate.py` and some scripts in `scripts/` have tests but are not included in the coverage measurement.
+As of 25 November 2026, all 160 pytest tests passed, with 92% code coverage for `leafapp/` and `app/`. `train.py`, `evaluate.py` and some scripts in `scripts/` have tests but are not included in the coverage measurement.
 
 New features and bug fixes should include relevant tests to prevent existing functionality from breaking.
