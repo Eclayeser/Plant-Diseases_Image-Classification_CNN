@@ -57,7 +57,7 @@ def predict_batch(classifier, files):
         try:
             with Image.open(path) as img:
                 image = img.convert("RGB")
-        except (OSError, Image.DecompressionBombError):
+        except (OSError, ValueError, Image.DecompressionBombError):
             rows.append([file_name, "Couldn't read this file", ""])
             continue
 
@@ -142,4 +142,5 @@ if __name__ == "__main__":
         [build_ui(classifier), build_batch_ui(classifier)],
         tab_names=["Single image", "Batch prediction"],
     )
+    demo.delete_cache = (600, 600) 
     demo.launch(server_port=int(os.getenv("PORT", 8080)), max_file_size="10mb", css=APP_CSS)

@@ -299,7 +299,7 @@ def test_main_shows_single_and_batch_tabs(monkeypatch):
     monkeypatch.setattr(
         gr.Blocks,
         "launch",
-        lambda self, **kwargs: launched.update(demo=self)
+        lambda self, **kwargs: launched.update(demo=self, delete_cache=self.delete_cache)
     )
 
     run_app_main(monkeypatch)
@@ -312,3 +312,27 @@ def test_main_shows_single_and_batch_tabs(monkeypatch):
     assert len(tabs) == 2
     assert tabs[0].label == "Single image"
     assert tabs[1].label == "Batch prediction"
+    assert launched["delete_cache"] == (600, 600)
+
+
+def test_predict_batch_skips_files_pillow_cannot_parse(tmp_path, monkeypatch):
+    """Some broken PNGs make Pillow raise ValueError instead of OSError."""
+    good = tmp_path / "good.jpg"
+    bad = tmp_path / "bad.png"
+    Image.new("RGB", (64, 64), "green").save(good)
+
+    real_open = Image.open
+
+    def fake_open(path):
+        if path == str(bad):
+            raise ValueError("Broken image")
+        return real_open(path)
+
+    monkeypatch.setattr(Image, "open", fake_open)
+
+    rows = predict_batch(FakeClassifier(PREDICTIONS), [str(bad), str(good)])
+
+    assert rows == [
+        ["bad.png", "Couldn't read this file", ""],
+        ["good.jpg", "Tomato - Leaf Mold", "60.0%"],
+    ]
