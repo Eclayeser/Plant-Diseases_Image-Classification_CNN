@@ -461,6 +461,11 @@ Approximate share of AI-generated code: 60%.
 - I ran the six experiments and chose the framing and the recommendation (both models perform the same, so prefer the simpler and cheaper one). Claude read the checkpoints, computed the comparison with SGP-52 and the timings, and drafted the write-up; I edited it.
 - Approximate share of AI-generated documentation: 30%
 
+## documents/architecture.md (SGP-85, Mark Tarnavskyi)
+
+- I wrote the structure, the repository layout table and the diagram. Claude read the code and drafted the overview, component descriptions, local documentation table and data flow, then simplified the file to avoid repeating what the docstrings already say; I reviewed and edited the result.
+- Approximate share of AI-generated documentation: 50%
+
 ## SGP-56 · Configuration and code organisation (Javier Fimia)
 
 - For PR 113, I focused on how the project supplies and records settings. Codex helped me audit the codebase. I chose which findings to act on, updated the experiment settings, model selection, run tracking and local deployment, and ran the relevant tests locally.
@@ -505,3 +510,7 @@ Approximate share of AI-generated code: 60%.
 - Configs written by me from the SGP-63 configs.
 - I ran the experiments; Claude helped me draft the experiment comparisons and conclusion, which I then reviewed and edited when necessary.
 - Approximate share of AI-generated documentation: 45%
+
+## documents/testing.md (SGP-84, Gul Nil Kayalioglu)
+- I wrote the first draft of the test strategy and decided how to group the tests into levels. Claude checked the document against the test files and CI workflows, suggested the Continuous Integration section, the paragraph about fakes, and some missing test areas. I edited the wording and checked the test list and coverage myself.
+- Approximate share of AI-generated text: 30%
