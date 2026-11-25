@@ -36,7 +36,7 @@ The results were evaluated against the validation data split using `evaluate.py`
 | 43 | 0.9894 | 0.9998 | 0.9999 | 0.9864 | 0.9851 | 0.9856 |
 | 44 | 0.9909 | 0.9994 | 0.9999 | 0.9891 | 0.9875 | 0.9882 |
 
-The validation split has 8317 images across 38 classes.
+The validation split has 8317 images across 39 classes (38 plant-disease/healthy classes plus `Background_without_leaves`).
 
 ## Observations
 - **Consistent across seeds.** Seed 44 has the highest top-1 accuracy and macro F1 at the best epoch, but the margins are within seed-to-seed noise.
