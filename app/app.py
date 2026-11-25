@@ -130,5 +130,8 @@ def build_batch_ui(classifier):
 
 if __name__ == "__main__":
     classifier = LeafClassifier.from_dir(MODEL_DIR)
-    demo = build_ui(classifier)
+    demo = gr.TabbedInterface(
+        [build_ui(classifier), build_batch_ui(classifier)],
+        tab_names=["Single image", "Batch prediction"],
+    )
     demo.launch(server_port=int(os.getenv("PORT", 8080)), max_file_size="10mb", css=APP_CSS)

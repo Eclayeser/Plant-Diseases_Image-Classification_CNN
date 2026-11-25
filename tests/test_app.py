@@ -284,3 +284,31 @@ def test_build_batch_ui_returns_interface(tmp_path):
     rows = demo.fn([str(path)])
 
     assert rows == [["leaf.jpg", "Tomato - Leaf Mold", "60.0%"]]
+
+
+def test_main_shows_single_and_batch_tabs(monkeypatch):
+    """The app has one tab for a single image and one for many images."""
+    launched = {}
+
+    monkeypatch.setattr(
+        LeafClassifier,
+        "from_dir",
+        classmethod(lambda cls, model_dir: FakeClassifier(PREDICTIONS))
+    )
+
+    monkeypatch.setattr(
+        gr.Blocks,
+        "launch",
+        lambda self, **kwargs: launched.update(demo=self)
+    )
+
+    run_app_main(monkeypatch)
+
+    demo = launched["demo"]
+    assert isinstance(demo, gr.TabbedInterface)
+
+    tabs = demo.children[0].children
+
+    assert len(tabs) == 2
+    assert tabs[0].label == "Single image"
+    assert tabs[1].label == "Batch prediction"
