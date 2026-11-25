@@ -85,6 +85,19 @@ def parse_patience(value):
         raise ValueError(message)
     return patience
 
+def parse_epochs(value):
+    """Return epochs as a positive int, converting UI-edited strings. Raises ValueError otherwise."""
+    message = f"epochs must be a positive integer, got {value!r}"
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
+        raise ValueError(message)
+    try:
+        epochs = int(value)
+    except ValueError:
+        raise ValueError(message) from None
+    if epochs <= 0:
+        raise ValueError(message)
+    return epochs
+
 def train_one_epoch(model, loader, criterion, optimizer, device):
     """
     Train the model for one pass over the loader, updating its weights.
@@ -271,6 +284,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
         )
         data, model_settings = cfg["data"], cfg["model"] # rebind to the connected dicts
         cfg["train"]["patience"] = parse_patience(cfg["train"]["patience"])
+        cfg["train"]["epochs"] = parse_epochs(cfg["train"]["epochs"])
         logger = task.get_logger()
 
         torch.manual_seed(cfg["seed"])
