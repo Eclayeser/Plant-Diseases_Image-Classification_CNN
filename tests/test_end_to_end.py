@@ -58,7 +58,7 @@ def test_end_to_end_pipeline(monkeypatch, tmp_path):
     assert len(checkpoints) == 1
     checkpoint = checkpoints[0]
 
-    # 2. Evaluate the trained model
+    # Evaluate the trained model
     monkeypatch.setattr(evaluate, "get_loaders", fake_get_loaders)
     monkeypatch.setattr(evaluate, "initialise_task", lambda **kwargs: (task, kwargs["config"]))
     monkeypatch.setattr(evaluate, "log_final_metrics", MagicMock())
@@ -77,7 +77,6 @@ def test_end_to_end_pipeline(monkeypatch, tmp_path):
     reports = list((tmp_path / "reports").glob("*_report.txt"))
     assert len(reports) == 1
     assert "Top-1 Accuracy" in reports[0].read_text()
-
 
     # Export the trained checkpoint to ONNX without ClearML
     monkeypatch.setattr(export_onnx, "get_task", lambda task_id: task)
