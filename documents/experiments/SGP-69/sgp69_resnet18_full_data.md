@@ -51,12 +51,12 @@ The validation split has 8317 images across 38 classes.
 - Runs used a ROCm build of PyTorch. Results are deterministic only given the SGP-16 fix, and may not match CUDA exactly.
 
 ## Deployment
-- Seed 44 was selected for deployment because it achieved the highest top-1 accuracy and macro F1 on the validation split. The seed-44 best-validation-loss checkpoint was exported to ONNX.
+- Seed 44 was selected for deployment because it achieved the highest top-1 accuracy and macro F1 on the validation split. The seed-44 `best_checkpoint` artifact was exported to ONNX.
 
 |  | ID | URL |
 |---|---|---|
 | Task | 23edd3eb3f8e436aacbeeef0bbc1775c | [Link](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/experiments/23edd3eb3f8e436aacbeeef0bbc1775c/output/execution) |
-| Model | 4ecac99ad9b048c9ae0c9226e327393f | [Link](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/models/4ecac99ad9b048c9ae0c9226e327393f/general?columns=selected&columns=framework&columns=name&columns=tags&columns=ready&columns=project.name&columns=users&columns=task.name&columns=last_update&order=-created) |
+| Model | b42092f277924c0a83afebe689dfdb5f | [Link](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/models/b42092f277924c0a83afebe689dfdb5f/general?columns=selected&columns=framework&columns=name&columns=tags&columns=ready&columns=project.name&columns=users&columns=task.name&columns=last_update&order=-created) |
 
 ## Reproducing
 Train each seed:
@@ -68,19 +68,15 @@ Repeat with `seed43` and `seed44`. Each run is tagged `production` and `SGP-69` 
 
 Evaluate the best checkpoint:
 ```bash
-python evaluate.py --checkpoint <best_checkpoint_path> \
+python evaluate.py --task-id <training task ID> \
  --responsible "<name>" --run-type production --issue-id SGP-69
 ```
 
-Export the training task's `best_checkpoint`:
+Export and upload the the training task's `best_checkpoint` to the ClearML "Models" tab:
 ```bash
-python -m scripts.export_onnx --task-id <training task ID>
+python -m scripts.export_onnx --task-id <training task ID> --upload --responsible "<name>" --run-type production --issue-id SGP-69
 ```
 
-Upload it to the ClearML "Models" tab:
-```bash
-python -m scripts.export_onnx --task-id <training task ID> --upload --responsible "<name>"
-```
 Put the printed model ID in `deployment/model.lock.json`:
 ```
 {
