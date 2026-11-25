@@ -18,6 +18,14 @@ Configs: `resnet18_full_patience8_num_workers6_seed{42,43,44}.yaml`
 
 The checkpoints are not committed to the repository. They are stored as artifacts (`final_checkpoint` and `best_checkpoint`) in each ClearML task.
 
+The charts below show the seed 44 runs.
+
+![Training curve](resnet18_full_data_seed44_training_curve.png)
+
+![Confusion matrix](resnet18_full_data_seed44_confusion_matrix.png)
+
+![Misclassified grid](resnet18_full_data_seed44_misclassified_grid.png)
+
 ## Evaluation
 The results were evaluated against the validation data split using `evaluate.py`
 
