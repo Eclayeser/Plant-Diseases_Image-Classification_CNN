@@ -214,6 +214,7 @@ def save_and_upload_failure_artifacts(
 
 
 def apply_training_defaults(cfg: dict) -> None:
+    """Fill in missing settings in place and prepare normalisation for ClearML."""
     data = cfg["data"]
     data.setdefault("augment", True)
     data.setdefault("normalize", NO_NORMALIZATION)
