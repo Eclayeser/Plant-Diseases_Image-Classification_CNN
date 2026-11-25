@@ -274,6 +274,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             task_name=f"{cfg['model']['type']} - {config_name}",
             tags=tags,
         )
+        # Use the connected config so edits made to a cloned ClearML task take effect.
         data, model_settings = cfg["data"], cfg["model"]
         cfg["train"]["patience"] = parse_patience(cfg["train"]["patience"])
         logger = task.get_logger()
