@@ -227,12 +227,12 @@ def apply_training_defaults(cfg: dict) -> None:
 
     training = cfg["train"]
     training.setdefault("optimizer", DEFAULT_OPTIMIZER)
-    training.setdefault("patience", None)
-    training.setdefault("min_delta", 0.0)
+    training.setdefault("patience", None)  # None disables early stopping.
+    training.setdefault("min_delta", 0.0)  # Any decrease in validation loss counts as improvement.
 
     model = cfg["model"]
     if model["type"] in ("BasicCNN", "RegularisedCNN"):
-        model.setdefault("pooling", DEFAULT_POOLING)
+        model.setdefault("pooling", DEFAULT_POOLING)  # Record the default so it is visible in ClearML.
     if model["type"] == "RegularisedCNN" and model.get("regularisation") == "dropout":
         model.setdefault("dropout_p", DEFAULT_DROPOUT_P)
 
