@@ -502,3 +502,9 @@ Approximate share of AI-generated code: 60%.
 ## documents/testing.md (SGP-84, Gul Nil Kayalioglu)
 - I wrote the first draft of the test strategy and decided how to group the tests into levels. Claude checked the document against the test files and CI workflows, suggested the Continuous Integration section, the paragraph about fakes, and some missing test areas. I edited the wording and checked the test list and coverage myself.
 - Approximate share of AI-generated text: 30%
+
+## documents/experiments/SGP-69/sgp69_augmentation_full_data.md (SGP-69, Reon Carroll-Ito)
+
+- Claude filled in the results table using the exported JSON files for accuracy, f1 and loss.
+- Claude generated the evaluation table using the exported evaluation reports.
+- Approximate share of AI-generated documentation: 0%
