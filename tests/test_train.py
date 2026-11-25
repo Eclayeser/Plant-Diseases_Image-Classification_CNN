@@ -471,6 +471,7 @@ def test_main_saves_improved_best_checkpoint_after_interruption(monkeypatch, tmp
     )
 
     def interrupt_reporting(*args, **kwargs):
+        assert list(tmp_path.glob("*_best.pt")), "Best checkpoint should have been saved before reporting"
         raise KeyboardInterrupt
 
     monkeypatch.setattr(train, report_name, interrupt_reporting)
