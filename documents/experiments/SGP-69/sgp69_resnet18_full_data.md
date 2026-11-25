@@ -46,3 +46,15 @@ The validation split has 8317 images across 38 classes.
 - Runs used a ROCm build of PyTorch. Results are deterministic only given the SGP-16 fix, and may not match CUDA exactly.
 
 ## Reproducing
+Train each seed:
+```bash
+python train.py --config configs/resnet18_full_patience8_num_workers6_seed42.yaml \
+  --responsible "<name>" --run-type production --issue-id SGP-69
+```
+Repeat with `seed43` and `seed44`. Each run is tagged `production` and `SGP-69` in ClearML. Training saves a best validation-loss checkpoint (`*_best.pt`) alongside the final-epoch checkpoint.
+
+Evaluate the best checkpoint:
+```bash
+python evaluate.py --checkpoint <best_checkpoint_path> \
+ --responsible "<name>" --run-type production --issue-id SGP-69
+```
