@@ -2,6 +2,7 @@
 
 ## Setup
 Rerun ResNet18 on the full dataset.
+ResNet18 starts from ImageNet pretrained weights with only the final `fc` layer replaced.
 Shared settings:
 - `data`: `image_size: 128`, `fraction: 1.0`, `batch_size: 32`, `normalize: imagenet`, `augment: true`, `num_workers: 6`
 - `model`: `type: ResNet18`
