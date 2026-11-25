@@ -58,6 +58,11 @@ The validation split has 8317 images across 38 classes.
 | Task | 23edd3eb3f8e436aacbeeef0bbc1775c | [Link](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/experiments/23edd3eb3f8e436aacbeeef0bbc1775c/output/execution) |
 | Model | b42092f277924c0a83afebe689dfdb5f | [Link](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/models/b42092f277924c0a83afebe689dfdb5f/general?columns=selected&columns=framework&columns=name&columns=tags&columns=ready&columns=project.name&columns=users&columns=task.name&columns=last_update&order=-created) |
 
+- The exported ONNX model passed all tests through the following command:
+```bash
+python -m pytest tests/
+```
+
 ## Reproducing
 Train each seed:
 ```bash
