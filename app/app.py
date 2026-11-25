@@ -118,7 +118,12 @@ def build_batch_ui(classifier):
     demo = gr.Interface(
         fn=predict,
         inputs=gr.File(file_count="multiple", file_types=["image"], type="filepath", label="Upload leaf images"),
-        outputs=gr.Dataframe(headers=["File", "Prediction", "Confidence"], label="Predictions"),
+        outputs=gr.Dataframe(
+            headers=["File", "Prediction", "Confidence"],
+            label="Predictions",
+            column_widths=["40%", "40%", "20%"],
+            wrap=True,
+        ),
         title="Batch Prediction",
                 description=(
             "Upload several leaf photos at once to get the top prediction for each one. "
