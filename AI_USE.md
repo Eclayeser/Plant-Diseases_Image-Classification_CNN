@@ -505,6 +505,6 @@ Approximate share of AI-generated code: 60%.
 
 ## documents/experiments/SGP-69/sgp69_augmentation_full_data.md (SGP-69, Reon Carroll-Ito)
 
-- Claude filled in the results table using the exported JSON files for accuracy, f1 and loss.
-- Claude generated the evaluation table using the exported evaluation reports.
-- Approximate share of AI-generated documentation: 0%
+- Claude filled in the results table using the exported JSON files for accuracy, f1 and loss and filled in the evaluation table using the exported evaluation reports.
+- Claude helped me draft the experiment observations.
+- Approximate share of AI-generated documentation: 30%
