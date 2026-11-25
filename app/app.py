@@ -121,7 +121,7 @@ def build_batch_ui(classifier):
         outputs=gr.Dataframe(
             headers=["File", "Prediction", "Confidence"],
             label="Predictions",
-            column_widths=["40%", "40%", "20%"],
+            column_widths=["30%", "38%", "32%"],
             wrap=True,
         ),
         title="Batch Prediction",
