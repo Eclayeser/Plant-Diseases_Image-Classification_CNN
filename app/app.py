@@ -125,9 +125,10 @@ def build_batch_ui(classifier):
             wrap=True,
         ),
         title="Batch Prediction",
-                description=(
+        description=(
             "Upload several leaf photos at once to get the top prediction for each one. "
-            "It gives a first opinion for the crops and diseases the model was trained on and is not a diagnosis."),
+            "It gives a first opinion for the crops and diseases the model was trained on and is not a diagnosis."
+        ),
         api_name="predict_batch",
         flagging_mode="never",
         delete_cache=(600, 600),  # same clean-up as the single image tab
