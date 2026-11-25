@@ -109,6 +109,25 @@ def build_ui(classifier):
     return demo
 
 
+def build_batch_ui(classifier):
+    """Build the tab that predicts many leaf images at once."""
+
+    def predict(files):
+        return predict_batch(classifier, files)
+
+    demo = gr.Interface(
+        fn=predict,
+        inputs=gr.File(file_count="multiple", file_types=["image"], type="filepath", label="Upload leaf images"),
+        outputs=gr.Dataframe(headers=["File", "Prediction", "Confidence"], label="Predictions"),
+        title="Batch Prediction",
+        description="Upload several leaf photos at once to get the top prediction for each one.",
+        api_name="predict_batch",
+        flagging_mode="never",
+        delete_cache=(600, 600),  # same clean-up as the single image tab
+    )
+    return demo
+
+
 if __name__ == "__main__":
     classifier = LeafClassifier.from_dir(MODEL_DIR)
     demo = build_ui(classifier)

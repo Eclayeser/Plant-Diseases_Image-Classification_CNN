@@ -7,7 +7,7 @@ import pytest
 from PIL import Image
 
 import leafapp.config
-from app.app import GALLERY_DIR, build_ui, format_class_name, predict_batch
+from app.app import GALLERY_DIR, build_batch_ui, build_ui, format_class_name, predict_batch
 from leafapp.predict import LeafClassifier
 
 
@@ -268,3 +268,19 @@ def test_predict_batch_skips_unreadable_files(tmp_path):
 def test_predict_batch_without_files():
     """No uploaded files gives an empty table."""
     assert predict_batch(FakeClassifier(PREDICTIONS), None) == []
+
+
+def test_build_batch_ui_returns_interface(tmp_path):
+    """The batch tab takes several files and shows the predictions in a table."""
+    demo = build_batch_ui(FakeClassifier(PREDICTIONS))
+
+    path = tmp_path / "leaf.jpg"
+    Image.new("RGB", (64, 64), "green").save(path)
+
+    assert isinstance(demo, gr.Interface)
+    assert isinstance(demo.input_components[0], gr.File)
+    assert isinstance(demo.output_components[0], gr.Dataframe)
+
+    rows = demo.fn([str(path)])
+
+    assert rows == [["leaf.jpg", "Tomato - Leaf Mold", "60.0%"]]
