@@ -44,6 +44,37 @@ def prediction_chart_html(names, percents):
     return "".join(rows)
 
 
+def predict_batch(classifier, files):
+    """Return one table row (file name, top prediction, confidence) for each uploaded image."""
+    rows = []
+
+    if not files:
+        return rows
+
+    for path in files:
+        file_name = Path(path).name
+
+        try:
+            with Image.open(path) as img:
+                image = img.convert("RGB")
+        except (OSError, Image.DecompressionBombError):
+            rows.append([file_name, "Couldn't read this file", ""])
+            continue
+
+        top_name, probability = classifier.top_k(image, k=1)[0]
+
+        if top_name == NO_LEAF_CLASS:
+            prediction = "No leaf found"
+        else:
+            prediction = format_class_name(top_name)
+
+        confidence = f"{probability * 100:.1f}%"
+
+        rows.append([file_name, prediction, confidence])
+
+    return rows
+
+
 def build_ui(classifier):
     """Build the Gradio interface"""
 

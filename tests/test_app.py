@@ -7,7 +7,7 @@ import pytest
 from PIL import Image
 
 import leafapp.config
-from app.app import GALLERY_DIR, build_ui, format_class_name
+from app.app import GALLERY_DIR, build_ui, format_class_name, predict_batch
 from leafapp.predict import LeafClassifier
 
 
@@ -227,3 +227,44 @@ def test_main_adds_the_app_styles(monkeypatch):
     run_app_main(monkeypatch)
 
     assert ".about-models summary" in launched["css"]
+
+
+def test_predict_batch_returns_one_row_per_image(tmp_path):
+    """Each uploaded image gets its file name, top prediction and confidence."""
+    paths = []
+
+    for name in ["leaf1.jpg", "leaf2.jpg"]:
+        path = tmp_path / name
+        Image.new("RGB", (64, 64), "green").save(path)
+        paths.append(str(path))
+
+    rows = predict_batch(FakeClassifier(PREDICTIONS), paths)
+
+    assert rows == [
+        ["leaf1.jpg", "Tomato - Leaf Mold", "60.0%"],
+        ["leaf2.jpg", "Tomato - Leaf Mold", "60.0%"],
+    ]
+
+
+def test_predict_batch_skips_unreadable_files(tmp_path):
+    """A broken file gets an error row instead of stopping the whole batch."""
+    broken = tmp_path / "broken.jpg"
+    broken.write_text("not an image")
+
+    good = tmp_path / "good.jpg"
+    Image.new("RGB", (64, 64), "green").save(good)
+
+    rows = predict_batch(
+        FakeClassifier(PREDICTIONS),
+        [str(broken), str(good)]
+    )
+
+    assert rows == [
+        ["broken.jpg", "Couldn't read this file", ""],
+        ["good.jpg", "Tomato - Leaf Mold", "60.0%"],
+    ]
+
+
+def test_predict_batch_without_files():
+    """No uploaded files gives an empty table."""
+    assert predict_batch(FakeClassifier(PREDICTIONS), None) == []
