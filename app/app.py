@@ -45,6 +45,13 @@ def prediction_chart_html(names, percents):
     return "".join(rows)
 
 
+def display_name(class_name):
+    """Readable class name; the background class is shown as "No leaf found"."""
+    if class_name == NO_LEAF_CLASS:
+        return "No leaf found"
+    return format_class_name(class_name)
+
+
 def predict_batch(classifier, files):
     """Return one table row (file name, top prediction, confidence) for each uploaded image."""
     rows = []
@@ -66,11 +73,7 @@ def predict_batch(classifier, files):
             continue
 
         top_name, probability = classifier.top_k(image, k=1)[0]
-
-        if top_name == NO_LEAF_CLASS:
-            prediction = "No leaf found"
-        else:
-            prediction = format_class_name(top_name)
+        prediction = display_name(top_name)
 
         confidence = f"{probability * 100:.1f}%"
 
@@ -87,7 +90,7 @@ def build_ui(classifier):
             return None
 
         predictions = classifier.top_k(image, k=5)
-        names = [format_class_name(name) for name, _ in predictions]
+        names = [display_name(name) for name, _ in predictions]
         percents = [round(probability * 100, 1) for _, probability in predictions]
         chart = prediction_chart_html(names, percents)
 
@@ -131,7 +134,7 @@ def build_batch_ui(classifier):
         ),
         title="Batch Prediction",
         description=(
-            "Upload several leaf photos at once to get the top prediction for each one. "
+            f"Upload up to {MAX_BATCH_FILES} leaf photos at once to get the top prediction for each one. "
             "It gives a first opinion for the crops and diseases the model was trained on and is not a diagnosis."
         ),
         api_name="predict_batch",
