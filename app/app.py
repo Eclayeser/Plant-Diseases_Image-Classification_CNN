@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import gradio as gr
 from PIL import Image
-from app.components import LeafImage
+from app.components import LeafImage, IMAGE_READ_ERRORS
 from leafapp.config import MODEL_DIR
 from leafapp.labels import format_class_name
 from leafapp.predict import LeafClassifier
@@ -15,7 +15,16 @@ ABOUT_MODELS = (APP_DIR / "about_models.md").read_text(encoding="utf-8")
 APP_CSS = (APP_DIR / "style.css").read_text(encoding="utf-8")
 NO_LEAF_CLASS = "Background_without_leaves"
 NO_LEAF_MESSAGE = "<p><strong>No leaf found.</strong> Please, try a photo of a single leaf.</p>"
-
+MAX_BATCH_FILES = 20  # keeps memory and request time low on Render's free tier
+APP_TITLE = "Plant Disease Classification"
+DISCLAIMER = "It gives a first opinion for the crops and diseases the model was trained on and is not a diagnosis."
+UPLOAD_CLEANUP = (600, 600)  # every 10 minutes, delete uploads older than 10 minutes
+SHARED_SETTINGS = {  # settings used by both tabs
+    "title": APP_TITLE,
+    "flagging_mode": "never",
+    "delete_cache": UPLOAD_CLEANUP,
+    "article": ABOUT_MODELS,
+}
 
 def prediction_chart_html(names, percents):
     """Show the top 5 predictions as horizontal bars."""
@@ -44,6 +53,43 @@ def prediction_chart_html(names, percents):
     return "".join(rows)
 
 
+def display_name(class_name):
+    """Readable class name; the background class is shown as "No leaf found"."""
+    if class_name == NO_LEAF_CLASS:
+        return "No leaf found"
+    return format_class_name(class_name)
+
+
+def predict_batch(classifier, files):
+    """Return one table row (file name, top prediction, confidence) for each uploaded image."""
+    rows = []
+
+    if not files:
+        return rows
+
+    if len(files) > MAX_BATCH_FILES:
+        raise gr.Error(f"Please upload at most {MAX_BATCH_FILES} images at a time.")
+
+    for path in files:
+        file_name = Path(path).name
+
+        try:
+            with Image.open(path) as img:
+                image = img.convert("RGB")
+        except IMAGE_READ_ERRORS:
+            rows.append([file_name, "Couldn't read this file", ""])
+            continue
+
+        top_name, probability = classifier.top_k(image, k=1)[0]
+        prediction = display_name(top_name)
+
+        confidence = f"{probability * 100:.1f}%"
+
+        rows.append([file_name, prediction, confidence])
+
+    return rows
+
+
 def build_ui(classifier):
     """Build the Gradio interface"""
 
@@ -52,7 +98,7 @@ def build_ui(classifier):
             return None
 
         predictions = classifier.top_k(image, k=5)
-        names = [format_class_name(name) for name, _ in predictions]
+        names = [display_name(name) for name, _ in predictions]
         percents = [round(probability * 100, 1) for _, probability in predictions]
         chart = prediction_chart_html(names, percents)
 
@@ -64,21 +110,46 @@ def build_ui(classifier):
         fn=predict,
         inputs=LeafImage(type="pil", label="Upload a leaf image"),
         outputs=gr.HTML(label="Top 5 Predictions"),
-        title="Plant Disease Classification",
-        description=(
-            "Upload a plant leaf image to identify its disease, or pick one from the gallery below. "
-            "It gives a first opinion for the crops and diseases the model was trained on and is not a diagnosis."
-        ),
+        description=f"Upload a plant leaf image to identify its disease, or pick one from the gallery below. {DISCLAIMER}",
         examples=[[str(path)] for path in sorted(GALLERY_DIR.glob("*.jpg"))],
         api_name="predict",
-        flagging_mode="never",
-        delete_cache=(600, 600),  # every 10 minutes, delete uploads older than 10 minutes
-        article=ABOUT_MODELS,
+        **SHARED_SETTINGS,
+    )
+    return demo
+
+
+def build_batch_ui(classifier):
+    """Build the tab that predicts many leaf images at once."""
+
+    def predict(files):
+        return predict_batch(classifier, files)
+
+    demo = gr.Interface(
+        fn=predict,
+        inputs=gr.File(file_count="multiple", file_types=["image"], type="filepath", label="Upload leaf images"),
+        outputs=gr.Dataframe(
+            headers=["File", "Prediction", "Confidence"],
+            label="Predictions",
+            column_widths=["30%", "38%", "32%"],
+            wrap=True,
+        ),
+        description=f"Upload up to {MAX_BATCH_FILES} leaf photos at once to get the top prediction for each one. {DISCLAIMER}",
+        api_name="predict_batch",
+        **SHARED_SETTINGS,
     )
     return demo
 
 
 if __name__ == "__main__":
     classifier = LeafClassifier.from_dir(MODEL_DIR)
-    demo = build_ui(classifier)
-    demo.launch(server_port=int(os.getenv("PORT", 8080)), max_file_size="10mb", css=APP_CSS)
+    demo = gr.TabbedInterface(
+        [build_ui(classifier), build_batch_ui(classifier)],
+        tab_names=["Single image", "Batch prediction"],
+    )
+    demo.title = APP_TITLE  # browser tab title, otherwise it says "Gradio"
+    demo.delete_cache = UPLOAD_CLEANUP  # TabbedInterface does not take this setting from its tabs
+    demo.launch(
+        server_port=int(os.getenv("PORT", 8080)),
+        max_file_size="10mb",
+        css=APP_CSS,
+    )
