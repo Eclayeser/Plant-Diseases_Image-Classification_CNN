@@ -15,6 +15,7 @@ ABOUT_MODELS = (APP_DIR / "about_models.md").read_text(encoding="utf-8")
 APP_CSS = (APP_DIR / "style.css").read_text(encoding="utf-8")
 NO_LEAF_CLASS = "Background_without_leaves"
 NO_LEAF_MESSAGE = "<p><strong>No leaf found.</strong> Please, try a photo of a single leaf.</p>"
+MAX_BATCH_FILES = 20  # keeps memory and request time low on Render's free tier
 
 
 def prediction_chart_html(names, percents):
@@ -50,6 +51,9 @@ def predict_batch(classifier, files):
 
     if not files:
         return rows
+
+    if len(files) > MAX_BATCH_FILES:
+        raise gr.Error(f"Please upload at most {MAX_BATCH_FILES} images at a time.")
 
     for path in files:
         file_name = Path(path).name
@@ -99,6 +103,7 @@ def build_ui(classifier):
         description=(
             "Upload a plant leaf image to identify its disease, or pick one from the gallery below. "
             "It gives a first opinion for the crops and diseases the model was trained on and is not a diagnosis."
+            f"Upload up to {MAX_BATCH_FILES} leaf photos at once. "
         ),
         examples=[[str(path)] for path in sorted(GALLERY_DIR.glob("*.jpg"))],
         api_name="predict",

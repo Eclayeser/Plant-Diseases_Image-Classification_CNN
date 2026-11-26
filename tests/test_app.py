@@ -7,7 +7,7 @@ import pytest
 from PIL import Image
 
 import leafapp.config
-from app.app import GALLERY_DIR, build_batch_ui, build_ui, format_class_name, predict_batch
+from app.app import GALLERY_DIR, build_batch_ui, build_ui, format_class_name, predict_batch, MAX_BATCH_FILES
 from leafapp.predict import LeafClassifier
 
 
@@ -336,3 +336,11 @@ def test_predict_batch_skips_files_pillow_cannot_parse(tmp_path, monkeypatch):
         ["bad.png", "Couldn't read this file", ""],
         ["good.jpg", "Tomato - Leaf Mold", "60.0%"],
     ]
+
+
+def test_predict_batch_rejects_too_many_files():
+    """Too many files at once gives a clear error instead of overloading the server."""
+    files = ["leaf.jpg"] * (MAX_BATCH_FILES + 1)
+
+    with pytest.raises(gr.Error, match="at most"):
+        predict_batch(FakeClassifier(PREDICTIONS), files)
