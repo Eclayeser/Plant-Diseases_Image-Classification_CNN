@@ -518,3 +518,8 @@ Approximate share of AI-generated code: 60%.
 ## documents/testing.md (SGP-90, Gul Nil Kayalioglu)
 - I added an End-to-End Testing section and updated the test count and coverage.
 - Approximate share of AI-generated text:0%
+
+## configs/cnn_wider_deeper_early_stopping_full_seed{42,43,44}_patience8_num_workers6.yaml, documents/experiments/SGP-91 (SGP-91, Mario Cavicchioli)
+- Configs: copied from the SGP-73 Wider+Deeper dropout configs and edited by me (dropout removed).
+- I ran the experiments; Claude read the results from the checkpoints and drafted the write-up and PR description, which I reviewed and edited.
+- Approximate share of AI-generated code: 0% (configs); approximate share of AI-generated text: 60% (write-up).
