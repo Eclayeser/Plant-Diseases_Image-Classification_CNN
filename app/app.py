@@ -16,7 +16,15 @@ APP_CSS = (APP_DIR / "style.css").read_text(encoding="utf-8")
 NO_LEAF_CLASS = "Background_without_leaves"
 NO_LEAF_MESSAGE = "<p><strong>No leaf found.</strong> Please, try a photo of a single leaf.</p>"
 MAX_BATCH_FILES = 20  # keeps memory and request time low on Render's free tier
-
+APP_TITLE = "Plant Disease Classification"
+DISCLAIMER = "It gives a first opinion for the crops and diseases the model was trained on and is not a diagnosis."
+UPLOAD_CLEANUP = (600, 600)  # every 10 minutes, delete uploads older than 10 minutes
+SHARED_SETTINGS = {  # settings used by both tabs
+    "title": APP_TITLE,
+    "flagging_mode": "never",
+    "delete_cache": UPLOAD_CLEANUP,
+    "article": ABOUT_MODELS,
+}
 
 def prediction_chart_html(names, percents):
     """Show the top 5 predictions as horizontal bars."""
@@ -102,17 +110,10 @@ def build_ui(classifier):
         fn=predict,
         inputs=LeafImage(type="pil", label="Upload a leaf image"),
         outputs=gr.HTML(label="Top 5 Predictions"),
-        title="Plant Disease Classification",
-        description=(
-            "Upload a plant leaf image to identify its disease, or pick one from the gallery below. "
-            "It gives a first opinion for the crops and diseases the model was trained on and is not a diagnosis."
-            f"Upload up to {MAX_BATCH_FILES} leaf photos at once. "
-        ),
+        description=f"Upload a plant leaf image to identify its disease, or pick one from the gallery below. {DISCLAIMER}",
         examples=[[str(path)] for path in sorted(GALLERY_DIR.glob("*.jpg"))],
         api_name="predict",
-        flagging_mode="never",
-        delete_cache=(600, 600),  # every 10 minutes, delete uploads older than 10 minutes
-        article=ABOUT_MODELS,
+        **SHARED_SETTINGS,
     )
     return demo
 
@@ -132,14 +133,9 @@ def build_batch_ui(classifier):
             column_widths=["30%", "38%", "32%"],
             wrap=True,
         ),
-        title="Batch Prediction",
-        description=(
-            f"Upload up to {MAX_BATCH_FILES} leaf photos at once to get the top prediction for each one. "
-            "It gives a first opinion for the crops and diseases the model was trained on and is not a diagnosis."
-        ),
+        description=f"Upload up to {MAX_BATCH_FILES} leaf photos at once to get the top prediction for each one. {DISCLAIMER}",
         api_name="predict_batch",
-        flagging_mode="never",
-        delete_cache=(600, 600),  # same clean-up as the single image tab
+        **SHARED_SETTINGS,
     )
     return demo
 
@@ -150,5 +146,10 @@ if __name__ == "__main__":
         [build_ui(classifier), build_batch_ui(classifier)],
         tab_names=["Single image", "Batch prediction"],
     )
-    demo.delete_cache = (600, 600) 
-    demo.launch(server_port=int(os.getenv("PORT", 8080)), max_file_size="10mb", css=APP_CSS)
+    demo.title = APP_TITLE  # browser tab title, otherwise it says "Gradio"
+    demo.delete_cache = UPLOAD_CLEANUP  # TabbedInterface does not take this setting from its tabs
+    demo.launch(
+        server_port=int(os.getenv("PORT", 8080)),
+        max_file_size="10mb",
+        css=APP_CSS,
+    )

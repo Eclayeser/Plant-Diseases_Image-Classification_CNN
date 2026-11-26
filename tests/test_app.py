@@ -7,7 +7,7 @@ import pytest
 from PIL import Image
 
 import leafapp.config
-from app.app import GALLERY_DIR, build_batch_ui, build_ui, format_class_name, predict_batch, MAX_BATCH_FILES
+from app.app import GALLERY_DIR, build_batch_ui, build_ui, format_class_name, predict_batch, MAX_BATCH_FILES, display_name, ABOUT_MODELS, APP_TITLE
 from leafapp.predict import LeafClassifier
 
 
@@ -280,6 +280,8 @@ def test_build_batch_ui_returns_interface(tmp_path):
     assert isinstance(demo, gr.Interface)
     assert isinstance(demo.input_components[0], gr.File)
     assert isinstance(demo.output_components[0], gr.Dataframe)
+    assert demo.title == APP_TITLE
+    assert demo.article == ABOUT_MODELS
 
     rows = demo.fn([str(path)])
 
@@ -299,7 +301,7 @@ def test_main_shows_single_and_batch_tabs(monkeypatch):
     monkeypatch.setattr(
         gr.Blocks,
         "launch",
-        lambda self, **kwargs: launched.update(demo=self, delete_cache=self.delete_cache)
+        lambda self, **kwargs: launched.update(demo=self, delete_cache=self.delete_cache, title=self.title)
     )
 
     run_app_main(monkeypatch)
@@ -313,6 +315,7 @@ def test_main_shows_single_and_batch_tabs(monkeypatch):
     assert tabs[0].label == "Single image"
     assert tabs[1].label == "Batch prediction"
     assert launched["delete_cache"] == (600, 600)
+    assert launched["title"] == APP_TITLE
 
 
 def test_predict_batch_skips_files_pillow_cannot_parse(tmp_path, monkeypatch):
@@ -344,3 +347,9 @@ def test_predict_batch_rejects_too_many_files():
 
     with pytest.raises(gr.Error, match="at most"):
         predict_batch(FakeClassifier(PREDICTIONS), files)
+
+
+def test_display_name():
+    """Classes get readable names and the background class says "No leaf found"."""
+    assert display_name("Tomato___Leaf_Mold") == "Tomato - Leaf Mold"
+    assert display_name("Background_without_leaves") == "No leaf found"
