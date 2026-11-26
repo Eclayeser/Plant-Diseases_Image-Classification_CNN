@@ -203,6 +203,19 @@ def test_unreadable_file_shows_a_clear_error(tmp_path):
         demo.input_components[0].preprocess(ImageData(path=str(broken)))
 
 
+def test_single_prediction_handles_value_error(monkeypatch):
+    """Show a clear error when image preprocessing raises ValueError."""
+    demo = build_ui(FakeClassifier(PREDICTIONS))
+
+    def fake_preprocess(self, payload):
+        raise ValueError("Broken image")
+
+    monkeypatch.setattr(gr.Image, "preprocess", fake_preprocess)
+
+    with pytest.raises(gr.Error, match="Couldn't read this file"):
+        demo.input_components[0].preprocess(ImageData(path="bad.png"))
+
+
 def test_about_panel_explains_the_models():
     """The About panel warns that predictions can be wrong and lists the known limitations."""
     demo = build_ui(FakeClassifier(PREDICTIONS))

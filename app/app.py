@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import gradio as gr
 from PIL import Image
-from app.components import LeafImage
+from app.components import LeafImage, IMAGE_READ_ERRORS
 from leafapp.config import MODEL_DIR
 from leafapp.labels import format_class_name
 from leafapp.predict import LeafClassifier
@@ -76,7 +76,7 @@ def predict_batch(classifier, files):
         try:
             with Image.open(path) as img:
                 image = img.convert("RGB")
-        except (OSError, ValueError, Image.DecompressionBombError):
+        except IMAGE_READ_ERRORS:
             rows.append([file_name, "Couldn't read this file", ""])
             continue
 
