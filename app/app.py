@@ -7,7 +7,7 @@ from leafapp.config import MODEL_DIR
 from leafapp.labels import format_class_name
 from leafapp.predict import LeafClassifier
 
-Image.MAX_IMAGE_PIXELS = 20_000_000
+Image.MAX_IMAGE_PIXELS = 6_500_000  # Pillow errors at 2x this: 13M pixels
 COLORS = ["#2e7d32", "#1565c0", "#ef8f00", "#d84315", "#6a1b9a"]  # one colour per rank
 APP_DIR = Path(__file__).parent
 GALLERY_DIR = APP_DIR / "gallery"
@@ -76,6 +76,9 @@ def predict_batch(classifier, files):
         try:
             with Image.open(path) as img:
                 image = img.convert("RGB")
+        except Image.DecompressionBombError:
+            rows.append([file_name, "Image too large (max 13 megapixels)", ""])
+            continue
         except IMAGE_READ_ERRORS:
             rows.append([file_name, "Couldn't read this file", ""])
             continue
