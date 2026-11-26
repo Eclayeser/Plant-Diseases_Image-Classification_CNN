@@ -1,5 +1,7 @@
-# Checks that evaluate.py reads its command-line arguments correctly.
+from pathlib import Path
+
 import pytest
+import evaluate
 from evaluate import parse_args
 from leafapp.tracking import NAMES
 
@@ -49,3 +51,32 @@ def test_parse_args_rejects_artifact_without_task_id():
 def test_parse_args_rejects_invalid_artifact():
     with pytest.raises(SystemExit):
         parse_args(["--task-id", "abc123", "--artifact", "best", "--responsible", VALID_NAME])
+
+
+@pytest.mark.parametrize("split", ["validation", "test"])
+def test_report_formats_metrics_and_relative_diagram_paths(monkeypatch, tmp_path, split):
+    monkeypatch.setattr(evaluate, "ROOT", tmp_path)
+    diagrams = Path("outputs") / "diagrams"
+    metrics = {
+        "accuracy": 0.81, "top-3-accuracy": 0.93, "top-5-accuracy": 0.98,
+        "precision": 0.72, "recall": 0.63, "f1": 0.67,
+        "per-class-metrics": ({}, "healthy  0.84\nrust  0.71"),
+    }
+    report = evaluate.format_evaluation_report(
+        "best.pt", split, metrics, [(3, "rust", "healthy")],
+        curve_path=tmp_path / diagrams / "curve.png",
+        matrix_path=tmp_path / diagrams / "matrix.png",
+        grid_path=tmp_path / diagrams / "grid.png",
+    )
+
+    assert report.splitlines() == [
+        f"---   Checkpoint: best.pt | Data Set Chosen: {split.upper()}   ---",
+        "- Top-1 Accuracy: 0.81", "- Top-3 Accuracy: 0.93", "- Top-5 Accuracy: 0.98",
+        "- Macro Precision: 0.72", "- Macro Recall: 0.63", "- Macro F1: 0.67",
+        "", " Per-Class Metrics:", "healthy  0.84", "rust  0.71",
+        " Most Confused Pairs (true -> predicted):", " - rust -> healthy: 3",
+        "", "==============================   Diagrams   ==============================",
+        f" - Training Curve (Historical Metrics): {diagrams / 'curve.png'}",
+        f" - Confusion Matrix: {diagrams / 'matrix.png'}",
+        f" - Misclassified Images: {diagrams / 'grid.png'}",
+    ]

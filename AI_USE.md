@@ -466,10 +466,17 @@ Approximate share of AI-generated code: 60%.
 - I wrote the structure, the repository layout table and the diagram. Claude read the code and drafted the overview, component descriptions, local documentation table and data flow, then simplified the file to avoid repeating what the docstrings already say; I reviewed and edited the result.
 - Approximate share of AI-generated documentation: 50%
 
-## SGP-56 · Code quality (Javier Fimia)
+## SGP-56 · Configuration and code organisation (Javier Fimia)
 
-- For PR 1, I chose the scope to be code configuration and organisation. I used to codex to audit our large codebase and flag possible areas that need refining. I then filtered through these and updated experiment settings, model selection, run tracking and local deployment, then ran the relevant tests locally.
-- Codex generated approximately 70% of the new implementation and test code in PR 1.
+- For PR 113, I focused on how the project supplies and records settings. Codex helped me audit the codebase. I chose which findings to act on, updated the experiment settings, model selection, run tracking and local deployment, and ran the relevant tests locally.
+- Codex generated approximately 70% of the new implementation and test code in PR 113.
+
+## SGP-65 · Modularity and dependencies (Javier Fimia)
+
+- I used Codex to review the codebase for duplicated logic and import dependencies. We narrowed the work to separating evaluation plots from metrics, extracting the training defaults used before connecting to ClearML, and extracting the evaluation report formatter.
+- Codex then helped implement the refactors and wrote the regression tests. It compared the plots and report text with the previous outputs and ran the full local suite (163 tests passed).
+- Codex then wrote part of the new implementation and test code for SGP-65. The plotting and formatting logic moved from existing files was already part of the project.
+- Codex generated approximately 60% of the new implementation and test code in PR 113.
 
 
 ## app/app.py (SGP-88, Illia Putintsev)
@@ -528,3 +535,8 @@ Approximate share of AI-generated code: 60%.
 - I identified which tests were needed and wrote the test code with Claude's help using a fill-in-the-blank approach.
 - I ran all the tests locally and checked that they pass.
 - Approximate share of AI-generated code: 40%
+
+## configs/cnn_wider_deeper_early_stopping_full_seed{42,43,44}_patience8_num_workers6.yaml, documents/experiments/SGP-91 (SGP-91, Mario Cavicchioli)
+- Configs: copied from the SGP-73 Wider+Deeper dropout configs and edited by me (dropout removed).
+- I ran the experiments; Claude read the results from the checkpoints and drafted the write-up and PR description, which I reviewed and edited.
+- Approximate share of AI-generated code: 0% (configs); approximate share of AI-generated text: 60% (write-up).
