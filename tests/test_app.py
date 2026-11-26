@@ -7,7 +7,7 @@ import pytest
 from PIL import Image
 
 import leafapp.config
-from app.app import GALLERY_DIR, build_ui, format_class_name
+from app.app import GALLERY_DIR, build_batch_ui, build_ui, format_class_name, predict_batch, MAX_BATCH_FILES, display_name, ABOUT_MODELS, APP_TITLE
 from leafapp.predict import LeafClassifier
 
 
@@ -203,6 +203,19 @@ def test_unreadable_file_shows_a_clear_error(tmp_path):
         demo.input_components[0].preprocess(ImageData(path=str(broken)))
 
 
+def test_single_prediction_handles_value_error(monkeypatch):
+    """Show a clear error when image preprocessing raises ValueError."""
+    demo = build_ui(FakeClassifier(PREDICTIONS))
+
+    def fake_preprocess(self, payload):
+        raise ValueError("Broken image")
+
+    monkeypatch.setattr(gr.Image, "preprocess", fake_preprocess)
+
+    with pytest.raises(gr.Error, match="Couldn't read this file"):
+        demo.input_components[0].preprocess(ImageData(path="bad.png"))
+
+
 def test_about_panel_explains_the_models():
     """The About panel warns that predictions can be wrong and lists the known limitations."""
     demo = build_ui(FakeClassifier(PREDICTIONS))
@@ -227,3 +240,129 @@ def test_main_adds_the_app_styles(monkeypatch):
     run_app_main(monkeypatch)
 
     assert ".about-models summary" in launched["css"]
+
+
+def test_predict_batch_returns_one_row_per_image(tmp_path):
+    """Each uploaded image gets its file name, top prediction and confidence."""
+    paths = []
+
+    for name in ["leaf1.jpg", "leaf2.jpg"]:
+        path = tmp_path / name
+        Image.new("RGB", (64, 64), "green").save(path)
+        paths.append(str(path))
+
+    rows = predict_batch(FakeClassifier(PREDICTIONS), paths)
+
+    assert rows == [
+        ["leaf1.jpg", "Tomato - Leaf Mold", "60.0%"],
+        ["leaf2.jpg", "Tomato - Leaf Mold", "60.0%"],
+    ]
+
+
+def test_predict_batch_skips_unreadable_files(tmp_path):
+    """A broken file gets an error row instead of stopping the whole batch."""
+    broken = tmp_path / "broken.jpg"
+    broken.write_text("not an image")
+
+    good = tmp_path / "good.jpg"
+    Image.new("RGB", (64, 64), "green").save(good)
+
+    rows = predict_batch(
+        FakeClassifier(PREDICTIONS),
+        [str(broken), str(good)]
+    )
+
+    assert rows == [
+        ["broken.jpg", "Couldn't read this file", ""],
+        ["good.jpg", "Tomato - Leaf Mold", "60.0%"],
+    ]
+
+
+def test_predict_batch_without_files():
+    """No uploaded files gives an empty table."""
+    assert predict_batch(FakeClassifier(PREDICTIONS), None) == []
+
+
+def test_build_batch_ui_returns_interface(tmp_path):
+    """The batch tab takes several files and shows the predictions in a table."""
+    demo = build_batch_ui(FakeClassifier(PREDICTIONS))
+
+    path = tmp_path / "leaf.jpg"
+    Image.new("RGB", (64, 64), "green").save(path)
+
+    assert isinstance(demo, gr.Interface)
+    assert isinstance(demo.input_components[0], gr.File)
+    assert isinstance(demo.output_components[0], gr.Dataframe)
+    assert demo.title == APP_TITLE
+    assert demo.article == ABOUT_MODELS
+
+    rows = demo.fn([str(path)])
+
+    assert rows == [["leaf.jpg", "Tomato - Leaf Mold", "60.0%"]]
+
+
+def test_main_shows_single_and_batch_tabs(monkeypatch):
+    """The app has one tab for a single image and one for many images."""
+    launched = {}
+
+    monkeypatch.setattr(
+        LeafClassifier,
+        "from_dir",
+        classmethod(lambda cls, model_dir: FakeClassifier(PREDICTIONS))
+    )
+
+    monkeypatch.setattr(
+        gr.Blocks,
+        "launch",
+        lambda self, **kwargs: launched.update(demo=self, delete_cache=self.delete_cache, title=self.title)
+    )
+
+    run_app_main(monkeypatch)
+
+    demo = launched["demo"]
+    assert isinstance(demo, gr.TabbedInterface)
+
+    tabs = demo.children[0].children
+
+    assert len(tabs) == 2
+    assert tabs[0].label == "Single image"
+    assert tabs[1].label == "Batch prediction"
+    assert launched["delete_cache"] == (600, 600)
+    assert launched["title"] == APP_TITLE
+
+
+def test_predict_batch_skips_files_pillow_cannot_parse(tmp_path, monkeypatch):
+    """Some broken PNGs make Pillow raise ValueError instead of OSError."""
+    good = tmp_path / "good.jpg"
+    bad = tmp_path / "bad.png"
+    Image.new("RGB", (64, 64), "green").save(good)
+
+    real_open = Image.open
+
+    def fake_open(path):
+        if path == str(bad):
+            raise ValueError("Broken image")
+        return real_open(path)
+
+    monkeypatch.setattr(Image, "open", fake_open)
+
+    rows = predict_batch(FakeClassifier(PREDICTIONS), [str(bad), str(good)])
+
+    assert rows == [
+        ["bad.png", "Couldn't read this file", ""],
+        ["good.jpg", "Tomato - Leaf Mold", "60.0%"],
+    ]
+
+
+def test_predict_batch_rejects_too_many_files():
+    """Too many files at once gives a clear error instead of overloading the server."""
+    files = ["leaf.jpg"] * (MAX_BATCH_FILES + 1)
+
+    with pytest.raises(gr.Error, match="at most"):
+        predict_batch(FakeClassifier(PREDICTIONS), files)
+
+
+def test_display_name():
+    """Classes get readable names and the background class says "No leaf found"."""
+    assert display_name("Tomato___Leaf_Mold") == "Tomato - Leaf Mold"
+    assert display_name("Background_without_leaves") == "No leaf found"
