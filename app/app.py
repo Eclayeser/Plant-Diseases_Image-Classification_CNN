@@ -11,6 +11,7 @@ Image.MAX_IMAGE_PIXELS = 20_000_000
 COLORS = ["#2e7d32", "#1565c0", "#ef8f00", "#d84315", "#6a1b9a"]  # one colour per rank
 APP_DIR = Path(__file__).parent
 GALLERY_DIR = APP_DIR / "gallery"
+EXAMPLES_FOR_PREDICTED_DIR = APP_DIR / "class_examples"
 ABOUT_MODELS = (APP_DIR / "about_models.md").read_text(encoding="utf-8")
 APP_CSS = (APP_DIR / "style.css").read_text(encoding="utf-8")
 NO_LEAF_CLASS = "Background_without_leaves"
@@ -102,14 +103,22 @@ def build_ui(classifier):
         percents = [round(probability * 100, 1) for _, probability in predictions]
         chart = prediction_chart_html(names, percents)
 
-        if predictions[0][0] == NO_LEAF_CLASS:
-            return NO_LEAF_MESSAGE + chart
-        return chart
+        top_class = predictions[0][0]
+        if top_class == NO_LEAF_CLASS:
+            return NO_LEAF_MESSAGE + chart, []
+
+        examples_for_predicted_folder = EXAMPLES_FOR_PREDICTED_DIR / top_class
+        example_pictures = [str(path) for path in examples_for_predicted_folder.glob("*.jpg")]
+        
+        return chart, example_pictures
 
     demo = gr.Interface(
         fn=predict,
         inputs=LeafImage(type="pil", label="Upload a leaf image"),
-        outputs=gr.HTML(label="Top 5 Predictions"),
+        outputs=[
+            gr.HTML(label="Top 5 Predictions"),
+            gr.Gallery(label="Examples of the top prediction", columns=3, height="auto")
+        ],
         description=f"Upload a plant leaf image to identify its disease, or pick one from the gallery below. {DISCLAIMER}",
         examples=[[str(path)] for path in sorted(GALLERY_DIR.glob("*.jpg"))],
         api_name="predict",
