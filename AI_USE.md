@@ -552,3 +552,8 @@ Approximate share of AI-generated code: 60%.
 - All code edits were made with AI: moving duplicated test setup into `tests/shared_helpers.py` (replacing `tests/utils.py`), adding tests to bring coverage of `leafapp/` and `app/` to 100%, and resolving test warnings (the `.numpy()` call in `eval_plots.py` and the warning filters in `pyproject.toml`).
 - I debated the proposed changes and approved each one myself.
 - Approximate share of AI-generated code (SGP-94 changes): 90%
+
+## configs/*_seed4{2..6}_patience8_num_workers6.yaml, documents/experiments/SGP-81 (SGP-81, Mario Cavicchioli)
+- Configs written by me; Claude helped plan the production phase (the selection rule fixed before the runs).
+- I ran the training, evaluation and ONNX export, and chose the models to publish; Claude read the results from the checkpoints and reports and drafted the write-up and PR description, which I reviewed and edited.
+- Approximate share of AI-generated code: 0% (configs); approximate share of AI-generated text: 50% (write-up).
