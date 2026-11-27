@@ -545,3 +545,9 @@ Approximate share of AI-generated code: 60%.
 - Configs: copied from the SGP-73 Wider+Deeper dropout configs and edited by me (dropout removed).
 - I ran the experiments; Claude read the results from the checkpoints and drafted the write-up and PR description, which I reviewed and edited.
 - Approximate share of AI-generated code: 0% (configs); approximate share of AI-generated text: 60% (write-up).
+
+
+## configs/*_seed4{2..6}_patience8_num_workers6.yaml, documents/experiments/SGP-81 (SGP-81, Mario Cavicchioli)
+- Configs written by me; Claude helped plan the production phase (the selection rule fixed before the runs).
+- I ran the training, evaluation and ONNX export, and chose the models to publish; Claude read the results from the checkpoints and reports and drafted the write-up and PR description, which I reviewed and edited.
+- Approximate share of AI-generated code: 0% (configs); approximate share of AI-generated text: 50% (write-up).
