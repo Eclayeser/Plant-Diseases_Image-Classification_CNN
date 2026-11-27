@@ -1,10 +1,44 @@
+import argparse
+from unittest.mock import MagicMock
+
+import clearml
 import pytest
 
 from pathlib import Path
-from leafapp.tracking import close_task, log_epoch_metrics, log_confusion_matrix, upload_checkpoint, log_final_metrics, upload_file, log_image, download_checkpoint, to_plain_config
+from leafapp.tracking import (
+    build_tags,
+    close_task,
+    download_checkpoint,
+    download_onnx_model_from_clearml,
+    get_task,
+    initialise_task,
+    log_confusion_matrix,
+    log_epoch_metrics,
+    log_final_metrics,
+    log_image,
+    to_plain_config,
+    upload_checkpoint,
+    upload_file,
+    upload_onnx_model_to_clearml,
+    validate_issue_id,
+)
 from clearml.utilities.proxy_object import ProxyDictPostWrite
 from leafapp.checkpoints import save_checkpoint, load_checkpoint
-from tests.shared_helpers import FAKE_CLASS_NAMES, FAKE_IMAGE_SIZE, make_tiny_model
+from tests.shared_helpers import FAKE_CLASS_NAMES, FAKE_IMAGE_SIZE, VALID_NAME, make_tiny_model
+
+
+def make_connected_config(values):
+    """The proxy dict ClearML's task.connect returns."""
+    return ProxyDictPostWrite(None, lambda *args: None, values)
+
+
+@pytest.fixture
+def fake_clearml(monkeypatch):
+    """Replace the ClearML classes tracking imports, so nothing talks to a server."""
+    fakes = MagicMock()
+    for name in ("Task", "OutputModel", "Model"):
+        monkeypatch.setattr(clearml, name, getattr(fakes, name))
+    return fakes
 
 
 class FakeLogger:
@@ -430,7 +464,7 @@ def test_empty_confusion_matrix_has_no_labels():
 
 
 def test_connected_config_can_be_saved_and_loaded(tmp_path):
-    connected = ProxyDictPostWrite(None, lambda *args: None, {
+    connected = make_connected_config({
         "model": {"type": "BasicCNN", "channels": [8]},
         "data": {"image_size": FAKE_IMAGE_SIZE},
         "train": {"lr": 0.0123},
@@ -449,3 +483,92 @@ def test_connected_config_can_be_saved_and_loaded(tmp_path):
 
     _, _, _, loaded_config = load_checkpoint(path)
     assert loaded_config["train"]["lr"] == 0.0123, "Checkpoint should load and keep the connected values"
+
+
+@pytest.mark.parametrize("issue_id", ["", "SGP-94"])
+def test_validate_issue_id_accepts_empty_or_sgp_ids(issue_id):
+    assert validate_issue_id(issue_id) == issue_id
+
+
+def test_validate_issue_id_rejects_other_formats():
+    with pytest.raises(argparse.ArgumentTypeError, match="SGP-XXX"):
+        validate_issue_id("94")
+
+
+def test_build_tags_adds_issue_tag_only_when_given():
+    with_issue = build_tags("debugging", "BasicCNN", VALID_NAME, "training", "SGP-94", extra=("@extra",))
+    without_issue = build_tags("debugging", "BasicCNN", VALID_NAME, "training")
+
+    assert with_issue == [
+        "@run-type:debugging",
+        "@model:BasicCNN",
+        "@responsible:mark-tarnavskyi",
+        "@task-type:training",
+        "@extra",
+        "@issue:SGP-94",
+    ]
+    assert not any(tag.startswith("@issue:") for tag in without_issue)
+
+
+def test_initialise_task_returns_config_edited_in_clearml(fake_clearml):
+    task = fake_clearml.Task.init.return_value
+    task.connect.return_value = make_connected_config({"train": {"lr": 0.5}})
+
+    returned_task, cfg = initialise_task({"train": {"lr": 0.1}}, "project", "run")
+
+    assert returned_task is task
+    assert cfg == {"train": {"lr": 0.5}}, "Should return the values from ClearML, not the original"
+    assert type(cfg["train"]) is dict, "Returned config should be plain dicts"
+    init_kwargs = fake_clearml.Task.init.call_args.kwargs
+    assert init_kwargs["tags"] == []
+    assert init_kwargs["reuse_last_task_id"] is False, "Every run should get a new task"
+
+
+def test_get_task_fetches_task_by_id(fake_clearml):
+    assert get_task("abc123") is fake_clearml.Task.get_task.return_value
+    fake_clearml.Task.get_task.assert_called_once_with(task_id="abc123")
+
+
+def test_upload_onnx_model_publishes_all_files_and_returns_id(fake_clearml, tmp_path):
+    model = fake_clearml.OutputModel.return_value
+    model.id = "model-7"
+    files = [tmp_path / "model.onnx", tmp_path / "labels.json"]
+
+    model_id = upload_onnx_model_to_clearml(
+        task="task", files=files, name="cnn", tags=["@model:BasicCNN"], comment="best run", config={}
+    )
+
+    assert model_id == "model-7"
+    upload_kwargs = model.update_weights_package.call_args.kwargs
+    assert upload_kwargs["weights_filenames"] == [str(path) for path in files]
+    assert upload_kwargs["auto_delete_file"] is False, "Local files should be kept"
+    assert model.comment == "best run"
+    model.publish.assert_called_once()
+
+
+def test_download_onnx_model_returns_extracted_folder(fake_clearml, tmp_path):
+    model = fake_clearml.Model.return_value
+    model.get_weights_package.return_value = str(tmp_path)
+
+    assert download_onnx_model_from_clearml("model-7") == tmp_path
+    fake_clearml.Model.assert_called_once_with(model_id="model-7")
+    assert model.get_weights_package.call_args.kwargs["raise_on_error"] is True
+
+
+def test_close_task_does_nothing_without_task():
+    close_task(None, failed=True, message="failed before the task was created")
+
+
+def test_close_task_logs_add_tags_error_and_still_fails_and_closes(caplog):
+    task = FakeTask()
+
+    def fail_adding_tags(tags):
+        raise RuntimeError("ClearML unavailable")
+
+    task.add_tags = fail_adding_tags
+
+    close_task(task, failed=True, message="training failed")
+
+    assert "Could not add the @status:failed tag" in caplog.text
+    assert task.failed is True
+    assert task.closed is True

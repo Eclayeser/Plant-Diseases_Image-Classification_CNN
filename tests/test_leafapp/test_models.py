@@ -154,6 +154,11 @@ def test_unknown_regularisation_is_rejected():
         RegularisedCNN(regularisation="unknown")
 
 
+def test_conv_block_rejects_unknown_regularisation():
+    with pytest.raises(ValueError, match="regularisation"):
+        cnn.conv_block(3, 8, regularisation="unknown")
+
+
 @pytest.mark.parametrize("dropout_p", [-0.1, 1.0])
 def test_invalid_dropout_probability_is_rejected(dropout_p):
     with pytest.raises(ValueError, match="dropout_p"):

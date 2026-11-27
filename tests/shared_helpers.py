@@ -5,9 +5,8 @@ import torch
 from torchvision import models
 
 from leafapp.models.cnn import BasicCNN
-from leafapp.tracking import NAMES
 
-VALID_NAME = NAMES[0]
+VALID_NAME = "Mark Tarnavskyi"
 
 # The fake loaders, the tiny model and the class names have to agree with each other.
 FAKE_CLASS_NAMES = ["a", "b", "c", "d", "e"]
