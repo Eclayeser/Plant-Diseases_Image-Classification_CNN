@@ -221,7 +221,7 @@ Live at: *(URL added once the Render service is created)*
 To roll back, set the previous model ID (from the git history of
 `model.lock.json`) and merge to `main`.
 
-### Example images (SGP-64)
+### Example images (SGP-64, SGP-72)
 
 The app shows a gallery of example leaf images from `app/gallery/`, so users
 can click one to get a prediction without uploading their own. The script
@@ -234,4 +234,8 @@ python -m scripts.save_example_images
 ```
 
 Any `.jpg` added to `app/gallery/` is shown in the gallery automatically.
+
+The same script also saves 3 train-split images per class to
+`app/class_examples/<class name>/`. After a prediction, the app shows the ones
+for the top class, or none when no leaf is found.
 

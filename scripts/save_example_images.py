@@ -1,4 +1,7 @@
-"""Save example leaf images for the Gradio gallery."""
+"""
+Save example leaf images for the Gradio gallery
+and the per-class examples shown after a prediction.
+"""
 
 from leafapp.config import ROOT
 from leafapp.data import load_subset, split
@@ -35,5 +38,35 @@ def main():
                 break
 
 
+def save_class_examples(per_class=3):
+    data = load_subset(fraction=0.2, seed=42)
+    train, _, _ = split(data, seed=42)  # Train split
+
+    class_names = train.features["label"].names
+    labels = train["label"]
+
+    for label, name in enumerate(class_names):
+        if name == "Background_without_leaves":
+            continue
+
+        indices = []
+        for i in range(len(labels)):
+            if labels[i] == label:
+                indices.append(i)
+            if len(indices) == per_class:
+                break
+
+        class_folder = ROOT / "app" / "class_examples" / name
+        class_folder.mkdir(parents=True, exist_ok=True)
+
+        num = 0
+        for index in indices:
+            num += 1
+            train[index]["image"].convert("RGB").save(class_folder / f"{num}.jpg")
+            
+        print("Saved:", name)
+
+
 if __name__ == "__main__":
     main()
+    save_class_examples()

@@ -7,7 +7,7 @@ import pytest
 from PIL import Image
 
 import leafapp.config
-from app.app import GALLERY_DIR, build_batch_ui, build_ui, format_class_name, predict_batch, MAX_BATCH_FILES, display_name, ABOUT_MODELS, APP_TITLE
+from app.app import GALLERY_DIR, EXAMPLES_FOR_PREDICTED_DIR, build_batch_ui, build_ui, format_class_name, predict_batch, MAX_BATCH_FILES, display_name, ABOUT_MODELS, APP_TITLE
 from leafapp.predict import LeafClassifier
 
 
@@ -53,7 +53,7 @@ def test_predict_returns_top_5_html():
     demo = build_ui(classifier)
     image = Image.new("RGB", (300, 200), color="green")
 
-    html = demo.fn(image)
+    html, _ = demo.fn(image)
 
     assert classifier.calls == [(image, 5)]
 
@@ -65,11 +65,14 @@ def test_predict_returns_top_5_html():
 
 
 def test_predict_without_image():
-    """With no image uploaded, predict returns None for both outputs and doesn't call the model."""
+    """With no image uploaded, predict returns no chart, hides the examples and doesn't call the model."""
     classifier = FakeClassifier(PREDICTIONS)
     demo = build_ui(classifier)
 
-    assert demo.fn(None) is None
+    html, examples = demo.fn(None)
+
+    assert html is None
+    assert examples["visible"] is False
     assert classifier.calls == []
 
 
@@ -150,7 +153,7 @@ def test_predict_works_on_example_images():
 
     for path in images:
         image = Image.open(path)
-        result = demo.fn(image)
+        result, _ = demo.fn(image)
         image.close()
 
         assert "Top 5 Predictions" in result, f"{path.name} should give a prediction chart"
@@ -178,7 +181,7 @@ def test_predict_warns_when_no_leaf_found():
     demo = build_ui(FakeClassifier(predictions))
     image = Image.new("RGB", (300, 200), color="green")
 
-    html = demo.fn(image)
+    html, _ = demo.fn(image)
 
     assert "No leaf found" in html
 
@@ -188,9 +191,57 @@ def test_predict_has_no_warning_for_a_leaf():
     demo = build_ui(FakeClassifier(PREDICTIONS))
     image = Image.new("RGB", (300, 200), color="green")
 
-    html = demo.fn(image)
+    html, _ = demo.fn(image)
 
     assert "No leaf found" not in html
+
+
+def test_predict_shows_examples_of_top_class():
+    """A leaf prediction shows the 3 example images of the top class with its name."""
+    demo = build_ui(FakeClassifier(PREDICTIONS))
+    image = Image.new("RGB", (300, 200), color="green")
+
+    _, examples = demo.fn(image)
+
+    expected = [[str(path)] for path in sorted((EXAMPLES_FOR_PREDICTED_DIR / "Tomato___Leaf_Mold").glob("*.jpg"))]
+    assert examples["visible"] is True
+    assert examples["samples"] == expected
+    assert len(examples["samples"]) == 3
+    assert examples["label"] == "Examples of Tomato - Leaf Mold"
+
+
+def test_predict_hides_examples_when_no_leaf_found():
+    """When no leaf is found, the examples are emptied and hidden."""
+    predictions = [("Background_without_leaves", 0.9)] + PREDICTIONS[:4]
+    demo = build_ui(FakeClassifier(predictions))
+    image = Image.new("RGB", (300, 200), color="green")
+
+    _, examples = demo.fn(image)
+
+    assert examples["visible"] is False
+    assert examples["samples"] == []
+
+
+def test_every_leaf_class_has_three_examples():
+    """Each leaf class folder holds 3 readable images, and the background class has none."""
+    folders = [folder for folder in EXAMPLES_FOR_PREDICTED_DIR.iterdir() if folder.is_dir()]
+
+    assert len(folders) == 38
+    assert not (EXAMPLES_FOR_PREDICTED_DIR / "Background_without_leaves").exists()
+
+    for folder in folders:
+        images = list(folder.glob("*.jpg"))
+        assert len(images) == 3, f"{folder.name} should have 3 example images"
+        for path in images:
+            with Image.open(path) as image:
+                assert image.width > 0, f"{path} should be a valid image"
+
+
+def test_examples_output_is_a_dataset():
+    """The second output is the Dataset that shows the example thumbnails."""
+    demo = build_ui(FakeClassifier(PREDICTIONS))
+
+    assert isinstance(demo.output_components[1], gr.Dataset)
 
 
 def test_unreadable_file_shows_a_clear_error(tmp_path):

@@ -11,6 +11,7 @@ Image.MAX_IMAGE_PIXELS = 20_000_000
 COLORS = ["#2e7d32", "#1565c0", "#ef8f00", "#d84315", "#6a1b9a"]  # one colour per rank
 APP_DIR = Path(__file__).parent
 GALLERY_DIR = APP_DIR / "gallery"
+EXAMPLES_FOR_PREDICTED_DIR = APP_DIR / "class_examples"
 ABOUT_MODELS = (APP_DIR / "about_models.md").read_text(encoding="utf-8")
 APP_CSS = (APP_DIR / "style.css").read_text(encoding="utf-8")
 NO_LEAF_CLASS = "Background_without_leaves"
@@ -95,26 +96,46 @@ def build_ui(classifier):
 
     def predict(image):
         if image is None:
-            return None
+            return None, gr.update(samples=[], visible=False)
 
         predictions = classifier.top_k(image, k=5)
         names = [display_name(name) for name, _ in predictions]
         percents = [round(probability * 100, 1) for _, probability in predictions]
         chart = prediction_chart_html(names, percents)
 
-        if predictions[0][0] == NO_LEAF_CLASS:
-            return NO_LEAF_MESSAGE + chart
-        return chart
+        top_class = predictions[0][0]
+        if top_class == NO_LEAF_CLASS:
+            return NO_LEAF_MESSAGE + chart, gr.update(samples=[], visible=False)
+
+        examples_for_predicted_folder = EXAMPLES_FOR_PREDICTED_DIR / top_class
+        example_pictures = [[str(path)] for path in sorted(examples_for_predicted_folder.glob("*.jpg"))]
+        
+        return chart, gr.update(samples=example_pictures, visible=True, label=f"Examples of {format_class_name(top_class)}")
+
+    examples_dataset = gr.Dataset(
+        components=["image"],
+        samples=[],
+        label="Examples of the top prediction",
+        visible=False,
+        elem_id="class-examples",
+        render=False,
+    )
 
     demo = gr.Interface(
         fn=predict,
         inputs=LeafImage(type="pil", label="Upload a leaf image"),
-        outputs=gr.HTML(label="Top 5 Predictions"),
+        outputs=[gr.HTML(label="Top 5 Predictions"), examples_dataset],
         description=f"Upload a plant leaf image to identify its disease, or pick one from the gallery below. {DISCLAIMER}",
         examples=[[str(path)] for path in sorted(GALLERY_DIR.glob("*.jpg"))],
         api_name="predict",
         **SHARED_SETTINGS,
     )
+
+    # The built-in Clear only resets the Dataset's selected index, so also hide the examples
+    clear_button = next(b for b in demo.blocks.values() if isinstance(b, gr.ClearButton))
+    with demo:
+        clear_button.click(lambda: gr.update(samples=[], visible=False), outputs=examples_dataset)
+
     return demo
 
 
