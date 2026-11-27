@@ -39,7 +39,7 @@ How the files group into functional parts. Each module's docstrings describe the
 | **Data pipeline** | `leafapp/data.py`, `leafapp/labels.py` | Loads PlantVillage, splits it into train/validation/test and builds the data loaders. |
 | **Models** | `leafapp/models/`, `leafapp/model_constructor.py` | `BasicCNN`, `RegularisedCNN` and ResNet18, built from the `model` section of a config. |
 | **Training** | `train.py`, `leafapp/optimizer_constructor.py`, `leafapp/early_stopping.py`, `leafapp/checkpoints.py` | Training loop, optimiser, early stopping and checkpoint saving/loading. |
-| **Evaluation** | `evaluate.py`, `leafapp/eval_functions.py` | Metrics, plots and the text report for a checkpoint. |
+| **Evaluation** | `evaluate.py`, `leafapp/eval_functions.py`, `leafapp/eval_plots.py` | `evaluate.py` coordinates the run and builds the report. `eval_functions.py` computes metrics and collects misclassified examples. `eval_plots.py` produces the figures. |
 | **Experiment tracking** | `leafapp/tracking.py` | ClearML helpers for logging runs and storing checkpoints and models. |
 | **Inference** | `leafapp/predict.py` | Runs the exported ONNX model on an image (no torch). |
 | **Web app** | `app/` | Gradio interface showing the top 5 predictions. |

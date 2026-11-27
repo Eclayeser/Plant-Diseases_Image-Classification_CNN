@@ -50,7 +50,7 @@ python train.py --config configs/prototype_small_data_frac.yaml --responsible "<
 python train.py --responsible "<your name>" --save-interval 1                                                                 # save a snapshot every epoch
 ```
 - Settings (data fraction, image size, batch size, model channels, learning rate, epochs, seed) are read from the chosen config file.
-- `normalize` under `data:` sets how image colours are normalised: `false` (default), `imagenet` (ImageNet's mean and std, needed for ResNet18; older configs write this as `true`), or `plant_village` (our training split's own mean and std, computed by `compute_norm_stats.py`).
+- `normalize` under `data:` sets how image colours are normalised: `false` (default), `imagenet` (ImageNet's mean and std, needed for ResNet18; older configs write this as `true`), or `plant_village` (our training split's own mean and std). To reproduce the PlantVillage statistics, run `python -m scripts.compute_norm_stats` from the repository root.
 - `patience` and `min_delta` under `train:` turn on early stopping: training stops once the validation loss fails to beat its best by more than `min_delta` (default `0.0`) for `patience` epochs in a row, so `epochs` becomes the maximum. Leave `patience` out to train all epochs. The stop epoch is printed and logged to ClearML as `stopped_epoch`, and the best checkpoint is still the epoch with the lowest validation loss. Example: `configs/cnn_wider_normalize_plant_village_early_stopping.yaml`.
 - Each epoch prints train and validation loss, accuracy and f1 score.
 - Each epoch's validation confusion matrix is reported to the ClearML task's Plots tab, with actual labels on rows and predicted labels on columns.

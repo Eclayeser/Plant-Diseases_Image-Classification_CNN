@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 import torch
 
-import compute_norm_stats
+from scripts import compute_norm_stats
 
 
 def test_stats_use_original_training_split_without_augmentation_or_normalisation(monkeypatch):
