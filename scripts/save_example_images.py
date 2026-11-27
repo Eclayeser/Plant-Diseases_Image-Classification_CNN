@@ -17,13 +17,13 @@ def main():
     folder = ROOT / "app" / "gallery"
     folder.mkdir(parents=True, exist_ok=True)
 
-    # Take the images from the test split of the same 20% subset used in our experiments
+    # Use a fixed 20% subset and seed so regenerating the gallery picks the same test images.
     data = load_subset(fraction=0.2, seed=42)
     train, val, test = split(data, seed=42)
 
     class_names = test.features["label"].names
 
-    # Save one image from each class
+    # Save the first test image for each of the selected gallery classes.
     for name in classes:
         label = class_names.index(name)
 
