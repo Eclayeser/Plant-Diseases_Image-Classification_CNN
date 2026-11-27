@@ -252,11 +252,11 @@ def apply_training_defaults(cfg: dict) -> None:
 
 def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAULT_CHECKPOINT_INTERVAL):
     """
-    Train a model using the config at config_path and save a checkpoint.
+    Train a model using the config at config_path.
 
-    Prints train/val loss, accuracy and f1 each epoch and records them as
-    history, then saves the model, config, class names and history to a
-    uniquely named file (timestamp + short id) in checkpoint_dir.
+    Record training and validation metrics each epoch. Save the best, periodic
+    and final checkpoints in checkpoint_dir with the weights, config, class
+    names and metric history.
     """
     task = None
     cfg = None
@@ -368,6 +368,7 @@ def main(config_path, responsible, run_type, issue_id, checkpoint_interval=DEFAU
             history_metrics["accuracies"]["validation"].append(val_epoch_metrics["accuracy"])
             history_metrics["f1s"]["validation"].append(val_epoch_metrics["f1"])
 
+            # Any new low earns a checkpoint. Only a drop greater than min_delta resets early-stopping patience.
             best_checkpoint_improved = val_epoch_metrics["loss"] < best_validation_loss
             if best_checkpoint_improved:
                 best_validation_loss = val_epoch_metrics["loss"]
