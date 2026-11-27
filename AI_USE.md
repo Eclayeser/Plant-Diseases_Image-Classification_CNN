@@ -478,6 +478,12 @@ Approximate share of AI-generated code: 60%.
 - Codex then wrote part of the new implementation and test code for SGP-65. The plotting and formatting logic moved from existing files was already part of the project.
 - Codex generated approximately 60% of the new implementation and test code in PR 113.
 
+## SGP-66 · Code layout, docstrings and comments (Javier Fimia)
+
+- I used Codex to audit the codebase and help agree a scope after checking the test layout with the team. I moved the normalisation script and its test, grouped and annotated the ClearML confusion matrix helpers, and updated the training, evaluation and gallery documentation.
+- Codex ran the full local suite. All 208 tests passed.
+- Codex generated approximately 40% of the new implementation and test code in SGP 66
+
 
 ## app/app.py (SGP-88, Illia Putintsev)
 
