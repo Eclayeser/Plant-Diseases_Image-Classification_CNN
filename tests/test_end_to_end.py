@@ -7,51 +7,29 @@ import evaluate
 import train
 from leafapp.predict import LeafClassifier
 from scripts import export_onnx
-from utils import make_fake_loader
-
-
-CLASS_NAMES = ["a", "b", "c", "d", "e"]
-
-
-def fake_get_loaders(**kwargs):
-    return make_fake_loader(), make_fake_loader(), make_fake_loader(), CLASS_NAMES
+from tests.shared_helpers import (
+    FAKE_CLASS_NAMES,
+    VALID_NAME,
+    fake_get_loaders,
+    make_train_cfg,
+    patch_train_basics,
+)
 
 
 def test_end_to_end_pipeline(monkeypatch, tmp_path):
-    cfg = {
-        "seed": 0,
-        "data": {
-            "fraction": 1.0,
-            "image_size": 32,
-            "batch_size": 4,
-            "normalize": "none",
-            "augment": False,
-        },
-        "model": {
-            "type": "BasicCNN",
-            "channels": [8],
-        },
-        "train": {
-            "lr": 0.001,
-            "weight_decay": 0.0,
-            "epochs": 1,
-            "checkpoint_dir": str(tmp_path / "checkpoints"),
-        },
-    }
+    cfg = make_train_cfg(
+        tmp_path / "checkpoints",
+        data={"normalize": "none", "augment": False},
+        model={"channels": [8]},
+    )
 
-    # Use fake data and configuration
-    monkeypatch.setattr(train, "load_config", lambda path: cfg)
-    monkeypatch.setattr(train, "get_loaders", fake_get_loaders)
-    monkeypatch.setattr(train.torch.cuda, "is_available", lambda: False)
-
-    # Fake ClearML
-    task = MagicMock()
-    monkeypatch.setattr(train, "initialise_task", lambda **kwargs: (task, cfg))
+    # Use fake data, configuration and ClearML
+    task = patch_train_basics(monkeypatch, cfg)
     monkeypatch.setattr(train, "upload_checkpoint", MagicMock())
     monkeypatch.setattr(train, "close_task", MagicMock())
 
     # Train the model
-    train.main("fake.yaml", train.NAMES[0], "debugging", "")
+    train.main("fake.yaml", VALID_NAME, "debugging", "")
 
     # Find the saved checkpoint
     checkpoints = list((tmp_path / "checkpoints").glob("*_best.pt"))
@@ -71,7 +49,7 @@ def test_end_to_end_pipeline(monkeypatch, tmp_path):
     monkeypatch.setattr(evaluate, "REPORTS_DIR", tmp_path / "reports")
     monkeypatch.setattr(evaluate, "DIAGRAMS_DIR", tmp_path / "diagrams")
 
-    evaluate.main(checkpoint, "test", train.NAMES[0], "debugging", "", None, None)
+    evaluate.main(checkpoint, "test", VALID_NAME, "debugging", "", None, None)
 
     # Check the evaluation report
     reports = list((tmp_path / "reports").glob("*_report.txt"))
@@ -92,5 +70,5 @@ def test_end_to_end_pipeline(monkeypatch, tmp_path):
     # Check the top-5 predictions
     assert len(predictions) == 5
     for name, probability in predictions:
-        assert name in CLASS_NAMES
+        assert name in FAKE_CLASS_NAMES
         assert 0 <= probability <= 1

@@ -11,6 +11,13 @@ from leafapp.eval_functions import (
 CLASS_NAMES = ["healthy", "rust", "blight"]
 
 
+class ExplodingModel(nn.Module):
+    """Fails the test if the code under test runs the model at all."""
+
+    def forward(self, x):
+        raise AssertionError("model must not run here")
+
+
 def make_logits_loader():
     """Two uneven batches (4 + 2 samples) whose pixels are the logits themselves.
 
@@ -44,10 +51,6 @@ def test_metrics_are_computed_over_whole_loader_not_per_batch():
 
 
 def test_returns_empty_dict_without_running_model_when_nothing_requested():
-    class ExplodingModel(nn.Module):
-        def forward(self, x):
-            raise AssertionError("model must not run when no metrics are requested")
-
     metrics = calculate_metrics_per_loader(
         ExplodingModel(), make_logits_loader(), "cpu", CLASS_NAMES,
         criterion=None, metrics_list=None,
@@ -133,10 +136,6 @@ def test_misclassified_stops_reading_once_it_has_max_images():
 
 
 def test_misclassified_returns_nothing_without_running_model_when_nothing_wanted():
-    class ExplodingModel(nn.Module):
-        def forward(self, x):
-            raise AssertionError("model must not run when no images are wanted")
-
     found_with_zero_limit = collect_misclassified_images(
         ExplodingModel(), make_logits_loader(), "cpu", wanted_pairs={(0, 1)}, max_images=0
     )

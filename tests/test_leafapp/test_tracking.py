@@ -3,9 +3,8 @@ import pytest
 from pathlib import Path
 from leafapp.tracking import close_task, log_epoch_metrics, log_confusion_matrix, upload_checkpoint, log_final_metrics, upload_file, log_image, download_checkpoint, to_plain_config
 from clearml.utilities.proxy_object import ProxyDictPostWrite
-from leafapp.tracking import to_plain_config
 from leafapp.checkpoints import save_checkpoint, load_checkpoint
-from leafapp.models.cnn import BasicCNN
+from tests.shared_helpers import FAKE_CLASS_NAMES, make_tiny_model
 
 
 class FakeLogger:
@@ -442,9 +441,9 @@ def test_connected_config_can_be_saved_and_loaded(tmp_path):
     path = tmp_path / "model.pt"
     save_checkpoint(
         path=path,
-        model=BasicCNN(num_classes=5, channels=(8,), image_size=32),
+        model=make_tiny_model(),
         cfg=cfg,
-        class_names=["a", "b", "c", "d", "e"],
+        class_names=FAKE_CLASS_NAMES,
         history_metrics={},
     )
 

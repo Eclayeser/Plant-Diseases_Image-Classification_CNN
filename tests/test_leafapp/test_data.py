@@ -4,6 +4,14 @@ import torch
 from leafapp.data import make_batch_transform, make_transforms, split, get_normalization_stats
 import pytest
 
+# A small one-colour photo for the normalisation tests.
+SMALL_PHOTO = Image.new("RGB", (8, 8), color=(102, 204, 51))
+
+
+def first_pixel(transform):
+    """The 3 channel values of the top-left pixel after the transform."""
+    return transform(SMALL_PHOTO)[:, 0, 0]
+
 
 def test_transforms_give_right_shape_and_range():
     """Both transforms give a [3, size, size] tensor with values in [0, 1]."""
@@ -58,29 +66,26 @@ def test_split_sizes_no_overlap_and_all_labels():
 
 def test_normalize_is_applied_once_without_augment():
     """With augment off, train_tf and eval_tf normalise the photo exactly once."""
-    photo = Image.new("RGB", (8, 8), color=(102, 204, 51))
     train_tf, eval_tf = make_transforms(8, augment=False, normalize=True)
-    assert torch.equal(train_tf(photo), eval_tf(photo)), "train_tf and eval_tf differ"
+    assert torch.equal(train_tf(SMALL_PHOTO), eval_tf(SMALL_PHOTO)), "train_tf and eval_tf differ"
     assert torch.allclose(
-        eval_tf(photo)[:, 0, 0], torch.tensor([-0.37, 1.54, -0.92]), atol=0.01
+        first_pixel(eval_tf), torch.tensor([-0.37, 1.54, -0.92]), atol=0.01
     ), "The photo was not normalised exactly once"
 
 
 def test_normalize_off_keeps_totensor_values():
     """The default, normalize=False, leaves ToTensor's 0 to 1 values unchanged."""
-    photo = Image.new("RGB", (8, 8), color=(102, 204, 51))
     _, eval_tf = make_transforms(8)
     assert torch.allclose(
-        eval_tf(photo)[:, 0, 0], torch.tensor([0.4, 0.8, 0.2]), atol=0.01
+        first_pixel(eval_tf), torch.tensor([0.4, 0.8, 0.2]), atol=0.01
     ), "normalize=False should not change the values"
-    
+
 
 def test_normalize_plant_village_uses_own_stats():
     """normalize="plant_village" uses our training split's mean and std."""
-    photo = Image.new("RGB", (8, 8), color=(102, 204, 51))
     _, eval_tf = make_transforms(8, augment=False, normalize="plant_village")
     assert torch.allclose(
-        eval_tf(photo)[:, 0, 0], torch.tensor([-0.35, 1.86, -1.01]), atol=0.01
+        first_pixel(eval_tf), torch.tensor([-0.35, 1.86, -1.01]), atol=0.01
     ), "normalize='plant_village' should use the plant_village mean and std"
 
 
