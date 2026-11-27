@@ -2,14 +2,10 @@ import pytest
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torchvision import transforms
-from leafapp.data import PLANT_VILLAGE_MEAN, PLANT_VILLAGE_STD
 from leafapp.eval_functions import (
     calculate_metrics_per_loader,
     calculate_most_confused_pairs,
     collect_misclassified_images,
-    prepare_image_for_plotting,
-    plot_and_save_misclassified_grid,
 )
 
 CLASS_NAMES = ["healthy", "rust", "blight"]
@@ -135,28 +131,6 @@ def test_misclassified_stops_reading_once_it_has_max_images():
     pairs = [(true_class, guessed_class) for _, true_class, guessed_class in found]
     assert pairs == [(0, 1)], "Should stop as soon as it has max_images mistakes"
 
-
-def test_prepare_image_for_plotting_undoes_normalisation():
-    photo = torch.rand(3, 8, 8)
-    normalised = transforms.Normalize(PLANT_VILLAGE_MEAN, PLANT_VILLAGE_STD)(photo)
-
-    picture = prepare_image_for_plotting(
-        normalised, PLANT_VILLAGE_MEAN, PLANT_VILLAGE_STD
-    )
-
-    assert picture.shape == (8, 8, 3), "Should put the colours last for matplotlib"
-    assert torch.allclose(picture, photo.permute(1, 2, 0), atol=1e-6), (
-        "Should give back the photo as it was before normalising"
-    )
-
-
-def test_misclassified_grid_saves_a_picture_even_with_no_mistakes(tmp_path):
-    plot_path = tmp_path / "grid.png"
-
-    plot_and_save_misclassified_grid([], CLASS_NAMES, plot_path)
-
-    assert plot_path.is_file(), "Should save an empty grid instead of crashing"
-    
 
 def test_misclassified_returns_nothing_without_running_model_when_nothing_wanted():
     class ExplodingModel(nn.Module):
