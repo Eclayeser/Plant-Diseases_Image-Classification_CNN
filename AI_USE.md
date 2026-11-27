@@ -515,6 +515,11 @@ Approximate share of AI-generated code: 60%.
 - I wrote the first draft of the test strategy and decided how to group the tests into levels. Claude checked the document against the test files and CI workflows, suggested the Continuous Integration section, the paragraph about fakes, and some missing test areas. I edited the wording and checked the test list and coverage myself.
 - Approximate share of AI-generated text: 30%
 
+## documents/experiments/SGP-69/sgp69_resnet18_full_data.md (SGP-69, Reon Carroll-Ito)
+
+- Claude filled in the results table using the exported JSON files for accuracy, f1 and loss and filled in the evaluation table using the exported evaluation reports.
+- Claude helped me draft the experiment observations.
+- Approximate share of AI-generated documentation: 25%
 ## tests/test_end_to_end.py (SGP-90, Gul Nil Kayalioglu)
 - Claude helped me understand how `train.py`, `evaluate.py`, `export_onnx.py` and `LeafClassifier` work together and which functions needed to be mocked.
 - Claude provided code suggestions and partially completed code with blanks for me to fill in. I completed the missing parts myself.
