@@ -110,7 +110,7 @@ def build_ui(classifier):
         examples_for_predicted_folder = EXAMPLES_FOR_PREDICTED_DIR / top_class
         example_pictures = [[str(path)] for path in sorted(examples_for_predicted_folder.glob("*.jpg"))]
         
-        return chart, gr.update(samples=example_pictures, visible=True)
+        return chart, gr.update(samples=example_pictures, visible=True, label=f"Examples of {format_class_name(top_class)}")
 
     demo = gr.Interface(
         fn=predict,
