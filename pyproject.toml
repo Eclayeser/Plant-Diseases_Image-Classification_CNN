@@ -4,3 +4,9 @@ source = ["leafapp", "app"]
 
 [tool.coverage.report]
 show_missing = true
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:You are using the legacy TorchScript-based ONNX export:DeprecationWarning",
+    "ignore:The feature will be removed:DeprecationWarning:torch.onnx",
+]
