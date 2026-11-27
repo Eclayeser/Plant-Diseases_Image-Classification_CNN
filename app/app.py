@@ -116,15 +116,15 @@ def build_ui(classifier):
         fn=predict,
         inputs=LeafImage(type="pil", label="Upload a leaf image"),
         outputs=[
-        gr.HTML(label="Top 5 Predictions"),
-        gr.Dataset(
-            components=["image"],
-            samples=[],
-            label="Examples of the top prediction",
-            visible=False,
-            elem_id="class-examples",
-        )
-    ],
+            gr.HTML(label="Top 5 Predictions"),
+            gr.Dataset(
+                components=["image"],
+                samples=[],
+                label="Examples of the top prediction",
+                visible=False,
+                elem_id="class-examples",
+            )
+        ],
         description=f"Upload a plant leaf image to identify its disease, or pick one from the gallery below. {DISCLAIMER}",
         examples=[[str(path)] for path in sorted(GALLERY_DIR.glob("*.jpg"))],
         api_name="predict",
