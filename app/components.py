@@ -13,6 +13,6 @@ class LeafImage(gr.Image):
         try:
             return super().preprocess(payload)
         except Image.DecompressionBombError as err:
-            raise gr.Error("This image is too large. Upload a photo of up to 13 megapixels.") from err
+            raise gr.Error(f"This image is too large (max {2 * Image.MAX_IMAGE_PIXELS // 1_000_000} megapixels).") from err
         except IMAGE_READ_ERRORS as err:
             raise gr.Error("Couldn't read this file. Upload a JPG or PNG photo of a leaf.") from err

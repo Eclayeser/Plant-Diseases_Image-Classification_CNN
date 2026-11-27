@@ -77,7 +77,7 @@ def predict_batch(classifier, files):
             with Image.open(path) as img:
                 image = img.convert("RGB")
         except Image.DecompressionBombError:
-            rows.append([file_name, "Image too large (max 13 megapixels)", ""])
+            rows.append([file_name, f"Image too large (max {2 * Image.MAX_IMAGE_PIXELS // 1_000_000} megapixels)", ""])
             continue
         except IMAGE_READ_ERRORS:
             rows.append([file_name, "Couldn't read this file", ""])
