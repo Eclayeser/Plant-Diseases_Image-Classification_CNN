@@ -4,7 +4,7 @@ from pathlib import Path
 from leafapp.tracking import close_task, log_epoch_metrics, log_confusion_matrix, upload_checkpoint, log_final_metrics, upload_file, log_image, download_checkpoint, to_plain_config
 from clearml.utilities.proxy_object import ProxyDictPostWrite
 from leafapp.checkpoints import save_checkpoint, load_checkpoint
-from tests.shared_helpers import FAKE_CLASS_NAMES, make_tiny_model
+from tests.shared_helpers import FAKE_CLASS_NAMES, FAKE_IMAGE_SIZE, make_tiny_model
 
 
 class FakeLogger:
@@ -432,7 +432,7 @@ def test_empty_confusion_matrix_has_no_labels():
 def test_connected_config_can_be_saved_and_loaded(tmp_path):
     connected = ProxyDictPostWrite(None, lambda *args: None, {
         "model": {"type": "BasicCNN", "channels": [8]},
-        "data": {"image_size": 32},
+        "data": {"image_size": FAKE_IMAGE_SIZE},
         "train": {"lr": 0.0123},
     })
     cfg = to_plain_config(connected)
