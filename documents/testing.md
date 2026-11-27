@@ -28,6 +28,7 @@ Integration tests check how different parts of the project work together.
 | Saving and loading checkpoints | To make sure trained models can be restored correctly. |
 | Image preprocessing and prediction | To check that images are processed correctly before prediction. |
 | Gradio interface and example gallery | To make sure images can be passed to the prediction function and results are displayed. |
+| Examples of the top prediction | To make sure the app shows 3 images of the top class, or none when no leaf is found. |
 | ClearML tracking | To check metric logging, checkpoint handling and task management. |
 | ONNX export preparation | To make sure the model uses the correct normalisation when exported to ONNX. |
 | App warnings and errors | To make sure users see a clear message when no leaf is found or a file cannot be read. |
@@ -52,7 +53,7 @@ Two GitHub Actions workflows run on every push:
 
 ## System Testing
 
-The complete application should also be tested manually by uploading leaf images, selecting example images and checking the prediction results and error messages.
+The complete application should also be tested manually by uploading leaf images, selecting example images and checking the prediction results, the examples of the top prediction and error messages.
 
 This helps us check the user experience, which is not fully covered by automated tests.
 
