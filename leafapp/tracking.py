@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Mapping
 from clearml import Task
 import numpy as np
+from numpy.typing import ArrayLike
 
 
 LOGGER = logging.getLogger(__name__)
@@ -87,7 +88,7 @@ def log_epoch_metrics(
             )
 
 
-def build_non_zero_shapes(matrix):
+def build_non_zero_shapes(matrix: np.ndarray) -> list[dict[str, Any]]:
     """Create outlines around non-zero confusion matrix cells."""
     shapes = []
     for row_idx, row in enumerate(matrix):
@@ -108,7 +109,7 @@ def build_non_zero_shapes(matrix):
     return shapes
 
 
-def build_confusion_layout(matrix):
+def build_confusion_layout(matrix: np.ndarray) -> dict[str, Any]:
     """Build the layout for the normalised confusion matrix."""
 
     layout = {
@@ -150,8 +151,13 @@ def build_confusion_layout(matrix):
 
     return layout
 
-def log_confusion_matrix(logger, epoch, matrix, class_names):
-    """Report the normalised validation confusion matrix and error rates."""
+
+def log_confusion_matrix(logger: Any, epoch: int, matrix: ArrayLike, class_names: list[str]) -> None:
+    """Log a validation confusion matrix and the highest per-class error rates.
+
+    Supply raw counts with true classes on rows and predictions on columns,
+    both in class_names order. Cell labels show counts and colours show row percentages.
+    """
 
     counts = np.asarray(matrix, dtype=float)
     row_totals = counts.sum(axis=1, keepdims=True)
@@ -181,8 +187,9 @@ def log_confusion_matrix(logger, epoch, matrix, class_names):
 
     log_class_error_rates(logger, epoch, counts, class_names)
 
-def log_class_error_rates(logger, epoch, matrix, class_names):
-    """Report the ten classes with the highest validation error rates."""
+
+def log_class_error_rates(logger: Any, epoch: int, matrix: ArrayLike, class_names: list[str]) -> None:
+    """Log up to ten classes by error rate, skipping classes with no validation samples."""
 
     counts = np.asarray(matrix, dtype=float)
     row_counts = counts.sum(axis=1)
