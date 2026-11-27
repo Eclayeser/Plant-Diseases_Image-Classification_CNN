@@ -144,7 +144,8 @@ def calculate_metrics_per_loader(
     rather than averaged per batch.
 
     Returns:
-        Dict mapping metric name to value.
+        A dictionary of requested metrics, with "loss" when a criterion is
+        supplied. "per-class-metrics" contains (report_dict, printable_report).
     """
     final_metrics = {}
     if metrics_list is None and criterion is None:
@@ -209,6 +210,11 @@ def calculate_metrics_per_loader(
     return final_metrics
 
 def collect_misclassified_images(model, loader, device, wanted_pairs, max_images=16):
+    """Collect examples matching the (true class ID, predicted class ID) pairs in wanted_pairs.
+
+    Return up to max_images examples across all pairs in loader order.
+    Each example is a (CPU image tensor, true class ID, predicted class ID) tuple.
+    """
     if max_images < 0:
         raise ValueError(f"max_images must be 0 or more, got {max_images}")
     if max_images == 0 or not wanted_pairs:
