@@ -96,7 +96,7 @@ def build_ui(classifier):
 
     def predict(image):
         if image is None:
-            return None
+            return None, gr.update(samples=[], visible=False)
 
         predictions = classifier.top_k(image, k=5)
         names = [display_name(name) for name, _ in predictions]
@@ -105,25 +105,32 @@ def build_ui(classifier):
 
         top_class = predictions[0][0]
         if top_class == NO_LEAF_CLASS:
-            return NO_LEAF_MESSAGE + chart, []
+            return NO_LEAF_MESSAGE + chart, gr.update(samples=[], visible=False)
 
         examples_for_predicted_folder = EXAMPLES_FOR_PREDICTED_DIR / top_class
-        example_pictures = [str(path) for path in examples_for_predicted_folder.glob("*.jpg")]
+        example_pictures = [[str(path)] for path in sorted(examples_for_predicted_folder.glob("*.jpg"))]
         
-        return chart, example_pictures
+        return chart, gr.update(samples=example_pictures, visible=True)
 
     demo = gr.Interface(
         fn=predict,
         inputs=LeafImage(type="pil", label="Upload a leaf image"),
         outputs=[
-            gr.HTML(label="Top 5 Predictions"),
-            gr.Gallery(label="Examples of the top prediction", columns=3, height="auto")
-        ],
+        gr.HTML(label="Top 5 Predictions"),
+        gr.Dataset(
+            components=["image"],
+            samples=[],
+            label="Examples of the top prediction",
+            visible=False,
+            elem_id="class-examples",
+        )
+    ],
         description=f"Upload a plant leaf image to identify its disease, or pick one from the gallery below. {DISCLAIMER}",
         examples=[[str(path)] for path in sorted(GALLERY_DIR.glob("*.jpg"))],
         api_name="predict",
         **SHARED_SETTINGS,
     )
+
     return demo
 
 

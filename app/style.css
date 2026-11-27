@@ -5,3 +5,4 @@
 .about-models[open] summary::after { content: " ▴"; }
 .about-models summary:hover { background: var(--background-fill-secondary); }
 .about-models[open] summary { margin-bottom: 12px; }
+#class-examples .gallery-item { pointer-events: none; }
