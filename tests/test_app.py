@@ -362,6 +362,27 @@ def test_predict_batch_rejects_too_many_files():
         predict_batch(FakeClassifier(PREDICTIONS), files)
 
 
+def test_both_tabs_reject_too_large_images(tmp_path):
+    """Both tabs show the 13 megapixel limit, and the batch carries on with the next file."""
+    large = tmp_path / "large.png"
+    Image.new("1", (3700, 3600)).save(large)  # 13.32M pixels, just over the 13M limit; 1-bit to keep it quick
+    
+    good = tmp_path / "good.jpg"
+    Image.new("RGB", (64, 64), "green").save(good)
+
+    demo = build_ui(FakeClassifier(PREDICTIONS))
+
+    with pytest.raises(gr.Error, match="max 13 megapixels"):
+        demo.input_components[0].preprocess(ImageData(path=str(large)))
+
+    rows = predict_batch(FakeClassifier(PREDICTIONS), [str(large), str(good)])
+
+    assert rows == [
+        ["large.png", "Image too large (max 13 megapixels)", ""],
+        ["good.jpg", "Tomato - Leaf Mold", "60.0%"],
+    ]
+
+
 def test_display_name():
     """Classes get readable names and the background class says "No leaf found"."""
     assert display_name("Tomato___Leaf_Mold") == "Tomato - Leaf Mold"
