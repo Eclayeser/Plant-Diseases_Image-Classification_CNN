@@ -101,8 +101,9 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
     """
     Evaluate a saved checkpoint on the validation or test set.
 
-    Computes metrics, saves the training-curve and confusion-matrix plots,
-    and writes a text report to the eval reports directory.
+    Log metrics to ClearML and save the text report, confusion matrix and
+    misclassified-image grid locally and to the evaluation task. Include a
+    training curve when the checkpoint contains metric history to plot.
     """
     if data_type not in ACCEPTED_DATA_TYPES:
         raise ValueError(f"data_type should be one of {ACCEPTED_DATA_TYPES}")
