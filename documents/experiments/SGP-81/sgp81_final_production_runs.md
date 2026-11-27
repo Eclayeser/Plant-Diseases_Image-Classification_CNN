@@ -18,7 +18,7 @@ Both: full PlantVillage dataset (`fraction: 1.0`), image size 128, batch size 32
 
 Configs: `configs/cnn_wider_deeper_early_stopping_full_seed{42..46}_patience8_num_workers6.yaml` and `configs/cnn_wider_early_stopping_full_seed{42..46}_patience8_num_workers6.yaml`. New runs are tagged production / SGP-81. The reused SGP-91 tasks keep their original `@run-type:comparison` / `@issue:SGP-91` tags and were additionally tagged `@run-type:production` / `@issue:SGP-81` in ClearML, so all ten candidates appear under the SGP-81 filter.
 
-**Selection rule (fixed before the runs):** rank candidates by validation accuracy, with macro F1 as the tie-breaker; the top 2 per config were evaluated with `evaluate.py`. For publication, when the top 2 of a config were within run-to-run noise, the one with the lower validation loss was chosen; this last step was decided after seeing the results.
+**Selection rule (fixed before the runs):** rank candidates by validation accuracy, with macro F1 as the tie-breaker; the top 2 per config were evaluated with `evaluate.py`. For publication, when the top 2 of a config were within run-to-run noise on accuracy, a clearly lower validation loss decided; otherwise the accuracy order stood. This last step was decided after seeing the results, and only changed the outcome for Config 2.
 
 ## Candidates (best validation-loss epoch)
 
@@ -50,7 +50,7 @@ Mean validation accuracy over the five seeds: 0.9711 (Config 1) and 0.9656 (Conf
 | 2: Wider | Seed 44 | 0.9674 | 0.957 |
 | 2: Wider | Seed 42 | 0.9684 | 0.958 |
 
-- **Config 1:** seeds 43, 44 and 45 are effectively tied (validation accuracy within 0.06 pts, well inside run-to-run noise), so any of them would be a sound deployment choice. Seeds 45 and 43 were selected because they rank first and second under the selection rule.
+- **Config 1:** seeds 43, 44 and 45 are effectively tied (validation accuracy within 0.06 pts, well inside run-to-run noise), so any of them would be a sound deployment choice. Seeds 45 and 43 were selected because they rank first and second under the selection rule. Their validation losses are also effectively equal (0.116 vs 0.117), so the accuracy order stood and seed 45 was published.
 - **Config 2:** seeds 42 and 44 were selected (top 2 by validation accuracy). Their accuracy and F1 differ by about 0.1 pt, within run-to-run noise, so seed 44 was published because of its lower validation loss (0.119 vs 0.128), meaning more confident correct predictions, which matters for an app that shows probabilities. It also trained for fewer epochs (27 vs 39). Under accuracy alone, seed 42 would have been chosen; the two are equivalent within noise.
 
 Because the seed also sets the data split, the selected models were trained on different splits. This matters for the later test-set evaluation: each model will be tested on its own test split.
