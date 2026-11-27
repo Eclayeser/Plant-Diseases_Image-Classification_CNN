@@ -86,6 +86,28 @@ def log_epoch_metrics(
                 iteration=epoch,
             )
 
+
+def build_non_zero_shapes(matrix):
+    """Create outlines around non-zero confusion matrix cells."""
+    shapes = []
+    for row_idx, row in enumerate(matrix):
+        for col_idx, value in enumerate(row):
+            if value > 0:
+                shapes.append({
+                    "type": "rect",
+                    "x0": col_idx - 0.5,
+                    "x1": col_idx + 0.5,
+                    "y0": row_idx - 0.5,
+                    "y1": row_idx + 0.5,
+                    "line": {
+                        "color": "rgba(60, 60, 60, 0.2)",
+                        "width": 0.8,
+                    },
+                    "fillcolor": "rgba(0,0,0,0)",
+                })
+    return shapes
+
+
 def build_confusion_layout(matrix):
     """Build the layout for the normalised confusion matrix."""
 
@@ -215,26 +237,6 @@ def log_class_error_rates(logger, epoch, matrix, class_names):
         figure=figure,
         iteration=epoch,
     )
-
-def build_non_zero_shapes(matrix):
-    """Create outlines around non-zero confusion matrix cells."""
-    shapes = []
-    for row_idx, row in enumerate(matrix):
-        for col_idx, value in enumerate(row):
-            if value > 0:
-                shapes.append({
-                    "type": "rect",
-                    "x0": col_idx - 0.5,
-                    "x1": col_idx + 0.5,
-                    "y0": row_idx - 0.5,
-                    "y1": row_idx + 0.5,
-                    "line": {
-                        "color": "rgba(60, 60, 60, 0.2)",
-                        "width": 0.8,
-                    },
-                    "fillcolor": "rgba(0,0,0,0)",
-                })
-    return shapes
 
 def log_final_metrics(logger: Any, metrics: Mapping[str, Any]) -> None:
     """Report each single-number metric (e.g. accuracy, f1) as a ClearML single value."""
