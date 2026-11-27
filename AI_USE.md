@@ -545,3 +545,12 @@ Approximate share of AI-generated code: 60%.
 - Configs: copied from the SGP-73 Wider+Deeper dropout configs and edited by me (dropout removed).
 - I ran the experiments; Claude read the results from the checkpoints and drafted the write-up and PR description, which I reviewed and edited.
 - Approximate share of AI-generated code: 0% (configs); approximate share of AI-generated text: 60% (write-up).
+
+## scripts/save_example_images.py, app/class_examples/ (SGP-72, Mark Tarnavskyi)
+- Claude suggested the approach and sketched `save_class_examples()`; I implemented it, generated the images and checked them.
+- Approximate share of AI-generated code: 30%
+
+## tests/test_app.py (SGP-72, Mark Tarnavskyi)
+- I identified which tests were needed and wrote the test code with Claude's help using a fill-in-the-blank approach.
+- I ran all the tests locally and checked that they pass.
+- Approximate share of AI-generated code: 40%
