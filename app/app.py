@@ -117,7 +117,9 @@ def build_ui(classifier, model_names=None, default_model=None):
     return demo
 
 
-if __name__ == "__main__":
+def build_deployed_ui():
+    """Build the application using the configured deployment models."""
+    
     lock_file = ROOT / "deployment" / "model.lock.json"
     registry = load_model_registry(lock_file)
     models = registry["models"]
@@ -156,6 +158,12 @@ if __name__ == "__main__":
             model_names=list(model_dirs.keys()),
             default_model=default_model,
         )
+
+    return demo
+
+
+if __name__ == "__main__":
+    demo = build_deployed_ui()
 
     demo.launch(
         server_port=int(os.getenv("PORT", 8080)),
