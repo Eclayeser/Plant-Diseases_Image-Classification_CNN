@@ -557,3 +557,9 @@ Approximate share of AI-generated code: 60%.
 - Configs written by me; Claude helped plan the production phase (the selection rule fixed before the runs).
 - I ran the training, evaluation and ONNX export, and chose the models to publish; Claude read the results from the checkpoints and reports and drafted the write-up and PR description, which I reviewed and edited.
 - Approximate share of AI-generated code: 0% (configs); approximate share of AI-generated text: 50% (write-up).
+
+## SGP-54: Model Selector
+
+- AI assisted with unit tests, deployment smoke tests and
+  resolving merge conflicts with dev.
+- Approximate share of AI-generated code: 40%.
