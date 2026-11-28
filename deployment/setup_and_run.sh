@@ -20,10 +20,11 @@ echo "[SGP-5] Installing dependencies..."
 # 3. Open the browser when the local server is ready (macOS).
 if [[ "$(uname -s)" == "Darwin" ]]; then
     (
+        url="http://localhost:${PORT:-8080}"
         for ((i=0; i<120; i++)); do
             if curl -fsS --max-time 2 \
-                -o /dev/null http://127.0.0.1:8080/; then
-                open "http://localhost:8080"
+                -o /dev/null "${url}/"; then
+                open "$url"
                 exit 0
             fi
             sleep 1
@@ -32,5 +33,5 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
 fi
 
 # 4. Download the model and launch the Gradio application.
-echo "[SGP-5] Starting Gradio at http://localhost:8080"
+echo "[SGP-5] Starting Gradio..."
 exec bash deployment/run_local.sh

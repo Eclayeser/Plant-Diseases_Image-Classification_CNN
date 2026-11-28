@@ -89,7 +89,7 @@ def upload_export(training_task, config, files, responsible, run_type, issue_id,
         task_type="export_onnx.py",
         issue_id=issue_id
     )
-    task = initialise_task(
+    task, _ = initialise_task(
         config={
             "export": {"source_task_id": training_task.id, "source_artifact": DEFAULT_ARTIFACT},
             "training": config,

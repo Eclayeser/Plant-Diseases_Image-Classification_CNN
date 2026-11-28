@@ -1,0 +1,66 @@
+---   Checkpoint: outputs/models/resnet18_20261124-220057_d21c08_best.pt | Data Set Chosen: VALIDATION   ---
+- Top-1 Accuracy: 0.990862
+- Top-3 Accuracy: 0.999399
+- Top-5 Accuracy: 0.99988
+- Macro Precision: 0.989119
+- Macro Recall: 0.987489
+- Macro F1: 0.9882
+
+ Per-Class Metrics:
+                                               precision    recall  f1-score   support
+
+                           Apple___Apple_scab       0.98      0.99      0.98        95
+                            Apple___Black_rot       1.00      0.98      0.99        93
+                     Apple___Cedar_apple_rust       1.00      1.00      1.00        41
+                              Apple___healthy       1.00      0.98      0.99       246
+                    Background_without_leaves       0.99      0.99      0.99       172
+                          Blueberry___healthy       0.98      1.00      0.99       225
+                      Cherry___Powdery_mildew       0.99      1.00      1.00       158
+                             Cherry___healthy       0.98      1.00      0.99       128
+   Corn___Cercospora_leaf_spot Gray_leaf_spot       0.97      0.92      0.95        77
+                           Corn___Common_rust       1.00      0.99      0.99       179
+                  Corn___Northern_Leaf_Blight       0.95      0.99      0.97       148
+                               Corn___healthy       1.00      1.00      1.00       175
+                            Grape___Black_rot       0.99      0.98      0.99       177
+                 Grape___Esca_(Black_Measles)       0.99      1.00      1.00       208
+   Grape___Leaf_blight_(Isariopsis_Leaf_Spot)       1.00      0.99      0.99       162
+                              Grape___healthy       1.00      1.00      1.00        64
+     Orange___Haunglongbing_(Citrus_greening)       1.00      1.00      1.00       826
+                       Peach___Bacterial_spot       0.99      1.00      1.00       344
+                              Peach___healthy       1.00      0.98      0.99        54
+                Pepper,_bell___Bacterial_spot       0.99      1.00      0.99       150
+                       Pepper,_bell___healthy       1.00      1.00      1.00       221
+                        Potato___Early_blight       1.00      1.00      1.00       150
+                         Potato___Late_blight       0.98      0.99      0.99       150
+                             Potato___healthy       0.96      1.00      0.98        23
+                          Raspberry___healthy       1.00      0.98      0.99        56
+                            Soybean___healthy       1.00      1.00      1.00       763
+                      Squash___Powdery_mildew       1.00      1.00      1.00       275
+                     Strawberry___Leaf_scorch       0.99      0.98      0.98       167
+                         Strawberry___healthy       1.00      0.97      0.99        69
+                      Tomato___Bacterial_spot       0.98      1.00      0.99       319
+                        Tomato___Early_blight       0.97      0.93      0.95       150
+                         Tomato___Late_blight       0.99      0.97      0.98       286
+                           Tomato___Leaf_Mold       0.99      0.99      0.99       143
+                  Tomato___Septoria_leaf_spot       0.97      0.99      0.98       265
+Tomato___Spider_mites Two-spotted_spider_mite       0.96      0.98      0.97       251
+                         Tomato___Target_Spot       0.99      0.96      0.97       210
+       Tomato___Tomato_Yellow_Leaf_Curl_Virus       1.00      0.99      1.00       803
+                 Tomato___Tomato_mosaic_virus       1.00      0.98      0.99        56
+                             Tomato___healthy       1.00      1.00      1.00       238
+
+                                     accuracy                           0.99      8317
+                                    macro avg       0.99      0.99      0.99      8317
+                                 weighted avg       0.99      0.99      0.99      8317
+
+ Most Confused Pairs (true -> predicted):
+ - Tomato___Target_Spot -> Tomato___Spider_mites Two-spotted_spider_mite: 7
+ - Corn___Cercospora_leaf_spot Gray_leaf_spot -> Corn___Northern_Leaf_Blight: 6
+ - Tomato___Tomato_Yellow_Leaf_Curl_Virus -> Tomato___Bacterial_spot: 5
+ - Tomato___Early_blight -> Tomato___Septoria_leaf_spot: 4
+ - Tomato___Early_blight -> Tomato___Bacterial_spot: 3
+
+==============================   Diagrams   ==============================
+ - Training Curve (Historical Metrics): outputs/diagrams/resnet18_20261124-220057_d21c08_best_validation_2026-11-25_00-47-05_training_curve.png
+ - Confusion Matrix: outputs/diagrams/resnet18_20261124-220057_d21c08_best_validation_2026-11-25_00-47-05_confusion_matrix.png
+ - Misclassified Images: outputs/diagrams/resnet18_20261124-220057_d21c08_best_validation_2026-11-25_00-47-05_misclassified_grid.png

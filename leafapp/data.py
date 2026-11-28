@@ -3,6 +3,14 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 
 DATASET_NAME = "DScomp380/plant_village"
+DEFAULT_FRACTION = 0.2
+DEFAULT_IMAGE_SIZE = 128
+DEFAULT_BATCH_SIZE = 32
+DEFAULT_SEED = 42
+FLIP_PROBABILITY = 0.5
+ROTATION_DEGREES = 15
+BRIGHTNESS = 0.2
+SATURATION = 0.2
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 PLANT_VILLAGE_MEAN = [0.4671, 0.4897, 0.4125]
@@ -12,6 +20,7 @@ NORMALIZATION_STATS = {
     "plant_village": (PLANT_VILLAGE_MEAN, PLANT_VILLAGE_STD),
 }
 
+NO_NORMALIZATION = "none"
 
 def load_subset(fraction, seed):
     """Return a stratified random fraction of the plant_village rows.
@@ -56,18 +65,18 @@ def split(ds, seed, val_frac=0.15, test_frac=0.15):
 def get_normalization_stats(normalize):
     """Return the (mean, std) pair that a normalize setting selects.
 
-    normalize is "imagenet" (or True) or "plant_village". False returns
-    None (no normalising); any other value raises a ValueError.
+    normalize is "imagenet" (or True) or "plant_village". False or "none"
+    returns None (no normalising); any other value raises a ValueError.
     """
-    if normalize is not False:
-        stats = "imagenet" if normalize is True else normalize
-        if stats not in NORMALIZATION_STATS:
-            raise ValueError(
-                f"Invalid normalize {normalize!r}: expected True, False, "
-                "'imagenet' or 'plant_village'"
-            )
-        return NORMALIZATION_STATS[stats]
-    return None
+    if normalize in (False, NO_NORMALIZATION):
+        return None
+    stats = "imagenet" if normalize is True else normalize
+    if stats not in NORMALIZATION_STATS:
+        raise ValueError(
+            f"Invalid normalize {normalize!r}: expected True, False, "
+            "'none', 'imagenet' or 'plant_village'"
+        )
+    return NORMALIZATION_STATS[stats]
 
 
 def make_transforms(image_size, augment=True, normalize=False):
@@ -88,9 +97,9 @@ def make_transforms(image_size, augment=True, normalize=False):
         train_tf = transforms.Compose(
             [
                 transforms.Resize((image_size, image_size)),
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomRotation(15),
-                transforms.ColorJitter(brightness=0.2, saturation=0.2),
+                transforms.RandomHorizontalFlip(p=FLIP_PROBABILITY),
+                transforms.RandomRotation(ROTATION_DEGREES),
+                transforms.ColorJitter(brightness=BRIGHTNESS, saturation=SATURATION),
                 transforms.ToTensor(),
             ]
         )
@@ -106,27 +115,34 @@ def make_transforms(image_size, augment=True, normalize=False):
     return train_tf, eval_tf
 
 
-def make_batch_transform(image_transform):
-    """Return a function that converts a batch of rows with image_transform."""
+class BatchTransform:
+    """Convert a batch of rows with image_transform. Picklable for spawn workers."""
 
-    def transform_batch(batch):
-        """Convert the photos in batch to tensors and keep their labels."""
+    def __init__(self, image_transform):
+        self.image_transform = image_transform
+
+    def __call__(self, batch):
         return {
-            "pixels": [image_transform(img.convert("RGB")) for img in batch["image"]],
+            "pixels": [self.image_transform(img.convert("RGB")) for img in batch["image"]],
             "label": batch["label"],
         }
 
-    return transform_batch
+
+def make_batch_transform(image_transform):
+    """Return a picklable callable that converts a batch of rows with image_transform."""
+    return BatchTransform(image_transform)
 
 
-def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=True,
-                normalize=False):
+def get_loaders(fraction=DEFAULT_FRACTION, image_size=DEFAULT_IMAGE_SIZE,
+                batch_size=DEFAULT_BATCH_SIZE, seed=DEFAULT_SEED, augment=True,
+                normalize=False, num_workers=0):
     """Build the train, validation and test loaders for plant_village.
 
     Return (train_loader, val_loader, test_loader, class_names). Each
     batch is a dict: "pixels" of shape [batch_size, 3, image_size,
     image_size] and "label" of shape [batch_size]. class_names[i] is the
-    name of label i.
+    name of label i. num_workers sets the number of subprocesses used for
+    data loading and defaults to 0.
     """
     rows = load_subset(fraction, seed)
     train, val, test = split(rows, seed)
@@ -136,9 +152,11 @@ def get_loaders(fraction=0.2, image_size=128, batch_size=32, seed=42, augment=Tr
     val.set_transform(make_batch_transform(eval_tf))
     test.set_transform(make_batch_transform(eval_tf))
 
-    train_loader = DataLoader(train, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(val, batch_size=batch_size)
-    test_loader = DataLoader(test, batch_size=batch_size)
+    train_loader = DataLoader(
+        train, batch_size=batch_size, shuffle=True, num_workers=num_workers
+    )
+    val_loader = DataLoader(val, batch_size=batch_size, num_workers=num_workers)
+    test_loader = DataLoader(test, batch_size=batch_size, num_workers=num_workers)
 
     class_names = rows.features["label"].names
 

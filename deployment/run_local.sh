@@ -21,6 +21,5 @@ if ! "$PYTHON" -m scripts.fetch_model_from_clearml; then
 fi
 
 echo "Starting local deployment..."
-echo "URL: http://localhost:8080"
 
 exec "$PYTHON" -m app.app

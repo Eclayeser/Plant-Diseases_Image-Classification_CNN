@@ -6,12 +6,18 @@ from pathlib import Path
 from datetime import datetime
 from leafapp.eval_functions import (
     calculate_metrics_per_loader,
+    save_evaluation_report,
+    calculate_most_confused_pairs,
+    format_most_confused_pairs,
+    collect_misclassified_images,
+)
+from leafapp.eval_plots import (
     plot_and_save_training_curve,
     plot_and_save_confusion_matrix,
-    save_evaluation_report,
+    plot_and_save_misclassified_grid,
 )
 from leafapp.config import ROOT
-from leafapp.data import get_loaders
+from leafapp.data import get_loaders, get_normalization_stats
 from leafapp.checkpoints import load_checkpoint
 from leafapp.tracking import (
     NAMES,
@@ -60,6 +66,37 @@ def parse_args(argv=None):
     return args
 
 
+def format_evaluation_report(
+    checkpoint_path: str | Path,
+    data_type: str,
+    metrics: dict,
+    confused_pairs: list[tuple[int, str, str]],
+    *,
+    curve_path: Path,
+    matrix_path: Path,
+    grid_path: Path,
+) -> str:
+    """Build the text report with diagram paths relative to the project root."""
+    _, per_class_text = metrics["per-class-metrics"]
+    return (
+        f"---   Checkpoint: {checkpoint_path} | Data Set Chosen: {data_type.upper()}   ---\n"
+        f"- Top-1 Accuracy: {metrics['accuracy']}\n"
+        f"- Top-3 Accuracy: {metrics['top-3-accuracy']}\n"
+        f"- Top-5 Accuracy: {metrics['top-5-accuracy']}\n"
+        f"- Macro Precision: {metrics['precision']}\n"
+        f"- Macro Recall: {metrics['recall']}\n"
+        f"- Macro F1: {metrics['f1']}\n"
+        "\n Per-Class Metrics:\n"
+        f"{per_class_text}\n"
+        " Most Confused Pairs (true -> predicted):\n"
+        f"{format_most_confused_pairs(confused_pairs)}\n"
+        "\n==============================   Diagrams   ==============================\n"
+        f" - Training Curve (Historical Metrics): {curve_path.relative_to(ROOT)}\n"
+        f" - Confusion Matrix: {matrix_path.relative_to(ROOT)}\n"
+        f" - Misclassified Images: {grid_path.relative_to(ROOT)}\n"
+    )
+
+
 def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_type, issue_id, task_id, artifact):
     """
     Evaluate a saved checkpoint on the validation or test set.
@@ -81,7 +118,10 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
 
     # load checkpoint info
     model, _, history_metrics, config = load_checkpoint(checkpoint_path)
-    
+
+    # Set default value for num_workers to 0 if not present in config
+    config["data"].setdefault("num_workers", 0)
+
     run_config = {
         "evaluation": {
             "checkpoint": str(requested_checkpoint) if requested_checkpoint is not None else None,
@@ -101,7 +141,7 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
         extra=[f"@split:{data_type}"]
     )
 
-    task = initialise_task(
+    task, _ = initialise_task(
         config=run_config, 
         project_name=PROJECT_NAME, 
         task_name=f"{config['model']['type']} - {checkpoint_name} - {data_type}", 
@@ -117,6 +157,7 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
             batch_size=config["data"]["batch_size"],
             seed=config["seed"],
             normalize=config["data"].get("normalize", False),
+            num_workers=config["data"].get("num_workers", 0)
         )
     loaders = {"validation": val_loader, "test": test_loader}
     target_data = loaders[data_type]
@@ -144,38 +185,59 @@ def main(checkpoint_path: str | Path | None, data_type: str, responsible, run_ty
         )
 
     log_final_metrics(logger, overall_metrics)
+    
+    confused_pairs = calculate_most_confused_pairs(
+        cm=overall_metrics["confusion-matrix"],
+        class_names=class_names,
+    )
+    
+    wanted_pairs = set()
+    for _, true_name, predicted_name in confused_pairs:
+        true_class = class_names.index(true_name)
+        guessed_class = class_names.index(predicted_name)
+        wanted_pairs.add((true_class, guessed_class))
+    
+    misclassified = collect_misclassified_images(
+        model=model,
+        loader=target_data,
+        device=device,
+        wanted_pairs=wanted_pairs,
+    )
+
+    stats = get_normalization_stats(config["data"].get("normalize", False))
+    mean, std = stats if stats is not None else (None, None)
 
     # plot and save diagrams
     run_name = f"{checkpoint_name}_{data_type}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     curve_path = DIAGRAMS_DIR / f"{run_name}_training_curve.png"
     matrix_path = DIAGRAMS_DIR / f"{run_name}_confusion_matrix.png"
+    grid_path = DIAGRAMS_DIR / f"{run_name}_misclassified_grid.png"
+
 
     plot_and_save_training_curve(history_metrics, curve_path)
     plot_and_save_confusion_matrix(overall_metrics["confusion-matrix"], class_names, matrix_path)
+    plot_and_save_misclassified_grid(
+        misclassified=misclassified,
+        class_names=class_names,
+        plot_path=grid_path,
+        mean=mean,
+        std=std,
+    )
+
 
     # save written report
     report_path = REPORTS_DIR / f"{run_name}_report.txt"
-    report = (
-            f"---   Checkpoint: {checkpoint_path} | Data Set Chosen: {data_type.upper()}   ---\n"
-            f"- Top-1 Accuracy: {overall_metrics['accuracy']}\n"
-            f"- Top-3 Accuracy: {overall_metrics['top-3-accuracy']}\n"
-            f"- Top-5 Accuracy: {overall_metrics['top-5-accuracy']}\n"
-            f"- Macro Precision: {overall_metrics['precision']}\n"
-            f"- Macro Recall: {overall_metrics['recall']}\n"
-            f"- Macro F1: {overall_metrics['f1']}\n"
-            f"\n"
-            f" Per-Class Metrics:\n"
-            f"{overall_metrics['per-class-metrics'][1]}"    # [1] is to_print version / [0] is a dict
-            f"\n"
-            f"==============================   Diagrams   ==============================\n"
-            f" - Training Curve (Historical Metrics): {curve_path.relative_to(ROOT)}\n"
-            f" - Confusion Matrix: {matrix_path.relative_to(ROOT)}"
-        )
+    report = format_evaluation_report(
+        checkpoint_path, data_type, overall_metrics, confused_pairs,
+        curve_path=curve_path, matrix_path=matrix_path, grid_path=grid_path,
+    )
 
     save_evaluation_report(report, report_path)
     print(f"Saved evaluation report to {report_path.relative_to(ROOT)}")
 
     log_image(logger, "evaluation", "confusion_matrix", matrix_path)
+    log_image(logger, "evaluation", "misclassified_grid", grid_path)
+
     if curve_path.is_file():
         log_image(logger, "evaluation", "training_curve", curve_path)
     upload_file(task, report_path, "evaluation_report")

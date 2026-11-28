@@ -1,8 +1,9 @@
-"""Shared evaluation functions: metrics calculations and plotting"""
+"""Shared evaluation metrics and error analysis."""
 
 from typing import Any
 from pathlib import Path
 from sklearn.metrics import (
+    
     f1_score,
     accuracy_score,
     precision_score,
@@ -14,8 +15,6 @@ import numpy as np
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
-import seaborn
 
 from leafapp.config import ROOT
 
@@ -53,6 +52,33 @@ def calculate_confusion_matrix(true_labels, predicted_labels, labels_pool: list[
     return cm
 
 
+def calculate_most_confused_pairs(cm, class_names, top_k=5) -> list[tuple[int, str, str]]:
+    """
+    List the most common mistakes in a confusion matrix, biggest first.
+
+    cm has true classes as rows and predicted classes as columns. Each record is
+    (count, true class, predicted class), so the direction of a mistake is kept:
+    Correct predictions (the diagonal) and empty cells are skipped, and at most
+    top_k records are returned.
+    """
+    out = []
+    n = len(cm)
+    for row in range(n):
+        for col in range(n):
+            num = int(cm[row][col])
+            if col != row and num > 0:
+                out.append((num, class_names[row], class_names[col]))
+    
+    return sorted(out, reverse=True)[:top_k]
+
+
+def format_most_confused_pairs(pairs) -> str:
+    confused_pair_lines = []
+    for count, true_name, predicted_name in pairs:
+        confused_pair_lines.append(f" - {true_name} -> {predicted_name}: {count}")
+    return "\n".join(confused_pair_lines)
+
+    
 def calculate_top_k_accuracy(true_labels, logits, k: int) -> float:
     """
     Fraction of samples whose true class is among the k highest logits.
@@ -182,94 +208,32 @@ def calculate_metrics_per_loader(
 
     return final_metrics
 
-
-# --- Plotting Functions ----
-
-def plot_and_save_training_curve(
-        history_metrics: dict[str, dict[str, list[float]]],
-        plot_path: str | Path,
-        exclude_metrics: list[str]|None = None,
-        exclude_run_types: list[str]|None = None,
-        show: bool = False
-    ) -> None:
-    """
-    Plot per-epoch historical metrics, one subplot per metric, and save the figure.
-    """
-    exclude_metrics = exclude_metrics or []
-    exclude_run_types = exclude_run_types or []
+def collect_misclassified_images(model, loader, device, wanted_pairs, max_images=16):
+    if max_images < 0:
+        raise ValueError(f"max_images must be 0 or more, got {max_images}")
+    if max_images == 0 or not wanted_pairs:
+        return []
     
-
-    metrics_to_plot = {
-        name: runs for name, runs in history_metrics.items() if name not in exclude_metrics
-    }
-    if not metrics_to_plot:
-        return
-
-
-    fig, axes = plt.subplots(1, len(metrics_to_plot), figsize=(12, 4), squeeze=False)
-    i = 0
-    axes = axes[0]
-
-    for metric_name, metrics in metrics_to_plot.items():
-        for run_type in metrics.keys():
-            if run_type in exclude_run_types:
-                continue
-
-            metrics_array = metrics[run_type]
-            epochs = range(1, len(metrics_array) + 1)
-            axes[i].plot(epochs, metrics_array, label=run_type.capitalize())
-        
-        axes[i].set_title(f"CNN {metric_name.capitalize()}")
-        axes[i].set_xlabel("Epoch")
-        axes[i].set_ylabel(f"{metric_name.capitalize()}")
-        axes[i].legend()
-        axes[i].grid(alpha=0.3)
-
-        i += 1
-
-    plt.tight_layout()
-
-    # save
-    plot_path = ROOT / plot_path
-    plot_path.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(plot_path, dpi=150, bbox_inches="tight")
-
-    if show:
-        plt.show()
-    plt.close()
-
-def plot_and_save_confusion_matrix(
-        confusion_matrix: np.ndarray,
-        class_names: list[str],
-        plot_path: str | Path,
-        show: bool = False
-    ) -> None:
-    plt.figure(figsize=(20, 17))
-
-    seaborn.heatmap(
-        confusion_matrix,
-        annot=True,
-        fmt="d",
-        cmap="Blues",
-        xticklabels=class_names,
-        yticklabels=class_names
-    )
-
-    plt.xlabel("Predicted Label")
-    plt.ylabel("Actual Label")
-    plt.title("CNN Confusion Matrix")
-
-    plt.xticks(rotation=60, ha="right")
-    plt.tight_layout()
-
-    # save
-    plot_path = ROOT / plot_path
-    plot_path.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(plot_path, dpi=150, bbox_inches="tight")
-
-    if show:
-        plt.show()
-    plt.close()
+    model.eval()
+    misclassified = []
+    with torch.no_grad():
+        for batch in loader:
+            images, labels = batch["pixels"], batch["label"]
+            images, labels = images.to(device), labels.to(device)
+            logits = model(images)
+            predictions = logits.argmax(dim=1)
+            wrong = predictions != labels
+            
+            for image, true_label, predicted_label in zip(
+                images[wrong], labels[wrong], predictions[wrong]
+            ):
+                true_class, guessed_class = int(true_label), int(predicted_label)
+                if (true_class, guessed_class) in wanted_pairs:
+                    misclassified.append((image.cpu(), true_class, guessed_class))
+                    if len(misclassified) == max_images:
+                        return misclassified
+                
+    return misclassified
 
 
 def save_evaluation_report(written_report: str, report_path: str|Path) -> None:
