@@ -557,3 +557,8 @@ Approximate share of AI-generated code: 60%.
 - Configs written by me; Claude helped plan the production phase (the selection rule fixed before the runs).
 - I ran the training, evaluation and ONNX export, and chose the models to publish; Claude read the results from the checkpoints and reports and drafted the write-up and PR description, which I reviewed and edited.
 - Approximate share of AI-generated code: 0% (configs); approximate share of AI-generated text: 50% (write-up).
+
+## documents/requirements_and_success_criteria.md (SGP-89, Illia Putintsev)
+
+- Claude helped plan the structure and drafted the text from our results and the lecture material. I decided the final thresholds and what to include, and reviewed the text over several rounds of revisions.
+- Approximate share of AI-generated text: 70%
