@@ -23,13 +23,39 @@ A web app that identifies plant diseases from a photo of a leaf. It shows the fi
 
 ### Final models
 
-| Model | ClearML model ID | Training task |
-|---|---|---|
-| Wider+Deeper CNN (seed 45) | `<MODEL_ID>` | <link> |
-| Wider CNN (seed 44) | `<MODEL_ID>` | <link> |
-| ResNet18, transfer learning (seed 44) | `<MODEL_ID>` | <link> |
+| Model | ClearML model ID | Training task | Write-up |
+|---|---|---|---|
+| Wider+Deeper CNN (seed 45) | `e10c56f879504f13837d47965be973f3` | `f7139668aca54192892ad23dbe6c5b87` | [SGP-81](documents/experiments/SGP-81/sgp81_final_production_runs.md) |
+| Wider CNN (seed 44) | `3fd958c7abcf45af8a420609d8862d94` | `6c0a69e2d95f4a839db41b10a401ac7b` | [SGP-81](documents/experiments/SGP-81/sgp81_final_production_runs.md) |
+| ResNet18, transfer learning (seed 44) | `b42092f277924c0a83afebe689dfdb5f` | `23edd3eb3f8e436aacbeeef0bbc1775c` | [SGP-69](documents/experiments/SGP-69/sgp69_resnet18_full_data.md) |
 
 The model used by the app is pinned in [`deployment/model.lock.json`](deployment/model.lock.json).
+
+## Documentation
+
+| Document | What it contains |
+|---|---|
+| [`documents/architecture.md`](documents/architecture.md) | Architecture diagram, repository layout and how the components connect |
+| [`documents/testing.md`](documents/testing.md) | Test strategy: what is tested at which level and why |
+| [`documents/experiments/`](documents/experiments/) | One write-up per experiment, named by Linear issue, with results and ClearML links |
+| [`documents/meetings/`](documents/meetings/) | Summaries of the team meetings |
+| [`deployment/LOCAL_DEPLOYMENT.md`](deployment/LOCAL_DEPLOYMENT.md) | Detailed guide to running the app locally |
+| [`app/about_models.md`](app/about_models.md) | Intended use and limitations, shown in the app's "Read more" panel |
+| [`AI_USE.md`](AI_USE.md) | AI use declared per file and change |
+
+## Codebase
+
+| Path | Purpose |
+|---|---|
+| `train.py`, `evaluate.py` | Entry points for training a model from a config and evaluating a checkpoint |
+| `leafapp/` | Shared library: data pipeline, models, training helpers, evaluation, ClearML tracking and ONNX inference |
+| `configs/` | YAML configs for every training run (data, model and hyperparameters) |
+| `app/` | Gradio web app (single image and batch prediction) |
+| `scripts/` | ONNX export, model download from ClearML, example images |
+| `deployment/`, `render.yaml` | Model pinned for deployment, local run scripts and the Render configuration |
+| `tests/`, `.github/workflows/` | Pytest suite and CI (`tests.yml`, `deploy-check.yml`) |
+
+See [`documents/architecture.md`](documents/architecture.md) for how these parts connect.
 
 ## Tools
 
