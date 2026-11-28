@@ -3,22 +3,22 @@ import torch
 from leafapp.models.cnn import BasicCNN
 from leafapp.models.regularised_cnn import RegularisedCNN
 from leafapp.model_constructor import build_model
+from tests.shared_helpers import FAKE_CLASS_NAMES, FAKE_IMAGE_SIZE
 
-DATA_SPECS = {"image_size": 32}
-CLASS_NAMES = ["a", "b", "c"]
+DATA_SPECS = {"image_size": FAKE_IMAGE_SIZE}
 
 
 def test_build_model_returns_basiccnn():
     settings = {"type": "BasicCNN", "channels": [8, 16]}
-    model = build_model(settings, DATA_SPECS, CLASS_NAMES)
+    model = build_model(settings, DATA_SPECS, FAKE_CLASS_NAMES)
     assert isinstance(model, BasicCNN), "BasicCNN type should build a BasicCNN"
 
 
 def test_build_model_uses_config_values():
     settings = {"type": "BasicCNN", "channels": [8, 16]}
-    model = build_model(settings, DATA_SPECS, CLASS_NAMES)
-    x = torch.randn(2, 3, 32, 32)
-    assert model(x).shape == (2, len(CLASS_NAMES)), "Output size should match the number of classes"
+    model = build_model(settings, DATA_SPECS, FAKE_CLASS_NAMES)
+    x = torch.randn(2, 3, FAKE_IMAGE_SIZE, FAKE_IMAGE_SIZE)
+    assert model(x).shape == (2, len(FAKE_CLASS_NAMES)), "Output size should match the number of classes"
     assert len(model.features) == 2, "Should build one conv block per channel entry"
 
 
@@ -29,7 +29,7 @@ def test_build_model_uses_configured_dropout_in_regularised_cnn():
         "regularisation": "dropout",
         "dropout_p": 0.4,
     }
-    model = build_model(settings, DATA_SPECS, CLASS_NAMES)
+    model = build_model(settings, DATA_SPECS, FAKE_CLASS_NAMES)
 
     assert isinstance(model, RegularisedCNN)
     probabilities = [layer.p for layer in model.modules() if isinstance(layer, torch.nn.Dropout2d)]
@@ -38,16 +38,16 @@ def test_build_model_uses_configured_dropout_in_regularised_cnn():
 
 def test_build_model_missing_type_raises():
     with pytest.raises(ValueError, match="model type"):
-        build_model({"channels": [8]}, DATA_SPECS, CLASS_NAMES)
+        build_model({"channels": [8]}, DATA_SPECS, FAKE_CLASS_NAMES)
 
 
 def test_build_model_unknown_type_raises():
     with pytest.raises(ValueError, match="NotAModel"):
-        build_model({"type": "NotAModel", "channels": [8]}, DATA_SPECS, CLASS_NAMES)
+        build_model({"type": "NotAModel", "channels": [8]}, DATA_SPECS, FAKE_CLASS_NAMES)
 
 
 def test_build_model_reads_pooling_from_config():
     settings = {"type": "BasicCNN", "channels": [8, 16], "pooling": "avg"}
-    model = build_model(settings, DATA_SPECS, CLASS_NAMES)
+    model = build_model(settings, DATA_SPECS, FAKE_CLASS_NAMES)
 
     assert model.head[-1].in_features == 16, "build_model should use the pooling setting from the config"
