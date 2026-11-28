@@ -1,4 +1,17 @@
-
 {
-  "model_id": "47c214ed36eb41c3bcedf80beadfd3a6"
+  "model_id": "b42092f277924c0a83afebe689dfdb5f",
+  "models": [
+    {
+      "name": "ResNet18",
+      "model_id": "b42092f277924c0a83afebe689dfdb5f"
+    },
+    {
+      "name": "Wider+Deeper",
+      "model_id": "e10c56f879504f13837d47965be973f3"
+    },
+    {
+      "name": "Wider",
+      "model_id": "3fd958c7abcf45af8a420609d8862d94"
+    }
+  ]
 }
