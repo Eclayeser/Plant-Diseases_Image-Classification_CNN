@@ -170,11 +170,21 @@ python evaluate.py --task-id <training task ID> --artifact final_checkpoint --re
 
 ## Running ClearML
 
-The ClearML WebUI records experiments in the form of tasks.
-Each task:
-- Logs training and validation metrics at every epoch
-- Saves the lowest-validation-loss checkpoint alongside the final checkpoint
-- Uploads both as ClearML artifacts
+Every training and evaluation run is recorded as a task in ClearML: metrics for each epoch, the best and final checkpoints, plots and reports. The team shares one account; tasks are in Pumpkin Jr's workspace, in the `Plant-Disease-Image-Classification` project, which is created automatically on the first run.
+
+### Setting up
+
+`clearml` is installed with `requirements.txt`. Run:
+
+```bash
+clearml-init
+```
+
+and paste the API credentials from the ClearML WebUI (Profile Settings > Workspace > Create new credentials). If you have run it before, edit `access_key` and `secret_key` in `~/clearml.conf` (Windows: `C:\Users\<username>\clearml.conf`) instead.
+
+### Tags
+
+Each task is tagged with `@run-type:<type>`, `@model:<model type>` and `@responsible:<name>`, plus `@issue:<id>` when `--issue-id` is given. Training tasks also get `@config-name:<config name>`, and evaluation tasks get `@task-type:evaluate.py` and `@split:<split>`. Filter the task list by these tags, e.g. `@run-type:production` for the final runs.
 
 ### Setting up
 
@@ -217,14 +227,10 @@ Every logged task in "Tasks List" has the following tabs: "Exection", "Configura
 
 ```bash
 python -m pytest tests/
+python -m pytest tests/ --cov --cov-report=term-missing   # also shows line coverage of leafapp/ and app/
 ```
 
-To also see which lines of `leafapp` and `app` are covered by the tests:
-
-```bash
-python -m pytest tests/ --cov --cov-report=term-missing
-```
-The coverage settings are in `pyproject.toml`.
+See [`documents/testing.md`](documents/testing.md) for what is tested at each level and why.
 
 ## Deployment
 
@@ -258,7 +264,7 @@ Live at: https://plant-disease-classifier-4r08.onrender.com
 - A merge to `main` redeploys the app once the `tests` and `deploy-check`
   workflows pass, but only if it changes files outside the build filter in
   `render.yaml`. Merges that only change Markdown files, `documents/`,
-  `notebooks/`, `configs/` or `tests/` don't redeploy.
+  `configs/` or `tests/` don't redeploy.
 - Render installs `requirements-deploy.txt` (no torch), downloads the pinned
   model and runs `python -m app.app`. The configuration is in `render.yaml`.
 - If a build fails, the previous version stays live.
