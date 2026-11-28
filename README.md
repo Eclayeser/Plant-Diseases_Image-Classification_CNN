@@ -186,42 +186,6 @@ and paste the API credentials from the ClearML WebUI (Profile Settings > Workspa
 
 Each task is tagged with `@run-type:<type>`, `@model:<model type>` and `@responsible:<name>`, plus `@issue:<id>` when `--issue-id` is given. Training tasks also get `@config-name:<config name>`, and evaluation tasks get `@task-type:evaluate.py` and `@split:<split>`. Filter the task list by these tags, e.g. `@run-type:production` for the final runs.
 
-### Setting up
-
-A ClearML server is assumed to be accessible and `clearml` should already be installed in the virtual environment from `requirements.txt` during initial setup.
-
-#### ClearML initialisation
-```
-clearml-init
-```
-Paste the API credentials generated in the ClearML WebUI: Profile Settings > Workspace > Create new credentials
-
-If the initialisation command above has already been run previously, edit the ClearML configuration file that already exists.
-
-##### To edit the ClearML configuration file:
-1. Open the configuration file:
-    - Linux - `~/clearml.conf`
-    - Mac - `$HOME/clearml.conf`
-    - Windows - `\User\<username>\clearml.conf`
-
-2. Modify the `access_key` and `secret_key` fields respectively with the generated API credentials.
-3. Save configuration file.
-
-### For collaborators
-
-A shared ClearML account will be used with identical API credentials.
-
-Tasks run inside Pumpkin Jr's workspace within the project `Plant-Disease-Image-Classification`
-
-### Interface
-
-After running the training a new task should appear to the left inside the `Plant-Disease-Image-Classification` project (a new project with this name should be created automatically).
-
-The default configuration will run 5 iterations, saves a best and final checkpoint, and exits after successfully completing a task.
-
-Each task is tagged automatically with `@run-type:<type>`, `@model:<model type>` and `@responsible:<name>`, plus `@issue:<id>` when `--issue-id` is given. Training tasks also get `@config-name:<config file name without extension>`, and evaluation tasks get `@task-type:evaluate.py` and `@split:<split>`. Use these tags to filter the "Tasks List", e.g. filter by `@run-type:production` to see only the official runs.
-
-Every logged task in "Tasks List" has the following tabs: "Exection", "Configuration", "Artifacts", "Info", "Console", "Scalars", "Plots" and "Debug samples".
 
 ## Running the tests
 
