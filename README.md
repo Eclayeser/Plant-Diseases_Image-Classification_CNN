@@ -1,14 +1,35 @@
-# Plant-Diseases_Image-Classification_CNN
+# Plant Disease Classification
 
-Our aim is to classify plant diseases from leaf images using a PyTorch CNN and a Gradio interface.
-The repository currently contains a project skeleton, with purpose comments to guide future implementation.
+A web app that identifies plant diseases from a photo of a leaf. It shows the five most likely of 39 classes (26 diseases, 12 healthy leaf types and photos without a leaf, across 14 crops), using a CNN trained from scratch in PyTorch and a ResNet18 transfer-learning model, served with Gradio.
 
-Shared Python code belongs in `leafapp/`, the interface in `app/`, and configuration files in `configs/`.
-The `train.py` and `evaluate.py` files are entry points for training and evaluating the model.
-The `notebooks/`, `tests/`, and `documents/` folders hold exploratory work, automated checks, and project documentation.
+## Team
 
-The prototype and final product will share the same codebase.
-Prototype settings will be kept in `configs/prototype.yaml`, and ClearML tags will identify prototype runs.
+**Team Pumpkin Jr**: 7 members (5CCSAMLF Small Group Project, King's College London)
+
+| Name | GitHub |
+|---|---|
+| Mark Tarnavskyi | [Eclayeser](https://github.com/Eclayeser) |
+| Pranay Singh | [Amiri05](https://github.com/Amiri05) |
+| Illia Putintsev | [illiaputintsev](https://github.com/illiaputintsev) |
+| Javier Fimia | [JaviF96](https://github.com/JaviF96) |
+| Reon Carroll-Ito | [ReoMaxx](https://github.com/ReoMaxx) |
+| Gul Nil Kayalioglu | [nilkayalioglu](https://github.com/nilkayalioglu) |
+| Mario Westphalen Cavicchioli | [MarioCavicchioli](https://github.com/MarioCavicchioli) |
+
+## Links
+
+- **Repository:** https://github.com/Eclayeser/Plant-Diseases_Image-Classification_CNN
+- **Live app:** https://plant-disease-classifier-4r08.onrender.com (free tier: the first visit after 15 idle minutes takes about a minute)
+
+### Final models
+
+| Model | ClearML model ID | Training task |
+|---|---|---|
+| Wider+Deeper CNN (seed 45) | `<MODEL_ID>` | <link> |
+| Wider CNN (seed 44) | `<MODEL_ID>` | <link> |
+| ResNet18, transfer learning (seed 44) | `<MODEL_ID>` | <link> |
+
+The model used by the app is pinned in [`deployment/model.lock.json`](deployment/model.lock.json).
 
 ## Tools
 
@@ -192,7 +213,7 @@ the [Local Deployment Guide](deployment/LOCAL_DEPLOYMENT.md).
 
 ### Option 2: Cloud on Render (SGP-49)
 
-Live at: *(URL added once the Render service is created)*
+Live at: https://plant-disease-classifier-4r08.onrender.com
 
 - A merge to `main` redeploys the app once the `tests` and `deploy-check`
   workflows pass, but only if it changes files outside the build filter in
