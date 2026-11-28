@@ -557,3 +557,9 @@ Approximate share of AI-generated code: 60%.
 - Configs written by me; Claude helped plan the production phase (the selection rule fixed before the runs).
 - I ran the training, evaluation and ONNX export, and chose the models to publish; Claude read the results from the checkpoints and reports and drafted the write-up and PR description, which I reviewed and edited.
 - Approximate share of AI-generated code: 0% (configs); approximate share of AI-generated text: 50% (write-up).
+
+## README.md (SGP-62, Gul Nil Kayalioglu)
+- I suggested the new README structure and wrote the initial wording for the Team, Links, Final Models, Documentation, Codebase and Tools sections. I also shortened the Training, ClearML and Testing sections. Claude helped me improve the wording, remove repeated information and make the README more concise while keeping the important details.
+- I collected the team details and the Render URL, checked the model and task IDs against the experiment write-ups and the ClearML Models tab, and tested every ClearML link.
+- I reviewed the README myself, identified and fixed several issues, and checked that it met the submission requirements.
+- Approximate share of AI-generated text: 40%
