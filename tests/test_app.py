@@ -83,6 +83,32 @@ def run_app_main(monkeypatch):
     runpy.run_module("app.app", run_name="__main__")
 
 
+def run_app_with_fake_model(monkeypatch):
+    """Run the app with FakeClassifier and return what it was launched with instead of serving it.
+
+    The launched app itself is stored under "demo".
+    """
+    launched = {}
+    monkeypatch.setattr(LeafClassifier, "from_dir", classmethod(lambda cls, model_dir: FakeClassifier(PREDICTIONS)))
+    monkeypatch.setattr(gr.Blocks, "launch", lambda self, **kwargs: launched.update(kwargs, demo=self))
+    run_app_main(monkeypatch)
+    return launched
+
+
+def save_leaf_image(folder, name):
+    """Save a small green image and return its path."""
+    path = folder / name
+    Image.new("RGB", (64, 64), "green").save(path)
+    return path
+
+
+def write_broken_image(folder, name):
+    """Write a file with an image name that isn't an image and return its path."""
+    path = folder / name
+    path.write_bytes(b"not an image")
+    return path
+
+
 def test_main_fails_without_model(tmp_path, monkeypatch):
     """Without a fetched model, the app stops at startup instead of serving errors."""
     monkeypatch.setattr(leafapp.config, "MODEL_DIR", tmp_path)
@@ -93,12 +119,9 @@ def test_main_fails_without_model(tmp_path, monkeypatch):
 
 def test_main_launches_on_port_env(monkeypatch):
     """The app listens on $PORT (set by Render) and limits upload size."""
-    launched = {}
-    monkeypatch.setattr(LeafClassifier, "from_dir", classmethod(lambda cls, model_dir: FakeClassifier(PREDICTIONS)))
-    monkeypatch.setattr(gr.Blocks, "launch", lambda self, **kwargs: launched.update(kwargs))
     monkeypatch.setenv("PORT", "10000")
 
-    run_app_main(monkeypatch)
+    launched = run_app_with_fake_model(monkeypatch)
 
     assert launched["server_port"] == 10000
     assert launched["max_file_size"] == "10mb"
@@ -106,12 +129,9 @@ def test_main_launches_on_port_env(monkeypatch):
 
 def test_main_default_port(monkeypatch):
     """Without $PORT, the app listens on 8080 as in the local deployment docs."""
-    launched = {}
-    monkeypatch.setattr(LeafClassifier, "from_dir", classmethod(lambda cls, model_dir: FakeClassifier(PREDICTIONS)))
-    monkeypatch.setattr(gr.Blocks, "launch", lambda self, **kwargs: launched.update(kwargs))
     monkeypatch.delenv("PORT", raising=False)
 
-    run_app_main(monkeypatch)
+    launched = run_app_with_fake_model(monkeypatch)
 
     assert launched["server_port"] == 8080
 
@@ -195,8 +215,7 @@ def test_predict_has_no_warning_for_a_leaf():
 
 def test_unreadable_file_shows_a_clear_error(tmp_path):
     """A file that isn't a readable image gives a clear message instead of a generic error."""
-    broken = tmp_path / "broken.jpg"
-    broken.write_bytes(b"not an image")
+    broken = write_broken_image(tmp_path, "broken.jpg")
     demo = build_ui(FakeClassifier(PREDICTIONS))
 
     with pytest.raises(gr.Error, match="Couldn't read this file"):
@@ -233,23 +252,14 @@ def test_image_input_uses_the_normal_image_box():
 
 def test_main_adds_the_app_styles(monkeypatch):
     """The app is launched with the styles for the AI note and the Read more button."""
-    launched = {}
-    monkeypatch.setattr(LeafClassifier, "from_dir", classmethod(lambda cls, model_dir: FakeClassifier(PREDICTIONS)))
-    monkeypatch.setattr(gr.Blocks, "launch", lambda self, **kwargs: launched.update(kwargs))
-
-    run_app_main(monkeypatch)
+    launched = run_app_with_fake_model(monkeypatch)
 
     assert ".about-models summary" in launched["css"]
 
 
 def test_predict_batch_returns_one_row_per_image(tmp_path):
     """Each uploaded image gets its file name, top prediction and confidence."""
-    paths = []
-
-    for name in ["leaf1.jpg", "leaf2.jpg"]:
-        path = tmp_path / name
-        Image.new("RGB", (64, 64), "green").save(path)
-        paths.append(str(path))
+    paths = [str(save_leaf_image(tmp_path, name)) for name in ["leaf1.jpg", "leaf2.jpg"]]
 
     rows = predict_batch(FakeClassifier(PREDICTIONS), paths)
 
@@ -261,11 +271,8 @@ def test_predict_batch_returns_one_row_per_image(tmp_path):
 
 def test_predict_batch_skips_unreadable_files(tmp_path):
     """A broken file gets an error row instead of stopping the whole batch."""
-    broken = tmp_path / "broken.jpg"
-    broken.write_text("not an image")
-
-    good = tmp_path / "good.jpg"
-    Image.new("RGB", (64, 64), "green").save(good)
+    broken = write_broken_image(tmp_path, "broken.jpg")
+    good = save_leaf_image(tmp_path, "good.jpg")
 
     rows = predict_batch(
         FakeClassifier(PREDICTIONS),
@@ -286,9 +293,7 @@ def test_predict_batch_without_files():
 def test_build_batch_ui_returns_interface(tmp_path):
     """The batch tab takes several files and shows the predictions in a table."""
     demo = build_batch_ui(FakeClassifier(PREDICTIONS))
-
-    path = tmp_path / "leaf.jpg"
-    Image.new("RGB", (64, 64), "green").save(path)
+    path = save_leaf_image(tmp_path, "leaf.jpg")
 
     assert isinstance(demo, gr.Interface)
     assert isinstance(demo.input_components[0], gr.File)
@@ -303,23 +308,7 @@ def test_build_batch_ui_returns_interface(tmp_path):
 
 def test_main_shows_single_and_batch_tabs(monkeypatch):
     """The app has one tab for a single image and one for many images."""
-    launched = {}
-
-    monkeypatch.setattr(
-        LeafClassifier,
-        "from_dir",
-        classmethod(lambda cls, model_dir: FakeClassifier(PREDICTIONS))
-    )
-
-    monkeypatch.setattr(
-        gr.Blocks,
-        "launch",
-        lambda self, **kwargs: launched.update(demo=self, delete_cache=self.delete_cache, title=self.title)
-    )
-
-    run_app_main(monkeypatch)
-
-    demo = launched["demo"]
+    demo = run_app_with_fake_model(monkeypatch)["demo"]
     assert isinstance(demo, gr.TabbedInterface)
 
     tabs = demo.children[0].children
@@ -327,15 +316,14 @@ def test_main_shows_single_and_batch_tabs(monkeypatch):
     assert len(tabs) == 2
     assert tabs[0].label == "Single image"
     assert tabs[1].label == "Batch prediction"
-    assert launched["delete_cache"] == (600, 600)
-    assert launched["title"] == APP_TITLE
+    assert demo.delete_cache == (600, 600)
+    assert demo.title == APP_TITLE
 
 
 def test_predict_batch_skips_files_pillow_cannot_parse(tmp_path, monkeypatch):
     """Some broken PNGs make Pillow raise ValueError instead of OSError."""
-    good = tmp_path / "good.jpg"
+    good = save_leaf_image(tmp_path, "good.jpg")
     bad = tmp_path / "bad.png"
-    Image.new("RGB", (64, 64), "green").save(good)
 
     real_open = Image.open
 

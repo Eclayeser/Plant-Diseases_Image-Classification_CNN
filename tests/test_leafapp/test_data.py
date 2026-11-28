@@ -1,8 +1,50 @@
-from datasets import ClassLabel, Dataset
+from collections import Counter
+
+from datasets import ClassLabel, Dataset, Features, Value
+from datasets import Image as ImageFeature
 from PIL import Image
 import torch
-from leafapp.data import make_batch_transform, make_transforms, split, get_normalization_stats
+from torch.utils.data import RandomSampler, SequentialSampler
+from leafapp import data
+from leafapp.data import (
+    get_loaders,
+    get_normalization_stats,
+    load_subset,
+    make_batch_transform,
+    make_transforms,
+    split,
+)
+from tests.shared_helpers import FAKE_CLASS_NAMES, FAKE_IMAGE_SIZE
 import pytest
+
+# A small one-colour photo for the normalisation tests.
+SMALL_PHOTO = Image.new("RGB", (8, 8), color=(102, 204, 51))
+FAKE_ROW_COUNT = 100
+
+
+def first_pixel(transform):
+    """The 3 channel values of the top-left pixel after the transform."""
+    return transform(SMALL_PHOTO)[:, 0, 0]
+
+
+@pytest.fixture
+def fake_plant_village(monkeypatch):
+    """Make load_dataset return a tiny balanced dataset instead of downloading plant_village."""
+    features = Features({
+        "id": Value("int64"),
+        "image": ImageFeature(),
+        "label": ClassLabel(names=FAKE_CLASS_NAMES),
+    })
+    rows = Dataset.from_dict(
+        {
+            "id": list(range(FAKE_ROW_COUNT)),
+            "image": [SMALL_PHOTO] * FAKE_ROW_COUNT,
+            "label": [i % len(FAKE_CLASS_NAMES) for i in range(FAKE_ROW_COUNT)],
+        },
+        features=features,
+    )
+    monkeypatch.setattr(data, "load_dataset", lambda name, split: rows)
+    return rows
 
 
 def test_transforms_give_right_shape_and_range():
@@ -58,29 +100,26 @@ def test_split_sizes_no_overlap_and_all_labels():
 
 def test_normalize_is_applied_once_without_augment():
     """With augment off, train_tf and eval_tf normalise the photo exactly once."""
-    photo = Image.new("RGB", (8, 8), color=(102, 204, 51))
     train_tf, eval_tf = make_transforms(8, augment=False, normalize=True)
-    assert torch.equal(train_tf(photo), eval_tf(photo)), "train_tf and eval_tf differ"
+    assert torch.equal(train_tf(SMALL_PHOTO), eval_tf(SMALL_PHOTO)), "train_tf and eval_tf differ"
     assert torch.allclose(
-        eval_tf(photo)[:, 0, 0], torch.tensor([-0.37, 1.54, -0.92]), atol=0.01
+        first_pixel(eval_tf), torch.tensor([-0.37, 1.54, -0.92]), atol=0.01
     ), "The photo was not normalised exactly once"
 
 
 def test_normalize_off_keeps_totensor_values():
     """The default, normalize=False, leaves ToTensor's 0 to 1 values unchanged."""
-    photo = Image.new("RGB", (8, 8), color=(102, 204, 51))
     _, eval_tf = make_transforms(8)
     assert torch.allclose(
-        eval_tf(photo)[:, 0, 0], torch.tensor([0.4, 0.8, 0.2]), atol=0.01
+        first_pixel(eval_tf), torch.tensor([0.4, 0.8, 0.2]), atol=0.01
     ), "normalize=False should not change the values"
-    
+
 
 def test_normalize_plant_village_uses_own_stats():
     """normalize="plant_village" uses our training split's mean and std."""
-    photo = Image.new("RGB", (8, 8), color=(102, 204, 51))
     _, eval_tf = make_transforms(8, augment=False, normalize="plant_village")
     assert torch.allclose(
-        eval_tf(photo)[:, 0, 0], torch.tensor([-0.35, 1.86, -1.01]), atol=0.01
+        first_pixel(eval_tf), torch.tensor([-0.35, 1.86, -1.01]), atol=0.01
     ), "normalize='plant_village' should use the plant_village mean and std"
 
 
@@ -93,3 +132,41 @@ def test_normalize_rejects_unknown_name(bad_value):
 
 def test_none_string_means_no_normalization():
     assert get_normalization_stats("none") is None
+
+
+@pytest.mark.parametrize("fraction", [0, -0.5, 1.5])
+def test_load_subset_rejects_fraction_outside_zero_to_one(fraction):
+    with pytest.raises(ValueError, match="fraction"):
+        load_subset(fraction, seed=0)
+
+
+def test_load_subset_keeps_each_label_share(fake_plant_village):
+    subset = load_subset(0.5, seed=0)
+
+    per_label = FAKE_ROW_COUNT // 2 // len(FAKE_CLASS_NAMES)
+    assert Counter(list(subset["label"])) == {
+        label: per_label for label in range(len(FAKE_CLASS_NAMES))
+    }, "Every label should keep its share of the dataset"
+
+
+def test_full_fraction_returns_every_row_shuffled(fake_plant_village):
+    rows = load_subset(1, seed=0)
+
+    ids = list(rows["id"])
+    assert sorted(ids) == list(range(FAKE_ROW_COUNT)), "Should keep every row exactly once"
+    assert ids != list(range(FAKE_ROW_COUNT)), "Rows should be shuffled"
+
+
+def test_get_loaders_builds_tensor_batches_and_shuffles_only_training(fake_plant_village):
+    train_loader, val_loader, test_loader, class_names = get_loaders(
+        fraction=1, image_size=FAKE_IMAGE_SIZE, batch_size=4
+    )
+
+    batch = next(iter(train_loader))
+    assert batch["pixels"].shape == (4, 3, FAKE_IMAGE_SIZE, FAKE_IMAGE_SIZE)
+    assert batch["label"].shape == (4,)
+    assert class_names == FAKE_CLASS_NAMES
+    assert [len(loader.dataset) for loader in (train_loader, val_loader, test_loader)] == [70, 15, 15]
+    assert isinstance(train_loader.sampler, RandomSampler), "Training batches should be shuffled"
+    assert isinstance(val_loader.sampler, SequentialSampler)
+    assert isinstance(test_loader.sampler, SequentialSampler)

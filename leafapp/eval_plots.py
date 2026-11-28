@@ -48,7 +48,7 @@ def plot_and_save_misclassified_grid(
         ax.axis("off")
 
     for ax, (image, true_class, guessed_class) in zip(axes.flat, misclassified):
-        ax.imshow(prepare_image_for_plotting(image, mean, std))
+        ax.imshow(prepare_image_for_plotting(image, mean, std).numpy())
         true_name = format_class_name(class_names[true_class])
         predicted_name = format_class_name(class_names[guessed_class])
         ax.set_title(f"true: {true_name}\npred: {predicted_name}", fontsize=8)
