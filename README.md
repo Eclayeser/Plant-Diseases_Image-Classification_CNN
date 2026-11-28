@@ -59,16 +59,30 @@ See [`documents/architecture.md`](documents/architecture.md) for how these parts
 
 ## Tools
 
-Despite the **Technology Stack** used directly for product development, our team uses a range of different software tools to accelerate the speed of our work and improve the code quality.
+### Technology stack
 
-| Tool | Use | Why this tool | How to View |
+| Tool | What we use it for | Why |
+|---|---|---|
+| **PyTorch, torchvision** | Building and training the CNNs and ResNet18; image transforms and augmentation | Standard deep-learning library; pretrained ResNet18 weights available in torchvision |
+| **Hugging Face Datasets** | Loading PlantVillage ([`DScomp380/plant_village`](https://huggingface.co/datasets/DScomp380/plant_village)) | Downloads and caches the dataset, so it never has to be stored in the repository |
+| **ClearML** | Experiment tracking: metrics, plots, checkpoints and the published ONNX models | Every run is recorded with its config and tags, so results can be compared and reproduced; shared workspace for the whole team |
+| **scikit-learn, matplotlib, seaborn** | Evaluation metrics, confusion matrices and plots | Well-tested metric implementations and standard plotting |
+| **ONNX, ONNX Runtime** | Exporting trained models and running them in the app | The app runs without torch, which keeps the deployment small enough for Render's free tier |
+| **Gradio** | The web interface | Builds an interactive ML demo in Python with little code |
+| **Render** | Hosting the live app | Free tier, deploys automatically from `main` |
+| **GitHub Actions** | CI: runs the tests and the deployment check on every push | Catches broken code before it is merged |
+| **pytest, pytest-cov** | Unit, integration and end-to-end tests with coverage | See [`documents/testing.md`](documents/testing.md) |
+
+### Collaboration tools
+
+| Tool | What we use it for | Why | How to view |
 |---|---|---|---|
-| **Linear** | Issue tracking, development cycles management, main project's kanban | Easy to learn and intuitive to use; commonly used across businesses; some team members have previous experience using this tool; free tier available; supports integration with GitHub | Join workspace via a link (cannot be shared publicly since no read-only access available; request one of the team members for access) |
-| **Slack** | Asynchronous team communication (via different dedicated channels) | Free to use; supports integration with Linear; commonly used across businesses; some team memebrs have previous experience using this tool; highly customisable which allows for clear information exchange | N/A |
-| **Discord** | Real-time communication, online meetings | Free to use; all team memebrs have previous experience using this tool; easy and quick to use (including comfortable screen share) | N/A |
-| **Coderabbit AI**| AI-driven code reviews for PRs; integrated as a required check before PR can be merged | Catches bugs early and allows developers to debug quicker without waiting for others to review; provides useful PR summaries; free to use and easy to integrate; common practice across most companies | N/A |
-| **LLMs: Claude, Gemini, Chat-GPT**| Code generation/review, technical brainstorming | Useful assistants across multiple tech stacks; speeds up overall development (crucial for time-constrained project); widely used across most developers | N/A |
-
+| **GitHub** | Code, pull requests and reviews; every PR needs two approvals (CODEOWNERS) | Keeps `main` and `dev` stable and every change reviewed | This repository |
+| **Linear** | Issue tracking, development cycles and the project kanban; synced with GitHub issues | Easy to use, free tier, integrates with GitHub and Slack | Invite link only (no public read-only access); ask a team member |
+| **Slack** | Asynchronous team communication in dedicated channels | Free, integrates with Linear, keeps discussions organised | N/A |
+| **Discord** | Online meetings and screen sharing | Free and familiar to the whole team | N/A |
+| **CodeRabbit** | AI code review on every PR | Catches bugs early and summarises PRs before human review | Comments on each PR |
+| **LLMs (Claude, Gemini, ChatGPT)** | Code suggestions, reviews and brainstorming | Speeds up development; all use is declared in [`AI_USE.md`](AI_USE.md) | N/A |
 
 ## Setup
 
