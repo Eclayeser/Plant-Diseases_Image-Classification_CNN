@@ -29,7 +29,7 @@ A web app that identifies plant diseases from a photo of a leaf. For a single ph
 | Wider CNN (seed 44) | [`3fd958c7abcf45af8a420609d8862d94`](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/models/3fd958c7abcf45af8a420609d8862d94/general) | [`6c0a69e2d95f4a839db41b10a401ac7b`](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/tasks/6c0a69e2d95f4a839db41b10a401ac7b/output/log) | [SGP-81](documents/experiments/SGP-81/sgp81_final_production_runs.md) |
 | ResNet18, transfer learning (seed 44) | [`b42092f277924c0a83afebe689dfdb5f`](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/models/b42092f277924c0a83afebe689dfdb5f/general) | [`23edd3eb3f8e436aacbeeef0bbc1775c`](https://app.clear.ml/projects/93fd565121f041b38b7914098b4df984/tasks/23edd3eb3f8e436aacbeeef0bbc1775c/output/log) | [SGP-69](documents/experiments/SGP-69/sgp69_resnet18_full_data.md) |
 
-The ClearML links need access to Pumpkin Jr's workspace. The live app currently runs the model pinned in [`deployment/model.lock.json`](deployment/model.lock.json). It will be switched to one of the final models above once they are compared on the test set (SGP-92).
+The ClearML links need access to Pumpkin Jr's workspace. The live app runs the model pinned in [`deployment/model.lock.json`](deployment/model.lock.json).
 
 ## Documentation
 
