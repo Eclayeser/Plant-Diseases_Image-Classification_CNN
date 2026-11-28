@@ -33,13 +33,30 @@ jobs:
           fi
       - name: Fetch model from ClearML using model ID in model.lock.json
         run: python -m scripts.fetch_model_from_clearml
-      - name: Check the app loads the model and predicts
+      - name: Check the app loads and predicts with all configured models
         run: |
           python - <<'EOF'
           from PIL import Image
-          from app.app import build_ui
-          from leafapp.predict import LeafClassifier
+          from app.app import build_deployed_ui
+          from leafapp.config import ROOT
+          from leafapp.model_registry import load_model_registry
 
-          demo = build_ui(LeafClassifier.from_dir())
-          print(demo.fn(Image.new("RGB", (300, 200), "green")))
+          registry = load_model_registry(
+              ROOT / "deployment" / "model.lock.json"
+          )
+
+          demo = build_deployed_ui()
+          image = Image.new("RGB", (300, 200), "green")
+          models = registry["models"]
+
+          for model in models:
+              name = model["name"]
+
+              if len(models) == 1:
+                  result = demo.fn(image)
+              else:
+                  result = demo.fn(image, name)
+
+              assert result and "Top 5 Predictions" in result
+              print(f"PASS: {name}")
           EOF
